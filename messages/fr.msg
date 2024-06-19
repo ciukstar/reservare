@@ -1,0 +1,2 @@
+Welcome: Bienvenu
+AppName: Reservare
