@@ -42,6 +42,16 @@ dependencies:
 - case-insensitive
 - wai
 - foreign-store
+- esqueleto
+- wreq
+- yesod-auth-oauth2
+- lens
+- lens-aeson
+- listsafe
+- blaze-html
+- mime-mail
+- base64-bytestring
+- email-validate
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.

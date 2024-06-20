@@ -46,7 +46,7 @@ $doctype 5
 
     <script>
       document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/,'js');
-  <body>
+  <body.background>
   
     ^{pageBody pc}
 

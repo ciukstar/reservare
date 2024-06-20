@@ -1,7 +1,7 @@
 
 <header.primary>
   ^{widgetMenu}
-  <span.md-typescale-headline-medium>
+  <section.md-typescale-title-large>
     _{MsgAppName}
 
   <span.header-end>

@@ -1,0 +1,89 @@
+
+:root, :host
+    --md-sys-color-background: #f4fbfa
+    --md-sys-color-on-background: #161d1d
+    --md-sys-color-surface: #f4fbfa
+    --md-sys-color-surface-dim: #d4dbdb
+    --md-sys-color-surface-bright: #f4fbfa
+    --md-sys-color-surface-container-lowest: #ffffff
+    --md-sys-color-surface-container-low: #eef5f5
+    --md-sys-color-surface-container: #e8efef
+    --md-sys-color-surface-container-high: #e3e9e9
+    --md-sys-color-surface-container-highest: #dde4e4
+    --md-sys-color-on-surface: #161d1d
+    --md-sys-color-surface-variant: #d6e5e6
+    --md-sys-color-on-surface-variant: #3c494a
+    --md-sys-color-inverse-surface: #2b3232
+    --md-sys-color-inverse-on-surface: #ebf2f2
+    --md-sys-color-outline: #6b7a7a
+    --md-sys-color-outline-variant: #bac9ca
+    --md-sys-color-shadow: #000000
+    --md-sys-color-scrim: #000000
+    --md-sys-color-surface-tint: #00696d
+    --md-sys-color-primary: #00696d
+    --md-sys-color-on-primary: #ffffff
+    --md-sys-color-primary-container: #25d4db
+    --md-sys-color-on-primary-container: #00383a
+    --md-sys-color-inverse-primary: #33dbe2
+    --md-sys-color-secondary: #346669
+    --md-sys-color-on-secondary: #ffffff
+    --md-sys-color-secondary-container: #baeef0
+    --md-sys-color-on-secondary-container: #1b5053
+    --md-sys-color-tertiary: #79499f
+    --md-sys-color-on-tertiary: #ffffff
+    --md-sys-color-tertiary-container: #dcadff
+    --md-sys-color-on-tertiary-container: #48166e
+    --md-sys-color-error: #ba1a1a
+    --md-sys-color-on-error: #ffffff
+    --md-sys-color-error-container: #ffdad6
+    --md-sys-color-on-error-container: #410002
+
+    --app-top-appbar-height: 52px
+
+@media screen and (min-width: 768px)
+  header
+    --app-top-appbar-height: 64px
+  main
+    margin-left: 5rem
+    margin-right: 5rem
+
+@media screen and (min-width: 992px)
+  header
+    --app-top-appbar-height: 64px
+  main
+    margin-left: 10rem
+    margin-right: 10rem
+
+@media screen and (min-width: 1200px)
+  header
+    --app-top-appbar-height: 64px
+  main
+    margin-left: 20%
+    margin-right: 20%
+
+@media screen and (min-width: 1400px)
+  header
+    --app-top-appbar-height: 64px
+  main
+    margin-left: 25%
+    margin-right: 25%
+
+
+body
+
+    font-family: Roboto, sans-serif
+
+    margin: 0
+    padding: 0
+
+    .primary
+        background: var(--md-sys-color-primary)
+        color: var(--md-sys-color-on-primary)
+
+    .background
+         color: var(--md-sys-color-on-background)
+         background-color: var(--md-sys-color-background)
+
+    .surface
+        background: var(--md-sys-color-surface)
+        color: var(--md-sys-color-on-surface)

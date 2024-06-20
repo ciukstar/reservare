@@ -32,9 +32,26 @@ ip-from-header: "_env:YESOD_IP_FROM_HEADER:false"
 # See https://github.com/yesodweb/yesod/wiki/Configuration#parsing-numeric-values-as-strings
 
 database:
-  # See config/test-settings.yml for an override during tests
-  database: "_env:YESOD_SQLITE_DATABASE:reservare.sqlite3"
-  poolsize: "_env:YESOD_SQLITE_POOLSIZE:10"
+  database: "_env:YESOD_SQLITE_DATABASE:':memory:'"
+  poolsize: "_env:YESOD_SQLITE_POOLSIZE:1"
+
+connection-pool:
+  stripes:      "_env:YESOD_CONNECTION_POOL_STRIPES:1"
+  idle-timeout: "_env:YESOD_CONNECTION_POOL_IDLETIMEOUT:1200"
+  size:         "_env:YESOD_CONNECTION_POOL_POOLSIZE:1"
+
+superuser:
+  username: "_env:YESOD_SUPERUSER_USERNAME:superuser@gmail.com"
+  password: "_env:YESOD_SUPERUSER_PASSWORD:superuser"
+
+google-api:
+  client-id:     "_env:YESOD_GOOGLE_CLIENT_ID:???"
+  client-secret: "_env:YESOD_GOOGLE_CLIENT_SECRET:???"
+
+gcloud:
+  project-id: "_env:YESOD_GCLOUD_PROJECT_ID:reservare"
+
+
 
 copyright: Insert copyright statement here
 #analytics: UA-YOURCODE
