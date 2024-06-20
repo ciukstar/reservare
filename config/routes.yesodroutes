@@ -1,6 +1,9 @@
 -- By default this file is used by `parseRoutesFile` in Foundation.hs
 -- Syntax for this file here: https://www.yesodweb.com/book/routing-and-handlers
 
+/accounts/#UserId/photo AccountPhotoR GET
+/accounts/#UserId 	AccountR      GET
+
 / HomeR GET
 
 /sw.js ServiceWorkerR GET
@@ -10,3 +13,7 @@
 
 /favicon.ico FaviconR GET
 /robots.txt RobotsR GET
+
+/data DataR:
+
+    /users UsersR GET

@@ -7,12 +7,14 @@ module Handler.Home (getHomeR) where
 
 import Foundation
     ( Handler
-    , AppMessage (MsgWelcome)
+    , AppMessage (MsgWelcome, MsgAppName)
     )
 
 import Settings (widgetFile)
 
 import Text.Hamlet (Html)
+
+import Widgets (widgetMenu, widgetAccount)
 
 import Yesod.Core (Yesod(defaultLayout))
 import Yesod.Core.Widget (setTitleI)

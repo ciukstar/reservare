@@ -116,6 +116,12 @@ instance Yesod App where
 
     isAuthorized :: Route App -> Bool -> Handler AuthResult
 
+    
+    isAuthorized (DataR UsersR) _ = isAuthenticated
+    isAuthorized (AccountR uid) _ = isAuthenticated
+    isAuthorized (AccountPhotoR uid) _ = return Authorized
+    
+    
     isAuthorized ServiceWorkerR _ = return Authorized
     
     isAuthorized (AuthR _) _ = return Authorized

@@ -1,1 +1,10 @@
-<h1>Welcome
+
+<header.primary>
+  ^{widgetMenu}
+  <span.md-typescale-headline-medium>
+    _{MsgAppName}
+
+  <span.header-end>
+    ^{widgetAccount}    
+
+<main>

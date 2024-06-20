@@ -1,0 +1,26 @@
+<details.app-nav-drawer ##{idDetailsMenu}>
+  <summary>
+    <md-filled-icon-button type=button aria-label=_{MsgMainMenu}
+      onclick="document.getElementById('#{idDetailsMenu}').open = true">
+      <md-icon>menu
+
+  <aside.app-nav-drawer.surface.large-end.elevation-1>
+    <md-elevation>
+    <div.app-header>
+      <md-icon-button type=button onclick="document.getElementById('#{idDetailsMenu}').open = false">
+        <md-icon>close
+
+    <md-menu-item href=@{HomeR} :curr == Just HomeR:selected>
+      _{MsgWelcome}
+
+    <details.app-submenu #idDetailsData
+      :elem curr [Just (DataR UsersR)]:open
+      ontoggle="this.querySelector('.app-expand-icon').textContent = this.open ? 'expand_less' : 'expand_more'">
+      <summary>
+        <md-menu-item>
+          <div>
+            _{MsgData}
+            <md-icon.app-expand-icon slot=icon>expand_more
+
+      <md-menu-item href=@{DataR UsersR} :curr == Just (DataR UsersR):selected>
+        _{MsgUsers}

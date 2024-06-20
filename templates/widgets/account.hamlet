@@ -1,0 +1,17 @@
+
+$maybe Entity uid _ <- user
+  <span style="position:relaive">
+    <md-filled-icon-button type=button aria-label=_{MsgUserAccount} ##{idButtonUserAccount}
+      onclick="document.getElementById('#{idMenuUserAccount}').open = !document.getElementById('#{idMenuUserAccount}').open">
+      <img src=@{AccountPhotoR uid} width=24 height=24 alt=_{MsgPhoto}
+           loading=lazy style="clip-path:circle(50%)">
+    <md-menu anchor=#{idButtonUserAccount} x-offset=16 y-offset=16 ##{idMenuUserAccount}>
+
+      <md-menu-item href=@{AccountR uid}>
+        <div slot=headline>_{MsgUserAccount}
+
+      <md-menu-item href=@{AuthR LogoutR}>
+        <div slot=headline>_{MsgSignOut}
+$nothing
+  <md-filled-icon-button href=@{AuthR LoginR} aria-label=_{MsgSignIn}>
+    <md-icon>login
