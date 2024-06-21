@@ -14,15 +14,16 @@ import Settings (widgetFile)
 
 import Text.Hamlet (Html)
 
-import Widgets (widgetMenu, widgetAccount)
+import Widgets (widgetMenu, widgetAccount, widgetBanner, widgetSnackbar)
 
-import Yesod.Core (Yesod(defaultLayout))
+import Yesod.Core (Yesod(defaultLayout), getMessages)
 import Yesod.Core.Widget (setTitleI)
 
 
 getHomeR :: Handler Html
 getHomeR = do
-    
+
+    msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWelcome
         $(widgetFile "homepage")

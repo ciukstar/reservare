@@ -17,3 +17,7 @@
 /data DataR:
 
     /users UsersR GET
+    
+    /tokens/googleapis/clear TokensGoogleapisClearR POST
+    /tokens/googleapis/hook  TokensGoogleapisHookR  GET
+    /tokens                  TokensR                GET POST

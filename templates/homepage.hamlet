@@ -8,3 +8,6 @@
     ^{widgetAccount}    
 
 <main>
+  ^{widgetBanner msgs}
+
+^{widgetSnackbar msgs}

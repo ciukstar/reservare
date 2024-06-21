@@ -1,4 +1,20 @@
 
+GoogleSecretManager: Google Secret Manager
+GmailAccount: Учетная запись Gmail
+Cleared: Очищено
+InvalidFormData: Неверные данные формы
+RecordDeleted: Запись удалена
+ClearSettings: Сбросить
+RecordEdited: Запись отредактирована
+InvalidStoreType: Неверный тип хранилища
+StoreType: Тип хранилища
+Database: База данных
+UserSession: Пользовательская сессия
+Initialize: Инициализировать
+Tokens: Токены
+AccessDeniedAdminsOnly: Доступ к этой странице имеют только администраторы. Пожалуйста, войдите под учетной записью администратора
+LoginPlease: Пожалуйста, войдите для доступа к этой странице
+AnotherAccountAccessProhibited: Доступ к учетной записи другого пользователя запрещен
 Authentication: Аутентификация
 PasswordRecovery: Восстановление пароля
 CreatePassword: Создание пароля

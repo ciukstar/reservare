@@ -1,4 +1,20 @@
 
+GoogleSecretManager: Google Secret Manager
+GmailAccount: Compte Gmail
+Cleared: Effacé
+InvalidFormData: Données de formulaire incorrectes
+RecordDeleted: L'enregistrement a été supprimé
+ClearSettings: Effacer
+RecordEdited: L'enregistrement a été modifié
+InvalidStoreType: Type de stockage invalide
+StoreType: Type de stockage
+Database: Base de données
+UserSession: Session utilisateur
+Initialize: Initialiser
+Tokens: Jetons
+AccessDeniedAdminsOnly: Seuls les administrateurs ont accès à cette page. Veuillez vous connecter avec un compte administrateur
+LoginPlease: Veuillez vous connecter pour accéder à cette page
+AnotherAccountAccessProhibited: L'accès au compte d'un autre utilisateur est interditx
 Authentication: Authentification
 PasswordRecovery: Récupération de mot de passe
 CreatePassword: Créer un mot de passe

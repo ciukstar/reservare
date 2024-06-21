@@ -1,3 +1,20 @@
+
+GoogleSecretManager: Google Secret Manager
+GmailAccount: Cont Gmail
+Cleared: S-a șters
+InvalidFormData: Date de formular nevalide
+RecordDeleted: Înregistrarea a fost ștearsă
+ClearSettings: Ștergeți
+RecordEdited: Înregistrarea a fost editată
+InvalidStoreType: Tip de stocare nevalid
+StoreType: Tipul de stocare
+Database: Baza de date
+UserSession: Sesiunea de utilizator
+Initialize: Inițializează
+Tokens: Jetoane
+AccessDeniedAdminsOnly: Doar administratorii au acces la această pagină. Vă rugăm să vă conectați cu un cont de administrator
+LoginPlease: Vă rugăm să vă conectați pentru a accesa această pagină
+AnotherAccountAccessProhibited: Accesul la contul altui utilizator este interzis
 Authentication: Autentificare
 PasswordRecovery: Recuperarea parolei
 CreatePassword: Creează parolă

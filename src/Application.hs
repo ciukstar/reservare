@@ -20,37 +20,51 @@ module Application
     , db
     ) where
 
-import Control.Monad.Logger                 (liftLoc, runLoggingT)
-import Database.Persist.Sqlite              (createSqlitePool, runSqlPool,
-                                             sqlDatabase, sqlPoolSize)
+import Control.Monad.Logger (liftLoc, runLoggingT)
+import Database.Persist.Sqlite
+    ( runSqlPool, sqlDatabase, createSqlitePoolWithConfig )
+
+import Demo.DemoEn (fillDemoEn)
+import Demo.DemoFr (fillDemoFr)
+import Demo.DemoRo (fillDemoRo)
+import Demo.DemoRu (fillDemoRu)
+    
 import Import
-import Language.Haskell.TH.Syntax           (qLocation)
-import Network.HTTP.Client.TLS              (getGlobalManager)
+import Language.Haskell.TH.Syntax ( qLocation )
+import Network.HTTP.Client.TLS ( getGlobalManager )
 import qualified Network.Wai as W (Response)
 import Network.Wai (Middleware, mapResponseHeaders)
-import Network.Wai.Handler.Warp             (Settings, defaultSettings,
-                                             defaultShouldDisplayException,
-                                             runSettings, setHost,
-                                             setOnException, setPort, getPort)
+import Network.Wai.Handler.Warp
+    ( Settings, defaultSettings, defaultShouldDisplayException
+    , runSettings, setHost, setOnException, setPort, getPort
+    )
 import Network.Wai.Middleware.Gzip
     ( GzipSettings(gzipFiles), GzipFiles (GzipCompress), gzip )
-import Network.Wai.Middleware.RequestLogger (Destination (Logger),
-                                             IPAddrSource (..),
-                                             OutputFormat (..), destination,
-                                             mkRequestLogger, outputFormat)
-import System.Log.FastLogger                (defaultBufSize, newStdoutLoggerSet,
-                                             toLogStr)
+import Network.Wai.Middleware.RequestLogger
+    ( Destination (Logger), IPAddrSource (..), OutputFormat (..)
+    , destination, mkRequestLogger, outputFormat
+    )
+    
+import System.Environment.Blank (getEnv)
+import System.Log.FastLogger
+    ( defaultBufSize, newStdoutLoggerSet, toLogStr )
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
-
-import Handler.Users (getUsersR)
 
 import Handler.Accounts (getAccountR, getAccountPhotoR)
 
 import Handler.Home ( getHomeR )
 
+import Handler.Users (getUsersR)
+import Handler.Tokens
+    ( getTokensR, postTokensR, getTokensGoogleapisHookR
+    , postTokensGoogleapisClearR
+    )
+
 import Handler.Common ( getFaviconR, getRobotsR )
+
+import Yesod.Auth.Email (saltPass)
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
@@ -84,11 +98,33 @@ makeFoundation appSettings = do
         logFunc = messageLoggerSource tempFoundation appLogger
 
     -- Create the database connection pool
-    pool <- flip runLoggingT logFunc $ createSqlitePool
+    pool <- flip runLoggingT logFunc $ createSqlitePoolWithConfig
         (sqlDatabase $ appDatabaseConf appSettings)
-        (sqlPoolSize $ appDatabaseConf appSettings)
+        (appConnectionPoolConfig appSettings)
 
     -- Perform database migration using our application's logging settings.
+
+    flip runLoggingT logFunc $ flip runSqlPool pool $ do
+        
+        runMigration migrateAll
+
+        superpass <- liftIO $ saltPass (superuserPassword . appSuperuser $ appSettings)
+        insert_ User { userEmail = superuserUsername . appSuperuser $ appSettings
+                     , userAuthType = UserAuthTypePassword
+                     , userPassword = Just superpass
+                     , userVerkey = Nothing
+                     , userVerified = True
+                     , userName = Just "Super User"
+                     , userSuperuser = True
+                     , userAdmin = True
+                     }
+        demo <- liftIO $ getEnv "YESOD_DEMO_LANG"
+        case demo of
+          Just "FR" -> fillDemoFr appSettings
+          Just "RO" -> fillDemoRo appSettings
+          Just "RU" -> fillDemoRu appSettings
+          _ -> fillDemoEn appSettings
+    
     runLoggingT (runSqlPool (runMigration migrateAll) pool) logFunc
 
     -- Return the foundation

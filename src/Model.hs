@@ -42,6 +42,12 @@ share [mkPersist sqlSettings, mkMigrate "migrateAll"]
 ultDestKey :: Text
 ultDestKey = "_ULT"
 
+gmailAccessToken :: Text
+gmailAccessToken = "gmail_access_token"
+
+gmailAccessTokenExpiresIn :: Text
+gmailAccessTokenExpiresIn = "gmail_access_token_expires_in"
+
 
 apiInfoGoogle :: Text
 apiInfoGoogle = "GOOGLE_API"

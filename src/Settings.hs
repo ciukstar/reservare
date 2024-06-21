@@ -20,7 +20,13 @@ import Data.Aeson.Types (Parser)
 import Data.FileEmbed              (embedFile)
 import Data.Yaml                   (decodeEither')
 
-import Database.Persist.Sqlite     (SqliteConf)
+import Database.Persist.Sqlite
+    ( SqliteConf
+    , ConnectionPoolConfig
+      ( ConnectionPoolConfig, connectionPoolConfigStripes
+      , connectionPoolConfigIdleTimeout, connectionPoolConfigSize
+      )
+    )
 
 import Language.Haskell.TH.Syntax  (Exp, Name, Q)
 
@@ -49,6 +55,8 @@ data AppSettings = AppSettings
     -- ^ Directory from which to serve static files.
     , appDatabaseConf           :: SqliteConf
     -- ^ Configuration settings for accessing the database.
+    , appConnectionPoolConfig   :: ConnectionPoolConfig
+    -- ^ Database connection pool config
     , appRoot                   :: Maybe Text
     -- ^ Base for all generated URLs. If @Nothing@, determined
     -- from the request headers.
@@ -109,6 +117,16 @@ instance FromJSON GcloudConf where
         gcloudProjectId <- o .: "project-id"
         return GcloudConf {..}
 
+
+instance FromJSON ConnectionPoolConfig where
+    parseJSON :: Value -> Parser ConnectionPoolConfig
+    parseJSON = withObject "ConnectionPoolConfig" $ \o -> do
+        connectionPoolConfigStripes     <- o .: "stripes"
+        connectionPoolConfigIdleTimeout <- o .: "idle-timeout"
+        connectionPoolConfigSize        <- o .: "size"
+        return ConnectionPoolConfig {..}
+        
+
 instance FromJSON AppSettings where
     parseJSON = withObject "AppSettings" $ \o -> do
         let defaultDev =
@@ -119,6 +137,7 @@ instance FromJSON AppSettings where
 #endif
         appStaticDir              <- o .: "static-dir"
         appDatabaseConf           <- o .: "database"
+        appConnectionPoolConfig   <- o .: "connection-pool"
         appRoot                   <- o .:? "approot"
         appHost                   <- fromString <$> o .: "host"
         appPort                   <- o .: "port"

@@ -183,17 +183,20 @@ instance Yesod App where
     authRoute _ = Just $ AuthR LoginR
 
     isAuthorized :: Route App -> Bool -> Handler AuthResult
-
     
     isAuthorized (DataR UsersR) _ = isAuthenticated
-    isAuthorized (AccountR uid) _ = isAuthenticated
-    isAuthorized (AccountPhotoR uid) _ = return Authorized
     
+    isAuthorized (DataR TokensGoogleapisClearR) _ = isAdmin
+    isAuthorized (DataR TokensGoogleapisHookR) _ = isAdmin
+    isAuthorized (DataR TokensR) _ = isAdmin
+    
+    isAuthorized (AccountR uid) _ = isAuthenticatedSelf uid
+    isAuthorized (AccountPhotoR _) _ = return Authorized
     
     isAuthorized ServiceWorkerR _ = return Authorized
     
     isAuthorized (AuthR _) _ = return Authorized
-    isAuthorized HomeR _ = return Authorized
+    isAuthorized r@HomeR _ = setUltDest r >> return Authorized
     isAuthorized FaviconR _ = return Authorized
     isAuthorized RobotsR _ = return Authorized
     isAuthorized (StaticR _) _ = return Authorized
@@ -265,7 +268,7 @@ instance YesodAuth App where
         app <- getYesod
         tp <- getRouteToParent
         rndr <- getUrlRender
-        ult <- fromMaybe (rndr HomeR) <$> lookupSession ultDestKey
+        backlink <- fromMaybe (rndr HomeR) <$> lookupSession ultDestKey
         authLayout $ do
             setTitleI LoginTitle
             $(widgetFile "auth/login")
@@ -740,6 +743,25 @@ gmailApi :: String -> String
 gmailApi = printf "https://gmail.googleapis.com/gmail/v1/users/%s/messages/send"
 
 
+isAuthenticatedSelf :: UserId -> Handler AuthResult
+isAuthenticatedSelf uid = do
+    muid <- maybeAuthId
+    case muid of
+        Just uid' | uid == uid' -> return Authorized
+                  | otherwise -> unauthorizedI MsgAnotherAccountAccessProhibited
+        Nothing -> unauthorizedI MsgLoginPlease
+
+
+isAdmin :: Handler AuthResult
+isAdmin = do
+    user <- maybeAuth
+    case user of
+        Just (Entity _ (User _ _ _ _ _ _ True _)) -> return Authorized
+        Just (Entity _ (User _ _ _ _ _ _ _ True)) -> return Authorized
+        Just (Entity _ (User _ _ _ _ _ _ _ False)) -> unauthorizedI MsgAccessDeniedAdminsOnly
+        Nothing -> unauthorizedI MsgLoginPlease
+
+        
 -- | Access function to determine if a user is logged in.
 isAuthenticated :: Handler AuthResult
 isAuthenticated = do

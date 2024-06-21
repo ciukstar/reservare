@@ -1,4 +1,20 @@
 
+GoogleSecretManager: Google Secret Manager
+GmailAccount: Gmail account
+Cleared: Cleared
+InvalidFormData: Invalid form data
+RecordDeleted: Record deleted
+ClearSettings: Clear
+RecordEdited: Record edited
+InvalidStoreType: Invalid store type
+StoreType: Store type
+Database: Database
+UserSession: User session
+Initialize: Initialize
+Tokens: Tokens
+AccessDeniedAdminsOnly: Only administrators have access to this page. Please log in with an administrator account
+LoginPlease: Please log in to access this page
+AnotherAccountAccessProhibited: Access to another user's account is prohibited
 Authentication: Authentication
 PasswordRecovery: Password recovery
 CreatePassword: Create password

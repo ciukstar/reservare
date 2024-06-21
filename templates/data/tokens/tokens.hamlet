@@ -1,0 +1,32 @@
+
+<header.primary>
+  ^{widgetMenu}
+
+  <span.md-typescale-title-large>
+    _{MsgTokens}
+
+  <span.header-end>
+    ^{widgetAccount}
+
+
+<main>
+
+  ^{widgetBanner msgs}
+
+  <div.app-card.shape-large.outline>
+    <div.app-card-title.headline-medium>
+      Gmail
+    <div.app-card-content>
+    
+      <form.formStoreType method=post action=@{DataR TokensR} enctype=#{etGmail} ##{formTokensGmail}>
+        ^{fwGmail}
+          
+    <div.app-card-actions>
+      <form method=post action=@{DataR TokensGoogleapisClearR} enctype=#{etGmailClear} ##{formTokensGmailClear}>
+        ^{fwGmailClear}
+      <md-text-button type=submit form=#{formTokensGmailClear}>
+        _{MsgClearSettings}
+      <md-filled-button type=submit form=#{formTokensGmail}>
+        _{MsgInitialize}
+
+^{widgetSnackbar msgs}
