@@ -1,4 +1,8 @@
-
+InvalidUrlOrRemoved: Adresă URL nevalidă sau resursă eliminată
+BackToHomepage: Reveniți la pagina de pornire
+InvalidArguments: Argumente nevalide
+PermissionDenied: Acces refuzat
+PageNotFound: Pagina nu a fost găsită
 GoogleSecretManager: Google Secret Manager
 GmailAccount: Cont Gmail
 Cleared: S-a șters

@@ -1,4 +1,9 @@
 
+InvalidUrlOrRemoved: Неверный URL-адрес или ресурс удален
+BackToHomepage: Вернуться на домашнюю страницу
+InvalidArguments: Неверные аргументы
+PermissionDenied: Доступ запрещен
+PageNotFound: Страница не найдена
 GoogleSecretManager: Google Secret Manager
 GmailAccount: Учетная запись Gmail
 Cleared: Очищено

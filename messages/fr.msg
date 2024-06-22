@@ -1,4 +1,9 @@
 
+InvalidUrlOrRemoved: URL invalide ou ressource supprimée
+BackToHomepage: Retournez à la page d'accueil
+InvalidArguments: Arguments invalides
+PermissionDenied: Permission refusée
+PageNotFound: Page non trouvée
 GoogleSecretManager: Google Secret Manager
 GmailAccount: Compte Gmail
 Cleared: Effacé

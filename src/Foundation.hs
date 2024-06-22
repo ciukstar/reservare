@@ -25,6 +25,7 @@ import qualified Data.ByteString.Lazy as BSL (toStrict)
 import qualified Data.CaseInsensitive as CI
 import Data.Function ((&))
 import Data.Kind (Type)
+import qualified Data.Text as T (intercalate)
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy.Encoding as TLE (encodeUtf8)
 
@@ -237,6 +238,33 @@ instance Yesod App where
 
     makeLogger :: App -> IO Logger
     makeLogger = return . appLogger
+
+    errorHandler :: ErrorResponse -> HandlerFor App TypedContent
+    errorHandler NotFound = selectRep $ do
+        provideRep $ defaultLayout $ do
+            setTitleI MsgPageNotFound
+            idHeader <- newIdent
+            idHeaderStart <- newIdent
+            $(widgetFile "error/not-found")
+        provideRep $ return $ object ["message" .= ("Page not found." :: Text)]
+        provideRep $ return ("Page not found." :: Text)
+
+    errorHandler (PermissionDenied msg) = selectRep $ do
+        provideRep $ defaultLayout $ do
+            setTitleI MsgPermissionDenied
+            $(widgetFile "error/permission-denied")
+        provideRep $ return $ object ["message" .= ("Permission Denied. " <> msg)]
+        provideRep $ return $ "Permission Denied. " <> msg
+
+    errorHandler (InvalidArgs msgs) = selectRep $ do
+        provideRep $ defaultLayout $ do
+            setTitleI MsgInvalidArguments
+            idHeader <- newIdent
+            $(widgetFile "error/invalid-args")
+        provideRep $ return $ object ["message" .= msgs]
+        provideRep $ return $ T.intercalate ", " msgs
+
+    errorHandler x = defaultErrorHandler x
 
 -- How to run database actions.
 instance YesodPersist App where
@@ -783,7 +811,12 @@ instance YesodAuthPersist App
 -- achieve customized and internationalized form validation messages.
 instance RenderMessage App FormMessage where
     renderMessage :: App -> [Lang] -> FormMessage -> Text
-    renderMessage _ _ = defaultFormMessage
+    renderMessage _ [] = defaultFormMessage
+    renderMessage _ ("en":_) = englishFormMessage
+    renderMessage _ ("fr":_) = frenchFormMessage
+    renderMessage _ ("ro":_) = romanianFormMessage
+    renderMessage _ ("ru":_) = russianFormMessage
+    renderMessage app (_:xs) = renderMessage app xs
 
 -- Useful when writing code that is re-usable outside of the Handler context.
 -- An example is background jobs that send email.

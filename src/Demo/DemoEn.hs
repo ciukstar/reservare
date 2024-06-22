@@ -74,6 +74,16 @@ fillDemoEn appSettings = do
 
     usr2 <- insert user2
 
+    insert_ UserPhoto { userPhotoUser = usr2
+                      , userPhotoMime = "image/avif"
+                      , userPhotoPhoto = $(embedFile "demo/222.avif")
+                      , userPhotoAttribution = Just [shamlet|
+                                                            Designed by #
+                                                            <a href="https://www.freepik.com/" target=_blank>
+                                                              Freepik
+                                                            |]
+                      }
+
     pass3 <- liftIO $ saltPass "jmaulsby"
     let user3 = User { userEmail = "jmaulsby@xmail.edu"
                      , userAuthType = UserAuthTypeEmail
@@ -86,6 +96,16 @@ fillDemoEn appSettings = do
                      }
 
     usr3 <- insert user3
+
+    insert_ UserPhoto { userPhotoUser = usr3
+                      , userPhotoMime = "image/avif"
+                      , userPhotoPhoto = $(embedFile "demo/2148213406.avif")
+                      , userPhotoAttribution = Just [shamlet|
+                                                            Designed by #
+                                                            <a href="https://www.freepik.com/" target=_blank>
+                                                              Freepik
+                                                            |]
+                      }
 
     pass4 <- liftIO $ saltPass "vschoen"
     let user4 = User { userEmail = "vschoen@xmail.edu"
