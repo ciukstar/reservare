@@ -1,4 +1,26 @@
 
+Attribution: Attribution
+SuperuserCannotBeDeleted: Superuser cannot be deleted
+NotSpecified: Not specified
+DeleteAreYouSure: Are you sure you want to delete?
+ConfirmPlease: Please confirm
+Dele: Delete
+Email: Email
+Google: Google
+No: No
+Verified: Verified
+VerificationKey: Verification key
+Yes: Yes
+User: User
+NoUsersYet: There are no users yet
+NotIndicated: Not indicated
+Birthday: Birthday
+FullName: Full name
+Cancel: Cancel
+Save: Save
+Edit: Edit
+Account: Account
+PersonalInfo: Personal info
 InvalidUrlOrRemoved: Invalid URL or resource removed
 BackToHomepage: Go back to homepage
 InvalidArguments: Invalid arguments

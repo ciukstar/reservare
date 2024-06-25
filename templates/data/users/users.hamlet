@@ -1,6 +1,37 @@
 
-<header>
-  _{MsgUsers}
+<header.primary>
+  ^{widgetMenu}
+
+  <section.md-typescale-title-large>
+    _{MsgUsers}
+
+  <span #headerEnd>
+    ^{widgetAccount}
+
 
 <main>
-  User list here
+
+  ^{widgetBanner msgs}
+
+  $if null users
+    <figure style="text-align:center">
+      <span.on-secondary style="font-size:4rem">&varnothing;
+      <figcaption.body-large>
+        _{MsgNoUsersYet}
+  $else
+    <md-list>
+      $forall (Entity uid (User email _ _ _ _ name _ _),attrib) <- users
+        <md-list-item type=link href=@{DataR $ UserR uid}>
+          <img slot=start src=@{AccountPhotoR uid} width=56 height=56 loading=lazy>
+          <div slot=headline>
+            $maybe name <- name
+              #{name}
+          <div slot=supporting-text>#{email}
+          <md-icon slot=end>arrow_forward_ios
+        $maybe attrib <- attrib
+          <div.app-attribution>
+            <div.app-attribution-wrapper.md-typescale-body-small>
+              #{attrib}
+        <md-divider>
+
+^{widgetSnackbar msgs}

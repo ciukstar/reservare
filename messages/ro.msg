@@ -1,3 +1,25 @@
+Attribution: Atribuire
+SuperuserCannotBeDeleted: Superutilizatorul nu poate fi șters
+NotSpecified: Nespecificat
+DeleteAreYouSure: Sigur doriți să ștergeți?
+ConfirmPlease: Vă rugăm să confirmați
+Dele: Șterge
+Email: E-mail
+Google: Google
+No: Nu
+Verified: Verificat
+VerificationKey: Cheia de verificare
+Yes: Da
+User: Utilizator
+NoUsersYet: Nu există încă utilizatori
+NotIndicated: Nu este indicat
+Birthday: Ziua de naștere
+FullName: Numele complet
+Cancel: Renunță
+Save: Salvează
+Edit: Editează
+Account: Contul
+PersonalInfo: Date personale
 InvalidUrlOrRemoved: Adresă URL nevalidă sau resursă eliminată
 BackToHomepage: Reveniți la pagina de pornire
 InvalidArguments: Argumente nevalide

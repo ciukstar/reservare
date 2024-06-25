@@ -1,0 +1,16 @@
+<header>
+  <md-icon-button href=@{AccountR uid} aria-label=_{MsgBack}>
+    <md-icon>arrow_back
+
+  <section.md-typescale-title-large>
+    _{MsgUserAccount}
+      
+<main>
+  <form method=post action=@{AccountR uid} enctype=#{et}>
+    ^{fw}
+    <div.app-form-actions>
+      <md-text-button type=button href=@{AccountR uid}>
+        _{MsgCancel}
+      <md-filled-button type=submit>
+        _{MsgSave}
+  

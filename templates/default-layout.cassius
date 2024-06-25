@@ -1,5 +1,8 @@
 
 :root, :host
+
+    --app-top-appbar-height: 52px
+    
     --md-sys-color-background: #f4fbfa
     --md-sys-color-on-background: #161d1d
     --md-sys-color-surface: #f4fbfa
@@ -97,8 +100,6 @@
     --md-sys-shape-small: var(--md-sys-shape-corner-small-default-size)
     --md-sys-shape-medium: var(--md-sys-shape-corner-medium-default-size)
     --md-sys-shape-large: var(--md-sys-shape-corner-large-default-size)
-
-    --app-top-appbar-height: 52px
 
 
 @media screen and (min-width: 768px)

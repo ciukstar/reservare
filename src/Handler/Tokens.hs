@@ -24,8 +24,8 @@ import Data.Text (Text, pack, unpack, splitOn)
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 
 import Database.Esqueleto.Experimental
-    ( selectOne, from, table, where_, val, innerJoin, on
-    , (^.), (==.), (:&) ((:&)), Value (unValue)
+    ( selectOne, from, table, where_, val
+    , (^.), (==.)
     )
 import Database.Persist
     ( Entity(Entity, entityVal)
@@ -57,7 +57,7 @@ import Model
     , StoreType
       ( StoreTypeDatabase, StoreTypeSession, StoreTypeGoogleSecretManager )
     , Store (Store), Token (Token, tokenStore)
-    , EntityField (StoreVal, TokenStore, TokenApi, StoreToken, TokenId, StoreKey)
+    , EntityField (StoreVal, TokenApi, TokenStore)
     , gmailSender, statusSuccess, statusError, gmailAccessTokenExpiresIn
     , secretVolumeGmail
     )
@@ -70,7 +70,8 @@ import Network.Wreq.Lens (statusCode, responseStatus)
 
 import Settings
     ( widgetFile, AppSettings (appGoogleApiConf, appGcloudConf)
-    , GoogleApiConf (googleApiConfClientSecret, googleApiConfClientId), GcloudConf (gcloudProjectId)
+    , GoogleApiConf (googleApiConfClientSecret, googleApiConfClientId)
+    , GcloudConf (gcloudProjectId)
     )
 import System.IO (readFile')
 

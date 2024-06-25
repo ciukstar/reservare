@@ -31,12 +31,11 @@ import qualified Data.Text.Lazy.Encoding as TLE (encodeUtf8)
 
 import Database.Esqueleto.Experimental
     ( selectOne, from, table, where_, val
-    , (^.), (?.)
+    , (^.)
     )
 import Database.Esqueleto.Experimental as E
-    ( select, selectOne, from, table, val, where_, unValue, asc
-    , (==.), (^.), (:&) ((:&))
-    , orderBy, valList, in_, not_, innerJoin, on
+    ( select, unValue, asc, orderBy, valList, in_, not_
+    , (==.)
     )
 import Database.Persist.Sql (ConnectionPool, runSqlPool)
 
@@ -64,10 +63,6 @@ import Text.Julius (juliusFile)
 import Text.Printf (printf)
 import Text.Shakespeare.Text (stext)
 
--- Used only when in "auth-dummy-login" setting is enabled.
-import Yesod.Auth.Dummy ( authDummy )
-
-import Yesod.Auth.OpenId    (authOpenId, IdentifierType (Claimed))
 import Yesod.Auth.Email
     ( authEmail, Email, Identifier, SaltedPass, VerKey, VerUrl
     , forgotPasswordR, registerR, loginR, setpassR
@@ -176,6 +171,8 @@ instance Yesod App where
         pc <- widgetToPageContent $ do
             -- addScript $ StaticR js_md3_min_js
             $(widgetFile "default-layout")
+
+        lang <- fromMaybe "en" . headMay <$> languages
             
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
@@ -185,12 +182,18 @@ instance Yesod App where
 
     isAuthorized :: Route App -> Bool -> Handler AuthResult
     
-    isAuthorized (DataR UsersR) _ = isAuthenticated
+    isAuthorized (DataR (UserDeleR _)) _ = isAdmin
+    isAuthorized (DataR (UserEditR _)) _ = isAdmin
+    isAuthorized (DataR (UserR _)) _ = isAdmin
+    isAuthorized r@(DataR UsersR) _ = setUltDest r >> isAdmin
     
     isAuthorized (DataR TokensGoogleapisClearR) _ = isAdmin
     isAuthorized (DataR TokensGoogleapisHookR) _ = isAdmin
     isAuthorized (DataR TokensR) _ = isAdmin
     
+    isAuthorized (AccountInfoEditR uid) _ = isAuthenticatedSelf uid
+    isAuthorized (AccountEditR uid) _ = isAuthenticatedSelf uid
+    isAuthorized (AccountInfoR uid) _ = isAuthenticatedSelf uid
     isAuthorized (AccountR uid) _ = isAuthenticatedSelf uid
     isAuthorized (AccountPhotoR _) _ = return Authorized
     
@@ -551,24 +554,33 @@ instance YesodAuthEmail App where
                           return x )
 
                       let accounts = users <> supers
-
+                      
+                      toWidget [julius|
+                          const menuAnchor = document.getElementById('anchorDemoAccounts');
+                          const menuDemoAccounts = document.getElementById('menuDemoAccounts');
+                          window.addEventListener('load',function (e) {
+                            menuDemoAccounts.style.visibility = 'visible';
+                          });
+                          menuAnchor.addEventListener('click',function (e) {
+                            menuDemoAccounts.open = !menuDemoAccounts.open;
+                          });
+                      |]
                       toWidget [cassius|
                           ##{fvId emailV}, ##{fvId passV}
                             align-self: stretch
                       |]
                       [whamlet|
 <span style="position:relative;align-self:flex-end">
-  <md-text-button.body-small type=button #anchorDemoAccounts trailing-icon
-    onclick="document.getElementById('menuDemoAccounts').open = !document.getElementById('menuDemoAccounts').open">
+  <md-text-button.body-small type=button #anchorDemoAccounts trailing-icon>
     _{MsgDemoUserAccounts}
     <md-icon slot=icon>arrow_drop_down
-  <md-menu #menuDemoAccounts anchor=anchorDemoAccounts>
+  <md-menu #menuDemoAccounts anchor=anchorDemoAccounts style="visibility:hidden">
     $with n <- length accounts
       $forall (i,Entity uid (User email _ _ _ _ name super admin)) <- zip (irange 1) accounts
         $with pass <- maybe "" (TE.decodeUtf8 . localPart) (emailAddress $ TE.encodeUtf8 email)
           <md-menu-item onclick="document.getElementById('#{fvId emailV}').value = '#{email}';document.getElementById('#{fvId passV}').value = '#{pass}'">
             <md-icon slot=start>
-              <img src=@{AccountPhotoR uid} loading=lazy alt=_{MsgPhoto} style="clip-path:circle(50%)">
+              <img src=@{AccountPhotoR uid} loading=lazy alt=_{MsgPhoto} height=24 width=24 style="clip-path:circle(50%)">
             <div slot=headline>
               #{email}
             <div slot=supporting-text style="white-space:nowrap;max-width:50vw">
@@ -678,6 +690,8 @@ instance YesodAuthEmail App where
                           , partEncoding = None
                           , partDisposition = DefaultDisposition
                           , partContent = PartContent $ TLE.encodeUtf8 [stext|
+                              _{MsgAppName}
+
                               _{MsgConfirmEmailPlease}.
 
                               #{verurl}
@@ -691,6 +705,8 @@ instance YesodAuthEmail App where
                           , partEncoding = None
                           , partDisposition = DefaultDisposition
                           , partContent = PartContent $ renderHtml [shamlet|
+                              <h1>
+                                #{renderMsg MsgAppName}
                               <p>
                                 #{renderMsg MsgConfirmEmailPlease}.
                               <p>
@@ -709,7 +725,7 @@ instance YesodAuthEmail App where
 
               case response of
                 Left e@(SomeException _) -> case fromException e of
-                  Just (HttpExceptionRequest _ (StatusCodeException r' bs)) -> do
+                  Just (HttpExceptionRequest _ (StatusCodeException r' _bs)) -> do
                       case r' L.^. WL.responseStatus . WL.statusCode of
                         401 -> do
                             liftIO $ print response

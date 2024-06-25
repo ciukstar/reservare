@@ -6,6 +6,7 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+
 module Application
     ( getApplicationDev
     , appMain
@@ -52,11 +53,18 @@ import System.Log.FastLogger
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
 
-import Handler.Accounts (getAccountR, getAccountPhotoR)
+import Handler.Accounts
+    ( getAccountR, getAccountPhotoR, getAccountInfoR
+    , getAccountEditR, getAccountInfoEditR, postAccountInfoR
+    , postAccountR
+    )
 
 import Handler.Home ( getHomeR )
 
-import Handler.Users (getUsersR)
+import Handler.Users
+    ( getUsersR, getUserR, postUserDeleR, getUserEditR, postUserR
+    )
+    
 import Handler.Tokens
     ( getTokensR, postTokensR, getTokensGoogleapisHookR
     , postTokensGoogleapisClearR

@@ -1,0 +1,29 @@
+
+header
+    position: sticky
+    top: 0
+    z-index: 2
+    height: var(--app-top-appbar-height,64px)
+    padding: 0 0.5rem
+    display: flex
+    justify-content: flex-start
+    align-items: center
+    column-gap: 0.5rem
+
+    #headerEnd
+        margin-left: auto
+    
+main
+
+  ##{idPanelInfo}
+    margin: 2rem
+      
+    form
+      display: flex
+      flex-direction: column
+      gap: 1rem
+      .app-form-actions
+        display: flex
+        flex-direction: row
+        justify-content: flex-end
+        gap: 0.5rem

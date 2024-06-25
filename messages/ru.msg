@@ -1,4 +1,26 @@
 
+Attribution: Атрибуция
+SuperuserCannotBeDeleted: Суперпользователя нельзя удалить
+NotSpecified: Не указано
+DeleteAreYouSure: Вы уверены, что хотите удалить?
+ConfirmPlease: Пожалуйста подтвердите
+Dele: Удалить
+Email: Электронная почта
+Google: Google
+No: Нет
+Verified: Проверено
+VerificationKey: Ключ проверки
+Yes: Да
+User: Пользователь
+NoUsersYet: Пользователей пока нет
+NotIndicated: Не указано
+Birthday: День рождения
+FullName: Полное имя
+Cancel: Отмена
+Save: Сохранить
+Edit: Редактировать
+Account: Учетная запись
+PersonalInfo: Персональные данные
 InvalidUrlOrRemoved: Неверный URL-адрес или ресурс удален
 BackToHomepage: Вернуться на домашнюю страницу
 InvalidArguments: Неверные аргументы
