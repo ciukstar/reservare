@@ -52,6 +52,7 @@ dependencies:
 - mime-mail
 - base64-bytestring
 - email-validate
+- yesod-persistent
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.

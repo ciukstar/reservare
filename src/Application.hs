@@ -61,6 +61,11 @@ import Handler.Accounts
 
 import Handler.Home ( getHomeR )
 
+import Handler.Businesses
+    ( getBusinessesR, getBusinessNewR, postBusinessesR, getBusinessR
+    , getBusinessEditR, postBusinessDeleR, postBusinessR
+    )
+
 import Handler.Users
     ( getUsersR, getUserR, postUserDeleR, getUserEditR, postUserR
     )

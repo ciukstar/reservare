@@ -1,4 +1,13 @@
 
+RecordAdded: Запись добавлена
+Business: Бизнес
+Owner: Владелец
+TheName: Наименование
+Add: Добавить
+YouMightWantToAddAFew: Возможно, вы захотите добавить несколько
+ThereAreNoDataYet: Данных пока нет
+NoDataYet: Данных пока нет
+Businesses: Предприятия
 Attribution: Атрибуция
 SuperuserCannotBeDeleted: Суперпользователя нельзя удалить
 NotSpecified: Не указано

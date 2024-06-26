@@ -7,10 +7,10 @@ module Widgets
 import Foundation
     ( Widget
     , Route (HomeR, DataR, AuthR, AccountR, AccountPhotoR)
-    , DataR (UsersR, TokensR)
+    , DataR (UsersR, TokensR, BusinessesR)
     , AppMessage
       ( MsgMainMenu, MsgUsers, MsgWelcome, MsgData, MsgSignIn, MsgSignOut
-      , MsgUserAccount, MsgPhoto, MsgTokens
+      , MsgUserAccount, MsgPhoto, MsgTokens, MsgBusinesses
       )
     )
 
@@ -42,18 +42,15 @@ widgetAccount :: Widget
 widgetAccount = do
 
     user <- maybeAuth
-    curr <- getCurrentRoute
     
     idButtonUserAccount <- newIdent
     idMenuUserAccount <- newIdent
-    idDetailsMenu <- newIdent
     $(widgetFile "widgets/account")
 
 
 widgetMenu :: Widget
 widgetMenu = do
 
-    user <- maybeAuth
     curr <- getCurrentRoute
     
     idDetailsMenu <- newIdent

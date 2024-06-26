@@ -14,13 +14,16 @@
       _{MsgWelcome}
 
     <details.app-submenu #idDetailsData
-      :elem curr [Just (DataR UsersR), Just (DataR TokensR)]:open
+      :elem curr [Just (DataR BusinessesR), Just (DataR UsersR), Just (DataR TokensR)]:open
       ontoggle="this.querySelector('.app-expand-icon').textContent = this.open ? 'expand_less' : 'expand_more'">
       <summary>
         <md-menu-item>
           <div>
             _{MsgData}
             <md-icon.app-expand-icon slot=icon>expand_more
+
+      <md-menu-item href=@{DataR BusinessesR} :curr == Just (DataR BusinessesR):selected>
+        _{MsgBusinesses}
 
       <md-menu-item href=@{DataR UsersR} :curr == Just (DataR UsersR):selected>
         _{MsgUsers}

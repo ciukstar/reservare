@@ -1,4 +1,13 @@
 
+RecordAdded: Record added
+Business: Business
+Owner: Owner
+TheName: Name
+Add: Add
+YouMightWantToAddAFew: You might want to add a few
+ThereAreNoDataYet: There are no data yet
+NoDataYet: No data yet
+Businesses: Businesses
 Attribution: Attribution
 SuperuserCannotBeDeleted: Superuser cannot be deleted
 NotSpecified: Not specified

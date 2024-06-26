@@ -1,3 +1,12 @@
+RecordAdded: Înregistrare adăugată
+Business: Afacere
+Owner: Proprietar
+TheName: Numele
+Add: Adaugă
+YouMightWantToAddAFew: Poate doriți să adăugați câteva
+ThereAreNoDataYet: Nu există date încă
+NoDataYet: Nu există date încă
+Businesses: Afaceri
 Attribution: Atribuire
 SuperuserCannotBeDeleted: Superutilizatorul nu poate fi șters
 NotSpecified: Nespecificat

@@ -1,0 +1,46 @@
+
+<header>
+  <md-icon-button href=@{DataR BusinessesR} aria-label=_{MsgBack}>
+    <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgBusiness}
+
+  <span #headerEnd>
+    <md-icon-button type=button aria-label=_{MsgDele} onclick="document.getElementById('idDialogDelete').show()">
+      <md-icon>delete
+    <md-icon-button href=@{DataR $ BusinessEditR bid} aria-label=_{MsgEdit}>
+      <md-icon>edit
+
+<md-dialog #idDialogDelete>
+  <div slot=headline>
+    _{MsgConfirmPlease}
+  <div slot=content>
+    _{MsgDeleteAreYouSure}
+  <div slot=actions>
+    <md-text-button type=button onclick="document.getElementById('idDialogDelete').close()">
+      _{MsgCancel}
+    <form slot=content method=post action=@{DataR $ BusinessDeleR bid} enctype=#{et2}>
+      ^{fw2}
+      <md-filled-button type=submit>
+        _{MsgDele}
+
+<main>
+
+  ^{widgetBanner msgs}
+      
+  $maybe (Entity _ (Business _ name), Entity _ (User ownerEmail _ _ _ _ ownerName _ _)) <- business        
+    <dl>
+      
+      <dt.md-typescale-label-large scope=row>_{MsgTheName}
+      <dd.md-typescale-body-medium>
+        #{name}
+      
+      <dt.md-typescale-label-large scope=row>_{MsgOwner}
+      <dd.md-typescale-body-medium>
+        $maybe name <- ownerName
+          #{name}
+        $nothing
+          #{ownerEmail}
+
+^{widgetSnackbar msgs}

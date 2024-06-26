@@ -1,4 +1,13 @@
 
+RecordAdded: Enregistrement ajouté
+Business: Entreprise
+Owner: Propriétaire
+TheName: Nom
+Add: Ajouter
+YouMightWantToAddAFew: Vous voudrez peut-être en ajouter quelques-uns
+ThereAreNoDataYet: Il n'y a pas encore de données
+NoDataYet: Pas encore de données
+Businesses: Entreprises
 Attribution: Attribution
 SuperuserCannotBeDeleted: Le superutilisateur ne peut pas être supprimé
 NotSpecified: Not specified

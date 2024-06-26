@@ -181,6 +181,12 @@ instance Yesod App where
     authRoute _ = Just $ AuthR LoginR
 
     isAuthorized :: Route App -> Bool -> Handler AuthResult
+
+    isAuthorized (DataR (BusinessDeleR _)) _ = isAdmin
+    isAuthorized (DataR (BusinessEditR _)) _ = isAdmin
+    isAuthorized (DataR (BusinessR _)) _ = isAdmin
+    isAuthorized (DataR BusinessNewR) _ = isAdmin
+    isAuthorized r@(DataR BusinessesR) _ = setUltDest r >> isAdmin
     
     isAuthorized (DataR (UserDeleR _)) _ = isAdmin
     isAuthorized (DataR (UserEditR _)) _ = isAdmin
