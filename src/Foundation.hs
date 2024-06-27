@@ -180,20 +180,34 @@ instance Yesod App where
     authRoute :: App -> Maybe (Route App)
     authRoute _ = Just $ AuthR LoginR
 
+
     isAuthorized :: Route App -> Bool -> Handler AuthResult
+    
+    isAuthorized (WorkspaceDeleR uid _ _) _ = isAuthenticatedSelf uid
+    isAuthorized (WorkspaceEditR uid _ _) _ = isAuthenticatedSelf uid
+    isAuthorized (WorkspaceR uid _ _) _ = isAuthenticatedSelf uid
+    isAuthorized (WorkspaceNewR uid _) _ = isAuthenticatedSelf uid
+    isAuthorized (WorkspacesR uid _) _ = isAuthenticatedSelf uid
+    
+    isAuthorized (BusinessDeleR uid _) _ = isAuthenticatedSelf uid
+    isAuthorized (BusinessEditR uid _) _ = isAuthenticatedSelf uid
+    isAuthorized (BusinessR uid _) _ = isAuthenticatedSelf uid
+    isAuthorized (BusinessNewR uid) _ = isAuthenticatedSelf uid
+    isAuthorized r@(BusinessesR uid) _ = setUltDest r >> isAuthenticatedSelf uid
 
     
-    isAuthorized (DataR (WorkspaceDeleR _ _)) _ = isAdmin
-    isAuthorized (DataR (WorkspaceEditR _ _)) _ = isAdmin
-    isAuthorized (DataR (WorkspaceR _ _)) _ = isAdmin
-    isAuthorized (DataR (WorkspaceNewR _)) _ = isAdmin
-    isAuthorized (DataR (WorkspacesR _)) _ = isAdmin
     
-    isAuthorized (DataR (BusinessDeleR _)) _ = isAdmin
-    isAuthorized (DataR (BusinessEditR _)) _ = isAdmin
-    isAuthorized (DataR (BusinessR _)) _ = isAdmin
-    isAuthorized (DataR BusinessNewR) _ = isAdmin
-    isAuthorized r@(DataR BusinessesR) _ = setUltDest r >> isAdmin
+    isAuthorized (DataR (DataWorkspaceDeleR _ _)) _ = isAdmin
+    isAuthorized (DataR (DataWorkspaceEditR _ _)) _ = isAdmin
+    isAuthorized (DataR (DataWorkspaceR _ _)) _ = isAdmin
+    isAuthorized (DataR (DataWorkspaceNewR _)) _ = isAdmin
+    isAuthorized (DataR (DataWorkspacesR _)) _ = isAdmin
+    
+    isAuthorized (DataR (DataBusinessDeleR _)) _ = isAdmin
+    isAuthorized (DataR (DataBusinessEditR _)) _ = isAdmin
+    isAuthorized (DataR (DataBusinessR _)) _ = isAdmin
+    isAuthorized (DataR DataBusinessNewR) _ = isAdmin
+    isAuthorized r@(DataR DataBusinessesR) _ = setUltDest r >> isAdmin
     
     isAuthorized (DataR (UserDeleR _)) _ = isAdmin
     isAuthorized (DataR (UserEditR _)) _ = isAdmin

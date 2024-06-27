@@ -23,14 +23,14 @@
   $else
     <md-list>
       $forall Entity bid (Business _ name) <- businesses
-        <md-list-item type=link href=@{DataR $ DataBusinessR bid}>
+        <md-list-item type=link href=@{BusinessR uid bid}>
           <div slot=headline>
             #{name}
           <md-icon slot=end>arrow_forward_ios
         <md-divider>
 
   <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-    <a href=@{DataR DataBusinessNewR}>
+    <a href=@{BusinessNewR uid}>
     <md-icon slot=icon>add
 
 ^{widgetSnackbar msgs}

@@ -61,12 +61,29 @@ import Handler.Accounts
 
 import Handler.Home ( getHomeR )
 
-import Handler.Businesses
+import Handler.Business
     ( getBusinessesR, getBusinessNewR, postBusinessesR, getBusinessR
     , getBusinessEditR, postBusinessDeleR, postBusinessR
     , getWorkspacesR, getWorkspaceNewR, postWorkspacesR
     , getWorkspaceR, getWorkspaceEditR, postWorkspaceR
     , postWorkspaceDeleR
+    )
+
+import Handler.Data.Business
+    ( getDataBusinessesR
+    , getDataBusinessNewR
+    , postDataBusinessesR
+    , getDataBusinessR
+    , getDataBusinessEditR
+    , postDataBusinessDeleR
+    , postDataBusinessR
+    , getDataWorkspacesR
+    , getDataWorkspaceNewR
+    , postDataWorkspacesR
+    , getDataWorkspaceR
+    , getDataWorkspaceEditR
+    , postDataWorkspaceR
+    , postDataWorkspaceDeleR
     )
 
 import Handler.Users

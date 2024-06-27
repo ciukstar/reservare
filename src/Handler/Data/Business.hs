@@ -3,21 +3,21 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Handler.Businesses
-  ( getBusinessesR
-  , getBusinessNewR
-  , postBusinessesR
-  , getBusinessR
-  , getBusinessEditR
-  , postBusinessDeleR
-  , postBusinessR
-  , getWorkspacesR
-  , getWorkspaceNewR
-  , postWorkspacesR
-  , getWorkspaceR
-  , getWorkspaceEditR
-  , postWorkspaceR
-  , postWorkspaceDeleR
+module Handler.Data.Business
+  ( getDataBusinessesR
+  , getDataBusinessNewR
+  , postDataBusinessesR
+  , getDataBusinessR
+  , getDataBusinessEditR
+  , postDataBusinessDeleR
+  , postDataBusinessR
+  , getDataWorkspacesR
+  , getDataWorkspaceNewR
+  , postDataWorkspacesR
+  , getDataWorkspaceR
+  , getDataWorkspaceEditR
+  , postDataWorkspaceR
+  , postDataWorkspaceDeleR
   ) where
 
 import Data.Maybe (fromMaybe)
@@ -37,8 +37,9 @@ import Foundation
     ( Handler, Form
     , Route (DataR)
     , DataR
-      ( BusinessesR, BusinessNewR, BusinessR, BusinessEditR, BusinessDeleR
-      , WorkspacesR, WorkspaceNewR, WorkspaceR, WorkspaceEditR, WorkspaceDeleR
+      ( DataBusinessesR, DataBusinessNewR, DataBusinessR, DataBusinessEditR
+      , DataBusinessDeleR, DataWorkspacesR, DataWorkspaceNewR, DataWorkspaceR
+      , DataWorkspaceEditR, DataWorkspaceDeleR
       )
     , AppMessage
       ( MsgBusinesses, MsgThereAreNoDataYet, MsgYouMightWantToAddAFew
@@ -84,8 +85,8 @@ import Yesod.Form
 import Yesod.Persist.Core (runDB)
 
 
-postWorkspaceDeleR :: BusinessId -> WorkspaceId -> Handler Html
-postWorkspaceDeleR bid wid = do
+postDataWorkspaceDeleR :: BusinessId -> WorkspaceId -> Handler Html
+postDataWorkspaceDeleR bid wid = do
     
     ((fr,_),_) <- runFormPost formWorkspaceDelete
     
@@ -93,14 +94,14 @@ postWorkspaceDeleR bid wid = do
       FormSuccess () -> do
           runDB $ delete wid
           addMessageI statusSuccess MsgRecordDeleted
-          redirect $ DataR $ WorkspacesR bid
+          redirect $ DataR $ DataWorkspacesR bid
       _otherwise -> do
           addMessageI statusError MsgInvalidFormData
-          redirect $ DataR $ WorkspaceR bid wid
+          redirect $ DataR $ DataWorkspaceR bid wid
 
 
-postWorkspaceR :: BusinessId -> WorkspaceId -> Handler Html
-postWorkspaceR bid wid = do
+postDataWorkspaceR :: BusinessId -> WorkspaceId -> Handler Html
+postDataWorkspaceR bid wid = do
 
     ((fr,fw),et) <- runFormPost $ formWorkspace bid Nothing
 
@@ -108,7 +109,7 @@ postWorkspaceR bid wid = do
       FormSuccess r -> do
           runDB $ replace wid r
           addMessageI statusSuccess MsgRecordEdited
-          redirect $ DataR $ WorkspaceR bid wid
+          redirect $ DataR $ DataWorkspaceR bid wid
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
@@ -117,8 +118,8 @@ postWorkspaceR bid wid = do
               $(widgetFile "data/businesses/workspaces/edit")
 
 
-getWorkspaceEditR :: BusinessId -> WorkspaceId -> Handler Html
-getWorkspaceEditR bid wid = do
+getDataWorkspaceEditR :: BusinessId -> WorkspaceId -> Handler Html
+getDataWorkspaceEditR bid wid = do
 
     workspace <- runDB $ selectOne $ do
         x <- from $ table @Workspace
@@ -134,8 +135,8 @@ getWorkspaceEditR bid wid = do
         $(widgetFile "data/businesses/workspaces/edit")
 
 
-getWorkspaceR :: BusinessId -> WorkspaceId -> Handler Html
-getWorkspaceR bid wid = do
+getDataWorkspaceR :: BusinessId -> WorkspaceId -> Handler Html
+getDataWorkspaceR bid wid = do
 
     workspace <- runDB $ selectOne $ do
         x :& b :& o <- from $ table @Workspace
@@ -156,8 +157,8 @@ formWorkspaceDelete :: Form ()
 formWorkspaceDelete extra = return (pure (), [whamlet|#{extra}|])
 
 
-postWorkspacesR :: BusinessId -> Handler Html
-postWorkspacesR bid = do
+postDataWorkspacesR :: BusinessId -> Handler Html
+postDataWorkspacesR bid = do
 
     ((fr,fw),et) <- runFormPost $ formWorkspace bid Nothing
 
@@ -165,7 +166,7 @@ postWorkspacesR bid = do
       FormSuccess r -> do
           runDB $ insert_ r
           addMessageI statusSuccess MsgRecordEdited
-          redirect $ DataR $ WorkspacesR bid
+          redirect $ DataR $ DataWorkspacesR bid
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
@@ -174,8 +175,8 @@ postWorkspacesR bid = do
               $(widgetFile "data/businesses/workspaces/new")
 
 
-getWorkspaceNewR :: BusinessId -> Handler Html
-getWorkspaceNewR bid = do
+getDataWorkspaceNewR :: BusinessId -> Handler Html
+getDataWorkspaceNewR bid = do
 
     (fw,et) <- generateFormPost $ formWorkspace bid Nothing   
     
@@ -226,8 +227,8 @@ formWorkspace bid workspace extra = do
                                    | otherwise -> Left MsgAlreadyExists
 
 
-getWorkspacesR :: BusinessId -> Handler Html
-getWorkspacesR bid = do
+getDataWorkspacesR :: BusinessId -> Handler Html
+getDataWorkspacesR bid = do
 
     workspaces <- runDB $ select $ do
         x <- from $ table @Workspace
@@ -244,21 +245,21 @@ getWorkspacesR bid = do
         $(widgetFile "data/businesses/workspaces/workspaces")
 
 
-postBusinessDeleR :: BusinessId -> Handler Html
-postBusinessDeleR bid = do
+postDataBusinessDeleR :: BusinessId -> Handler Html
+postDataBusinessDeleR bid = do
     ((fr,_),_) <- runFormPost formBusinessDelete
     case fr of
       FormSuccess () -> do
           runDB $ delete bid
           addMessageI statusSuccess MsgRecordDeleted
-          redirect $ DataR BusinessesR
+          redirect $ DataR DataBusinessesR
       _otherwise -> do
           addMessageI statusError MsgInvalidFormData
-          redirect $ DataR $ BusinessR bid
+          redirect $ DataR $ DataBusinessR bid
 
 
-postBusinessR :: BusinessId -> Handler Html
-postBusinessR bid = do
+postDataBusinessR :: BusinessId -> Handler Html
+postDataBusinessR bid = do
     
     business <- runDB $ selectOne $ do
         x <- from $ table @Business
@@ -271,7 +272,7 @@ postBusinessR bid = do
       FormSuccess r -> do
           runDB $ replace bid r
           addMessageI statusSuccess MsgRecordEdited
-          redirect $ DataR $ BusinessR bid
+          redirect $ DataR $ DataBusinessR bid
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
@@ -280,8 +281,8 @@ postBusinessR bid = do
               $(widgetFile "data/businesses/edit")
 
 
-getBusinessEditR :: BusinessId -> Handler Html
-getBusinessEditR bid = do
+getDataBusinessEditR :: BusinessId -> Handler Html
+getDataBusinessEditR bid = do
     
     business <- runDB $ selectOne $ do
         x <- from $ table @Business
@@ -297,8 +298,8 @@ getBusinessEditR bid = do
         $(widgetFile "data/businesses/edit")
 
 
-getBusinessR :: BusinessId -> Handler Html
-getBusinessR bid = do
+getDataBusinessR :: BusinessId -> Handler Html
+getDataBusinessR bid = do
     
     business <- runDB $ selectOne $ do
         x :& o <- from $ table @Business
@@ -320,14 +321,14 @@ formBusinessDelete :: Form ()
 formBusinessDelete extra = return (pure (), [whamlet|#{extra}|])
 
 
-postBusinessesR :: Handler Html
-postBusinessesR = do
+postDataBusinessesR :: Handler Html
+postDataBusinessesR = do
     ((fr,fw),et) <- runFormPost $ formBusiness Nothing
     case fr of
       FormSuccess r -> do
           runDB $ insert_ r
           addMessageI statusSuccess MsgRecordAdded
-          redirect $ DataR BusinessesR
+          redirect $ DataR DataBusinessesR
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
@@ -336,8 +337,8 @@ postBusinessesR = do
               $(widgetFile "data/businesses/new")
 
 
-getBusinessNewR :: Handler Html
-getBusinessNewR = do
+getDataBusinessNewR :: Handler Html
+getDataBusinessNewR = do
     (fw,et) <- generateFormPost $ formBusiness Nothing
     msgs <- getMessages
     defaultLayout $ do
@@ -391,8 +392,8 @@ formBusiness business extra = do
                                    | otherwise -> Left MsgAlreadyExists
 
 
-getBusinessesR :: Handler Html
-getBusinessesR = do
+getDataBusinessesR :: Handler Html
+getDataBusinessesR = do
     
     businesses <- runDB $ select $ do
         x <- from $ table @Business

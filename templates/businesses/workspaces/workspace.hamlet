@@ -1,6 +1,6 @@
 
 <header>
-  <md-icon-button href=@{DataR DataBusinessesR} aria-label=_{MsgBack}>
+  <md-icon-button href=@{BusinessesR uid} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
   <span.md-typescale-title-large>
@@ -9,7 +9,7 @@
   <span #headerEnd>
     <md-icon-button type=button aria-label=_{MsgDele} onclick="document.getElementById('idDialogDelete').show()">
       <md-icon>delete
-    <md-icon-button href=@{DataR $ DataWorkspaceEditR bid wid} aria-label=_{MsgEdit}>
+    <md-icon-button href=@{WorkspaceEditR uid bid wid} aria-label=_{MsgEdit}>
       <md-icon>edit
 
 <md-dialog #idDialogDelete>
@@ -20,7 +20,7 @@
   <div slot=actions>
     <md-text-button type=button onclick="document.getElementById('idDialogDelete').close()">
       _{MsgCancel}
-    <form slot=content method=post action=@{DataR $ DataWorkspaceDeleR bid wid} enctype=#{et2}>
+    <form slot=content method=post action=@{WorkspaceDeleR uid bid wid} enctype=#{et2}>
       ^{fw2}
       <md-filled-button type=submit>
         _{MsgDele}
