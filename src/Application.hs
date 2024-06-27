@@ -64,6 +64,9 @@ import Handler.Home ( getHomeR )
 import Handler.Businesses
     ( getBusinessesR, getBusinessNewR, postBusinessesR, getBusinessR
     , getBusinessEditR, postBusinessDeleR, postBusinessR
+    , getWorkspacesR, getWorkspaceNewR, postWorkspacesR
+    , getWorkspaceR, getWorkspaceEditR, postWorkspaceR
+    , postWorkspaceDeleR
     )
 
 import Handler.Users

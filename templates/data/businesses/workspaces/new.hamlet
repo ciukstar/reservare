@@ -4,13 +4,13 @@
     <md-icon>arrow_back
 
   <span.md-typescale-title-large>
-    _{MsgBusiness}
+    _{MsgWorkspace}
 
 <main>
 
   ^{widgetBanner msgs}
 
-  <form method=post action=@{DataR $ BusinessR bid} enctype=#{et} novalidate ##{idFormBusiness}>
+  <form method=post action=@{DataR $ WorkspacesR bid} enctype=#{et} novalidate ##{idFormWorkspace}>
     ^{fw}
     <div.form-actions>
       <md-text-button type=button href=@{DataR $ BusinessR bid}>

@@ -182,6 +182,13 @@ instance Yesod App where
 
     isAuthorized :: Route App -> Bool -> Handler AuthResult
 
+    
+    isAuthorized (DataR (WorkspaceDeleR _ _)) _ = isAdmin
+    isAuthorized (DataR (WorkspaceEditR _ _)) _ = isAdmin
+    isAuthorized (DataR (WorkspaceR _ _)) _ = isAdmin
+    isAuthorized (DataR (WorkspaceNewR _)) _ = isAdmin
+    isAuthorized (DataR (WorkspacesR _)) _ = isAdmin
+    
     isAuthorized (DataR (BusinessDeleR _)) _ = isAdmin
     isAuthorized (DataR (BusinessEditR _)) _ = isAdmin
     isAuthorized (DataR (BusinessR _)) _ = isAdmin

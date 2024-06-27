@@ -1,4 +1,9 @@
 
+AlreadyExists: Already exists
+Workspace: Workspace
+Address: Address
+Workspaces: Workspaces
+Details: Details
 RecordAdded: Record added
 Business: Business
 Owner: Owner

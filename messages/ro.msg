@@ -1,3 +1,8 @@
+AlreadyExists: Deja exista
+Workspace: Spațiu de lucru
+Address: Adresa
+Workspaces: Spații de lucru
+Details: Detalii
 RecordAdded: Înregistrare adăugată
 Business: Afacere
 Owner: Proprietar

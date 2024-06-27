@@ -1,4 +1,9 @@
 
+AlreadyExists: Уже существует
+Workspace: Рабочее место
+Address: Адрес
+Workspaces: Рабочие места
+Details: Подробности
 RecordAdded: Запись добавлена
 Business: Бизнес
 Owner: Владелец

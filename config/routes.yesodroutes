@@ -20,11 +20,18 @@
 
 /data DataR:
 
-    /businesses/#BusinessId/form/dele BusinessDeleR POST
-    /businesses/#BusinessId/form/edit BusinessEditR GET
-    /businesses/new/form              BusinessNewR  GET
-    /businesses/#BusinessId           BusinessR     GET POST
-    /businesses                       BusinessesR   GET POST
+    
+    /businesses/#BusinessId/workspaces/#WorkspaceId/form/dele WorkspaceDeleR POST
+    /businesses/#BusinessId/workspaces/#WorkspaceId/form/edit WorkspaceEditR GET
+    /businesses/#BusinessId/workspaces/new/form               WorkspaceNewR  GET
+    /businesses/#BusinessId/workspaces/#WorkspaceId           WorkspaceR     GET POST
+    /businesses/#BusinessId/workspaces                        WorkspacesR    GET POST
+    
+    /businesses/#BusinessId/form/dele  BusinessDeleR POST
+    /businesses/#BusinessId/form/edit  BusinessEditR GET
+    /businesses/new/form               BusinessNewR  GET
+    /businesses/#BusinessId            BusinessR     GET POST
+    /businesses                        BusinessesR   GET POST
 
     /users/#UserId/dele  UserDeleR   POST
     /users/#UserId/edit  UserEditR   GET

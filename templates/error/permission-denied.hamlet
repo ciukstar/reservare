@@ -9,7 +9,7 @@
 <main>
 
   <div.md-typescale-body-large>
-    _{MsgLoginPlease}
+    #{msg}.
   
   <md-filled-button type=button href=@{AuthR LoginR}>
     _{MsgSignIn}

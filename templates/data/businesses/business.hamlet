@@ -27,20 +27,34 @@
 
 <main>
 
-  ^{widgetBanner msgs}
+  <md-tabs>
+  
+    <md-primary-tab ##{idTabDetails} aria-cotrols=#{idPanelDetails} active onclick="this.querySelector('a[href]').click()">
+      <a href=@{DataR $ BusinessR bid}>
+      _{MsgDetails}
       
-  $maybe (Entity _ (Business _ name), Entity _ (User ownerEmail _ _ _ _ ownerName _ _)) <- business        
-    <dl>
+    <md-primary-tab #idTabWorkspaces aria-cotrols=idPanelworkspaces onclick="this.querySelector('a[href]').click()">
+      <a href=@{DataR $ WorkspacesR bid}>
+      _{MsgWorkspaces}
       
-      <dt.md-typescale-label-large scope=row>_{MsgTheName}
-      <dd.md-typescale-body-medium>
-        #{name}
-      
-      <dt.md-typescale-label-large scope=row>_{MsgOwner}
-      <dd.md-typescale-body-medium>
-        $maybe name <- ownerName
-          #{name}
-        $nothing
-          #{ownerEmail}
 
-^{widgetSnackbar msgs}
+  <div ##{idPanelDetails} role=tabpanel aria-labelledby=#{idTabDetails}>
+    ^{widgetBanner msgs}
+
+    $maybe (Entity _ (Business _ name), Entity _ (User ownerEmail _ _ _ _ ownerName _ _)) <- business        
+      <dl>
+
+        <dt.md-typescale-label-large scope=row>_{MsgTheName}
+        <dd.md-typescale-body-medium>
+          #{name}
+
+        <dt.md-typescale-label-large scope=row>_{MsgOwner}
+        <dd.md-typescale-body-medium>
+          $maybe name <- ownerName
+            #{name}
+          $nothing
+            #{ownerEmail}
+
+    ^{widgetSnackbar msgs}
+
+  <div #idPanelWorkspaces role=tabpanel aria-labelledby=idTabWorkspaces hidden>

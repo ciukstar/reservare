@@ -11,9 +11,17 @@ module Handler.Businesses
   , getBusinessEditR
   , postBusinessDeleR
   , postBusinessR
+  , getWorkspacesR
+  , getWorkspaceNewR
+  , postWorkspacesR
+  , getWorkspaceR
+  , getWorkspaceEditR
+  , postWorkspaceR
+  , postWorkspaceDeleR
   ) where
 
 import Data.Maybe (fromMaybe)
+import Data.Text (Text)
 
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, asc, innerJoin, on
@@ -21,28 +29,37 @@ import Database.Esqueleto.Experimental
     , desc, selectOne, where_, val
     )
 import Database.Persist
-    ( Entity (Entity), entityVal, entityKey, insert_, replace, PersistStoreWrite (delete)
+    ( Entity (Entity), PersistStoreWrite (delete)
+    , entityVal, entityKey, insert_, replace
     )
 
 import Foundation
     ( Handler, Form
     , Route (DataR)
-    , DataR (BusinessesR, BusinessNewR, BusinessR, BusinessEditR, BusinessDeleR)
+    , DataR
+      ( BusinessesR, BusinessNewR, BusinessR, BusinessEditR, BusinessDeleR
+      , WorkspacesR, WorkspaceNewR, WorkspaceR, WorkspaceEditR, WorkspaceDeleR
+      )
     , AppMessage
       ( MsgBusinesses, MsgThereAreNoDataYet, MsgYouMightWantToAddAFew
       , MsgAdd, MsgOwner, MsgTheName, MsgSave, MsgCancel, MsgBusiness
       , MsgBack, MsgDele, MsgEdit, MsgDeleteAreYouSure, MsgConfirmPlease
       , MsgRecordDeleted, MsgInvalidFormData, MsgRecordEdited, MsgRecordAdded
+      , MsgDetails, MsgWorkspaces, MsgAddress, MsgWorkspace, MsgAlreadyExists
       )
     )
 
-import Material3 (md3selectField, md3mreq, md3textField)
+import Material3 (md3selectField, md3mreq, md3textField, md3textareaField)
 
 import Model
     ( statusError, statusSuccess
     , BusinessId, Business(Business, businessOwner, businessName)
     , User (User, userName, userEmail)
-    , EntityField (UserName, UserId, BusinessId, BusinessOwner)
+    , WorkspaceId, Workspace (Workspace, workspaceName, workspaceAddress)
+    , EntityField
+      ( UserName, UserId, BusinessId, BusinessOwner, WorkspaceId
+      , WorkspaceBusiness, BusinessName, WorkspaceName
+      )
     )
 
 import Settings (widgetFile)
@@ -58,13 +75,173 @@ import Yesod.Core
     )
 import Yesod.Core.Handler (newIdent)
 import Yesod.Core.Widget (setTitleI)
-import Yesod.Form.Functions (generateFormPost, runFormPost)
+import Yesod.Form.Functions (generateFormPost, runFormPost, checkM)
 import Yesod.Form.Fields (optionsPairs)
 import Yesod.Form
-    ( FieldSettings (FieldSettings, fsName, fsLabel, fsTooltip, fsId, fsAttrs)
+    ( Field, FieldSettings (FieldSettings, fsName, fsLabel, fsTooltip, fsId, fsAttrs)
     , FieldView (fvInput), FormResult (FormSuccess)
     )
 import Yesod.Persist.Core (runDB)
+
+
+postWorkspaceDeleR :: BusinessId -> WorkspaceId -> Handler Html
+postWorkspaceDeleR bid wid = do
+    
+    ((fr,_),_) <- runFormPost formWorkspaceDelete
+    
+    case fr of
+      FormSuccess () -> do
+          runDB $ delete wid
+          addMessageI statusSuccess MsgRecordDeleted
+          redirect $ DataR $ WorkspacesR bid
+      _otherwise -> do
+          addMessageI statusError MsgInvalidFormData
+          redirect $ DataR $ WorkspaceR bid wid
+
+
+postWorkspaceR :: BusinessId -> WorkspaceId -> Handler Html
+postWorkspaceR bid wid = do
+
+    ((fr,fw),et) <- runFormPost $ formWorkspace bid Nothing
+
+    case fr of
+      FormSuccess r -> do
+          runDB $ replace wid r
+          addMessageI statusSuccess MsgRecordEdited
+          redirect $ DataR $ WorkspaceR bid wid
+      _otherwise -> do
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgWorkspace
+              idFormWorkspace <- newIdent
+              $(widgetFile "data/businesses/workspaces/edit")
+
+
+getWorkspaceEditR :: BusinessId -> WorkspaceId -> Handler Html
+getWorkspaceEditR bid wid = do
+
+    workspace <- runDB $ selectOne $ do
+        x <- from $ table @Workspace
+        where_ $ x ^. WorkspaceId ==. val wid
+        return x
+
+    (fw,et) <- generateFormPost $ formWorkspace bid workspace
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgWorkspace
+        idFormWorkspace <- newIdent
+        $(widgetFile "data/businesses/workspaces/edit")
+
+
+getWorkspaceR :: BusinessId -> WorkspaceId -> Handler Html
+getWorkspaceR bid wid = do
+
+    workspace <- runDB $ selectOne $ do
+        x :& b :& o <- from $ table @Workspace
+            `innerJoin` table @Business `on` (\(x :& b) -> x ^. WorkspaceBusiness ==. b ^. BusinessId)
+            `innerJoin` table @User `on` (\(_ :& b :& o) -> b ^. BusinessOwner ==. o ^. UserId)
+        where_ $ x ^. WorkspaceId ==. val wid
+        return (x,b,o)
+
+    (fw2,et2) <- generateFormPost formWorkspaceDelete
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgWorkspace
+        $(widgetFile "data/businesses/workspaces/workspace")
+        
+
+formWorkspaceDelete :: Form ()
+formWorkspaceDelete extra = return (pure (), [whamlet|#{extra}|])
+
+
+postWorkspacesR :: BusinessId -> Handler Html
+postWorkspacesR bid = do
+
+    ((fr,fw),et) <- runFormPost $ formWorkspace bid Nothing
+
+    case fr of
+      FormSuccess r -> do
+          runDB $ insert_ r
+          addMessageI statusSuccess MsgRecordEdited
+          redirect $ DataR $ WorkspacesR bid
+      _otherwise -> do
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgWorkspace
+              idFormWorkspace <- newIdent
+              $(widgetFile "data/businesses/workspaces/new")
+
+
+getWorkspaceNewR :: BusinessId -> Handler Html
+getWorkspaceNewR bid = do
+
+    (fw,et) <- generateFormPost $ formWorkspace bid Nothing   
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgWorkspace
+        idFormWorkspace <- newIdent
+        $(widgetFile "data/businesses/workspaces/new")
+
+
+formWorkspace :: BusinessId -> Maybe (Entity Workspace) -> Form Workspace
+formWorkspace bid workspace extra = do
+
+    msgr <- getMessageRender
+    
+    (nameR, nameV) <- md3mreq uniqueNameField FieldSettings
+        { fsLabel = SomeMessage MsgTheName
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgTheName)]
+        } (workspaceName . entityVal <$> workspace)
+        
+    (addrR, addrV) <- md3mreq md3textareaField FieldSettings
+        { fsLabel = SomeMessage MsgAddress
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgAddress)]
+        } (workspaceAddress . entityVal <$> workspace)
+
+    return ( Workspace bid <$> nameR <*> addrR
+           , [whamlet|#{extra} ^{fvInput nameV} ^{fvInput addrV}|]
+           )
+  where
+      
+      uniqueNameField :: Field Handler Text
+      uniqueNameField = checkM uniqueName md3textField
+
+      uniqueName :: Text -> Handler (Either AppMessage Text)
+      uniqueName name = do
+          x <- runDB $ selectOne $ do
+              x <- from $ table @Workspace
+              where_ $ x ^. WorkspaceBusiness ==. val bid
+              where_ $ x ^. WorkspaceName ==. val name
+              return x
+          return $ case x of
+            Nothing -> Right name
+            Just (Entity wid _) -> case workspace of
+              Nothing -> Left MsgAlreadyExists
+              Just (Entity wid' _) | wid == wid' -> Right name
+                                   | otherwise -> Left MsgAlreadyExists
+
+
+getWorkspacesR :: BusinessId -> Handler Html
+getWorkspacesR bid = do
+
+    workspaces <- runDB $ select $ do
+        x <- from $ table @Workspace
+        where_ $ x ^. WorkspaceBusiness ==. val bid
+        orderBy [desc (x ^. WorkspaceId)]
+        return x
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgWorkspaces
+        idTabWorkspaces <- newIdent
+        idPanelWorkspaces <- newIdent
+        idFabAdd <- newIdent
+        $(widgetFile "data/businesses/workspaces/workspaces")
 
 
 postBusinessDeleR :: BusinessId -> Handler Html
@@ -134,6 +311,8 @@ getBusinessR bid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgBusiness
+        idTabDetails <- newIdent
+        idPanelDetails <- newIdent
         $(widgetFile "data/businesses/business")
 
 
@@ -176,13 +355,14 @@ formBusiness business extra = do
         return x )
     
     msgr <- getMessageRender
+    
     (ownerR, ownerV) <- md3mreq (md3selectField (optionsPairs (options <$> owners))) FieldSettings
         { fsLabel = SomeMessage MsgOwner
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgOwner)]
         } (businessOwner . entityVal <$> business)
         
-    (nameR, nameV) <- md3mreq md3textField FieldSettings
+    (nameR, nameV) <- md3mreq uniqueNameField FieldSettings
         { fsLabel = SomeMessage MsgTheName
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgTheName)]
@@ -193,6 +373,22 @@ formBusiness business extra = do
            )
   where
       options e = (fromMaybe (userEmail . entityVal $ e) (userName . entityVal $ e), entityKey e)
+      
+      uniqueNameField :: Field Handler Text
+      uniqueNameField = checkM uniqueName md3textField
+
+      uniqueName :: Text -> Handler (Either AppMessage Text)
+      uniqueName name = do
+          x <- runDB $ selectOne $ do
+              x <- from $ table @Business
+              where_ $ x ^. BusinessName ==. val name
+              return x
+          return $ case x of
+            Nothing -> Right name
+            Just (Entity bid _) -> case business of
+              Nothing -> Left MsgAlreadyExists
+              Just (Entity bid' _) | bid == bid' -> Right name
+                                   | otherwise -> Left MsgAlreadyExists
 
 
 getBusinessesR :: Handler Html

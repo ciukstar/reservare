@@ -1,4 +1,9 @@
 
+AlreadyExists: Existe déjà
+Workspace: Espace de travail
+Address: Adresse
+Workspaces: Espaces de travail
+Details: Détails
 RecordAdded: Enregistrement ajouté
 Business: Entreprise
 Owner: Propriétaire
