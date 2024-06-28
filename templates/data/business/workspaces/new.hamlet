@@ -1,6 +1,6 @@
 
 <header>
-  <md-icon-button href=@{DataR $ DataBusinessR bid} aria-label=_{MsgBack}>
+  <md-icon-button href=@{DataR $ DataWorkspacesR bid} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
   <span.md-typescale-title-large>
@@ -13,7 +13,7 @@
   <form method=post action=@{DataR $ DataWorkspacesR bid} enctype=#{et} novalidate ##{idFormWorkspace}>
     ^{fw}
     <div.form-actions>
-      <md-text-button type=button href=@{DataR $ DataBusinessR bid}>
+      <md-text-button type=button href=@{DataR $ DataWorkspacesR bid}>
         _{MsgCancel}
       <md-filled-button type=submit>
         _{MsgSave}

@@ -1,4 +1,8 @@
-
+ServiceAssignments: Assignments
+Employee: Employee
+Phone: Phone
+Mobile: Mobile
+Staff: Staff
 AlreadyExists: Already exists
 Workspace: Workspace
 Address: Address

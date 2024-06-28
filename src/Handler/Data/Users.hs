@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module Handler.Users
+module Handler.Data.Users
   ( getUsersR
   , getUserR
   , postUserDeleR

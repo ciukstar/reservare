@@ -1,0 +1,62 @@
+
+<header>
+  <md-icon-button href=@{DataR StaffR} aria-label=_{MsgBack}>
+    <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgEmployee}
+
+  <span #headerEnd>
+    <md-icon-button type=button aria-label=_{MsgDele} onclick="document.getElementById('idDialogDelete').show()">
+      <md-icon>delete
+    <md-icon-button href=@{DataR $ EmployeeEditR sid} aria-label=_{MsgEdit}>
+      <md-icon>edit
+
+<md-dialog #idDialogDelete>
+  <div slot=headline>
+    _{MsgConfirmPlease}
+  <div slot=content>
+    _{MsgDeleteAreYouSure}
+  <div slot=actions>
+    <md-text-button type=button onclick="document.getElementById('idDialogDelete').close()">
+      _{MsgCancel}
+    <form slot=content method=post action=@{DataR $ EmployeeDeleR sid} enctype=#{et2}>
+      ^{fw2}
+      <md-filled-button type=submit>
+        _{MsgDele}
+
+<main>
+
+  <md-tabs>
+  
+    <md-primary-tab ##{idTabDetails} aria-cotrols=#{idPanelDetails} active onclick="this.querySelector('a[href]').click()">
+      <a href=@{DataR $ EmployeeR sid}>
+      _{MsgDetails}
+      
+    <md-primary-tab #idTabAssignments aria-cotrols=idPanelAssignments onclick="this.querySelector('a[href]').click()">
+      <a href=#>
+      _{MsgServiceAssignments}
+      
+
+  <div ##{idPanelDetails} role=tabpanel aria-labelledby=#{idTabDetails}>
+    ^{widgetBanner msgs}
+
+    $maybe Entity _ (Staff name _ mobile phone) <- employee
+      <dl>
+        <dt.md-typescale-label-large scope=row>_{MsgFullName}
+        <dd.md-typescale-body-medium>
+          #{name}
+
+        <dt.md-typescale-label-large scope=row>_{MsgMobile}
+        <dd.md-typescale-body-medium>
+          $maybe mobile <- mobile
+            #{mobile}
+
+        <dt.md-typescale-label-large scope=row>_{MsgPhone}
+        <dd.md-typescale-body-medium>
+          $maybe phone <- phone
+            #{phone}
+
+    ^{widgetSnackbar msgs}
+
+  <div #idPanelAssignments role=tabpanel aria-labelledby=idTabAssignments hidden>

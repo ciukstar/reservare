@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Handler.Tokens
+module Handler.Data.Tokens
   ( getTokensR
   , postTokensR
   , getTokensGoogleapisHookR

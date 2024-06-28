@@ -3,17 +3,17 @@
 
 
     
-/accounts/#UserId/businesses/#BusinessId/workspaces/#WorkspaceId/form/dele WorkspaceDeleR POST
-/accounts/#UserId/businesses/#BusinessId/workspaces/#WorkspaceId/form/edit WorkspaceEditR GET
-/accounts/#UserId/businesses/#BusinessId/workspaces/new/form               WorkspaceNewR  GET
-/accounts/#UserId/businesses/#BusinessId/workspaces/#WorkspaceId           WorkspaceR     GET POST
-/accounts/#UserId/businesses/#BusinessId/workspaces                        WorkspacesR    GET POST
+/users/#UserId/businesses/#BusinessId/workspaces/#WorkspaceId/form/dele WorkspaceDeleR POST
+/users/#UserId/businesses/#BusinessId/workspaces/#WorkspaceId/form/edit WorkspaceEditR GET
+/users/#UserId/businesses/#BusinessId/workspaces/new/form               WorkspaceNewR  GET
+/users/#UserId/businesses/#BusinessId/workspaces/#WorkspaceId           WorkspaceR     GET POST
+/users/#UserId/businesses/#BusinessId/workspaces                        WorkspacesR    GET POST
     
-/accounts/#UserId/businesses/#BusinessId/form/dele  BusinessDeleR POST
-/accounts/#UserId/businesses/#BusinessId/form/edit  BusinessEditR GET
-/accounts/#UserId/businesses/new/form               BusinessNewR  GET
-/accounts/#UserId/businesses/#BusinessId            BusinessR     GET POST
-/accounts/#UserId/businesses                        BusinessesR   GET POST
+/users/#UserId/businesses/#BusinessId/form/dele  BusinessDeleR POST
+/users/#UserId/businesses/#BusinessId/form/edit  BusinessEditR GET
+/users/#UserId/businesses/new/form               BusinessNewR  GET
+/users/#UserId/businesses/#BusinessId            BusinessR     GET POST
+/users/#UserId/businesses                        BusinessesR   GET POST
 
 
 /accounts/#UserId/info/edit AccountInfoEditR GET
@@ -33,7 +33,14 @@
 /robots.txt RobotsR GET
 
 /data DataR:
-    
+
+
+    /staff/#StaffId/delete    EmployeeDeleR POST
+    /staff/#StaffId/form/edit EmployeeEditR GET
+    /staff/new/form           EmployeeNewR  GET
+    /staff/#StaffId           EmployeeR     GET POST
+    /staff                    StaffR        GET POST
+
     /businesses/#BusinessId/workspaces/#WorkspaceId/form/dele DataWorkspaceDeleR POST
     /businesses/#BusinessId/workspaces/#WorkspaceId/form/edit DataWorkspaceEditR GET
     /businesses/#BusinessId/workspaces/new/form               DataWorkspaceNewR  GET

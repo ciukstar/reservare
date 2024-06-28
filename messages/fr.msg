@@ -1,4 +1,8 @@
-
+ServiceAssignments: Affectations
+Employee: Employée
+Phone: Téléphone
+Mobile: Mobile
+Staff: Personelle
 AlreadyExists: Existe déjà
 Workspace: Espace de travail
 Address: Adresse

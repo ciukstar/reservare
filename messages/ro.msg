@@ -1,3 +1,8 @@
+ServiceAssignments: Atribuții
+Employee: Angajat
+Phone: Telefon
+Mobile: Mobil
+Staff: Personal
 AlreadyExists: Deja exista
 Workspace: Spațiu de lucru
 Address: Adresa

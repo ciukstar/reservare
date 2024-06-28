@@ -13,7 +13,7 @@
   <form method=post action=@{WorkspacesR uid bid} enctype=#{et} novalidate ##{idFormWorkspace}>
     ^{fw}
     <div.form-actions>
-      <md-text-button type=button href=@{BusinessR uid bid}>
+      <md-text-button type=button href=@{WorkspacesR uid bid}>
         _{MsgCancel}
       <md-filled-button type=submit>
         _{MsgSave}

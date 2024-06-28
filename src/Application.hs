@@ -69,6 +69,11 @@ import Handler.Business
     , postWorkspaceDeleR
     )
 
+import Handler.Data.Staff
+    ( getStaffR, getEmployeeR, getEmployeeNewR, postStaffR, getEmployeeEditR
+    , postEmployeeDeleR, postEmployeeR
+    )
+
 import Handler.Data.Business
     ( getDataBusinessesR
     , getDataBusinessNewR
@@ -86,11 +91,11 @@ import Handler.Data.Business
     , postDataWorkspaceDeleR
     )
 
-import Handler.Users
+import Handler.Data.Users
     ( getUsersR, getUserR, postUserDeleR, getUserEditR, postUserR
     )
     
-import Handler.Tokens
+import Handler.Data.Tokens
     ( getTokensR, postTokensR, getTokensGoogleapisHookR
     , postTokensGoogleapisClearR
     )

@@ -33,7 +33,7 @@
       <a href=@{DataR $ DataBusinessR bid}>
       _{MsgDetails}
       
-    <md-primary-tab #idTabWorkspaces aria-cotrols=idPanelworkspaces onclick="this.querySelector('a[href]').click()">
+    <md-primary-tab #idTabWorkspaces aria-cotrols=idPanelWorkspaces onclick="this.querySelector('a[href]').click()">
       <a href=@{DataR $ DataWorkspacesR bid}>
       _{MsgWorkspaces}
       

@@ -195,7 +195,14 @@ instance Yesod App where
     isAuthorized (BusinessNewR uid) _ = isAuthenticatedSelf uid
     isAuthorized r@(BusinessesR uid) _ = setUltDest r >> isAuthenticatedSelf uid
 
+
     
+    
+    isAuthorized (DataR (EmployeeDeleR _)) _ = isAdmin
+    isAuthorized (DataR (EmployeeEditR _)) _ = isAdmin
+    isAuthorized (DataR EmployeeNewR) _ = isAdmin
+    isAuthorized (DataR (EmployeeR _)) _ = isAdmin
+    isAuthorized r@(DataR StaffR) _ = setUltDest r >> isAdmin
     
     isAuthorized (DataR (DataWorkspaceDeleR _ _)) _ = isAdmin
     isAuthorized (DataR (DataWorkspaceEditR _ _)) _ = isAdmin

@@ -20,17 +20,16 @@ module Handler.Business
   , postWorkspaceDeleR
   ) where
 
-import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 
 import Database.Esqueleto.Experimental
-    ( select, from, table, orderBy, asc, innerJoin, on
+    ( select, from, table, orderBy, innerJoin, on
     , (^.), (==.), (:&)((:&))
     , desc, selectOne, where_, val
     )
 import Database.Persist
     ( Entity (Entity), PersistStoreWrite (delete)
-    , entityVal, entityKey, insert_, replace
+    , entityVal, insert_, replace
     )
 
 import Foundation
@@ -48,15 +47,15 @@ import Foundation
       )
     )
 
-import Material3 (md3selectField, md3mreq, md3textField, md3textareaField)
+import Material3 (md3mreq, md3textField, md3textareaField)
 
 import Model
     ( statusError, statusSuccess
-    , BusinessId, Business(Business, businessOwner, businessName)
-    , UserId, User (User, userName, userEmail)
+    , BusinessId, Business(Business, businessName)
+    , UserId, User (User)
     , WorkspaceId, Workspace (Workspace, workspaceName, workspaceAddress)
     , EntityField
-      ( UserName, UserId, BusinessId, BusinessOwner, WorkspaceId
+      ( UserId, BusinessId, BusinessOwner, WorkspaceId
       , WorkspaceBusiness, BusinessName, WorkspaceName
       )
     )
@@ -70,12 +69,11 @@ import Widgets (widgetBanner, widgetSnackbar, widgetAccount, widgetMenu)
 
 import Yesod.Core
     ( Yesod(defaultLayout), getMessages, getMessageRender
-    , MonadHandler (liftHandler), redirect, whamlet, addMessageI
+    , redirect, whamlet, addMessageI
     )
 import Yesod.Core.Handler (newIdent)
 import Yesod.Core.Widget (setTitleI)
 import Yesod.Form.Functions (generateFormPost, runFormPost, checkM)
-import Yesod.Form.Fields (optionsPairs)
 import Yesod.Form
     ( Field, FieldSettings (FieldSettings, fsName, fsLabel, fsTooltip, fsId, fsAttrs)
     , FieldView (fvInput), FormResult (FormSuccess)
@@ -101,7 +99,12 @@ postWorkspaceDeleR uid bid wid = do
 postWorkspaceR :: UserId -> BusinessId -> WorkspaceId -> Handler Html
 postWorkspaceR uid bid wid = do
 
-    ((fr,fw),et) <- runFormPost $ formWorkspace bid Nothing
+    workspace <- runDB $ selectOne $ do
+        x <- from $ table @Workspace
+        where_ $ x ^. WorkspaceId ==. val wid
+        return x    
+
+    ((fr,fw),et) <- runFormPost $ formWorkspace bid workspace
 
     case fr of
       FormSuccess r -> do
@@ -113,7 +116,7 @@ postWorkspaceR uid bid wid = do
           defaultLayout $ do
               setTitleI MsgWorkspace
               idFormWorkspace <- newIdent
-              $(widgetFile "businesses/workspaces/edit")
+              $(widgetFile "business/workspaces/edit")
 
 
 getWorkspaceEditR :: UserId -> BusinessId -> WorkspaceId -> Handler Html
@@ -130,7 +133,7 @@ getWorkspaceEditR uid bid wid = do
     defaultLayout $ do
         setTitleI MsgWorkspace
         idFormWorkspace <- newIdent
-        $(widgetFile "businesses/workspaces/edit")
+        $(widgetFile "business/workspaces/edit")
 
 
 getWorkspaceR :: UserId -> BusinessId -> WorkspaceId -> Handler Html
@@ -148,7 +151,7 @@ getWorkspaceR uid bid wid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkspace
-        $(widgetFile "businesses/workspaces/workspace")
+        $(widgetFile "business/workspaces/workspace")
         
 
 formWorkspaceDelete :: Form ()
@@ -170,7 +173,7 @@ postWorkspacesR uid bid = do
           defaultLayout $ do
               setTitleI MsgWorkspace
               idFormWorkspace <- newIdent
-              $(widgetFile "businesses/workspaces/new")
+              $(widgetFile "business/workspaces/new")
 
 
 getWorkspaceNewR :: UserId -> BusinessId -> Handler Html
@@ -182,7 +185,7 @@ getWorkspaceNewR uid bid = do
     defaultLayout $ do
         setTitleI MsgWorkspace
         idFormWorkspace <- newIdent
-        $(widgetFile "businesses/workspaces/new")
+        $(widgetFile "business/workspaces/new")
 
 
 formWorkspace :: BusinessId -> Maybe (Entity Workspace) -> Form Workspace
@@ -240,7 +243,7 @@ getWorkspacesR uid bid = do
         idTabWorkspaces <- newIdent
         idPanelWorkspaces <- newIdent
         idFabAdd <- newIdent
-        $(widgetFile "businesses/workspaces/workspaces")
+        $(widgetFile "business/workspaces/workspaces")
 
 
 postBusinessDeleR :: UserId -> BusinessId -> Handler Html
@@ -276,7 +279,7 @@ postBusinessR uid bid = do
           defaultLayout $ do
               setTitleI MsgBusiness
               idFormBusiness <- newIdent
-              $(widgetFile "businesses/edit")
+              $(widgetFile "business/edit")
 
 
 getBusinessEditR :: UserId -> BusinessId -> Handler Html
@@ -293,7 +296,7 @@ getBusinessEditR uid bid = do
     defaultLayout $ do
         setTitleI MsgBusiness
         idFormBusiness <- newIdent
-        $(widgetFile "businesses/edit")
+        $(widgetFile "business/edit")
 
 
 getBusinessR :: UserId -> BusinessId -> Handler Html
@@ -312,7 +315,7 @@ getBusinessR uid bid = do
         setTitleI MsgBusiness
         idTabDetails <- newIdent
         idPanelDetails <- newIdent
-        $(widgetFile "businesses/business")
+        $(widgetFile "business/business")
 
 
 formBusinessDelete :: Form ()
@@ -332,7 +335,7 @@ postBusinessesR uid = do
           defaultLayout $ do
               setTitleI MsgBusiness
               idFormBusiness <- newIdent
-              $(widgetFile "businesses/new")
+              $(widgetFile "business/new")
 
 
 getBusinessNewR :: UserId -> Handler Html
@@ -342,7 +345,7 @@ getBusinessNewR uid = do
     defaultLayout $ do
         setTitleI MsgBusiness
         idFormBusiness <- newIdent
-        $(widgetFile "businesses/new")
+        $(widgetFile "business/new")
 
 
 formBusiness :: UserId -> Maybe (Entity Business) -> Form Business
@@ -357,7 +360,7 @@ formBusiness uid business extra = do
         } (businessName . entityVal <$> business)
 
     return ( Business uid <$> nameR
-           , $(widgetFile "businesses/form")
+           , $(widgetFile "business/form")
            )
   where
       
@@ -391,4 +394,4 @@ getBusinessesR uid = do
     defaultLayout $ do
         setTitleI MsgBusinesses
         idFabAdd <- newIdent
-        $(widgetFile "businesses/businesses")
+        $(widgetFile "business/businesses")

@@ -1,4 +1,8 @@
-
+ServiceAssignments: Назначения
+Employee: Сотрудник
+Phone: Телефон
+Mobile: Мобильный
+Staff: Персонал
 AlreadyExists: Уже существует
 Workspace: Рабочее место
 Address: Адрес
