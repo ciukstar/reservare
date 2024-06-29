@@ -69,6 +69,13 @@ import Handler.Business
     , postWorkspaceDeleR
     )
 
+import Handler.Data.Services
+    ( getServicesR, getServiceR, getServiceNewR, postServicesR
+    , getServiceEditR, postServiceDeleR, postServiceR
+    , getServiceAssignmentsR, getServiceAssignmentNewR
+    , postServiceAssignmentsR, getServiceAssignmentR
+    )
+
 import Handler.Data.Staff
     ( getStaffR, getEmployeeR, getEmployeeNewR, postStaffR, getEmployeeEditR
     , postEmployeeDeleR, postEmployeeR

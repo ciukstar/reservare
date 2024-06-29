@@ -34,6 +34,16 @@
 
 /data DataR:
 
+    
+    /services/#ServiceId/assignments/new/form      ServiceAssignmentNewR GET
+    /services/#ServiceId/assignments/#AssignmentId ServiceAssignmentR    GET
+    /services/#ServiceId/assignments               ServiceAssignmentsR   GET POST
+    
+    /services/#ServiceId/delete      ServiceDeleR        POST
+    /services/#ServiceId/form/edit   ServiceEditR        GET
+    /services/new/form               ServiceNewR         GET
+    /services/#ServiceId             ServiceR            GET POST
+    /services                        ServicesR           GET POST
 
     /staff/#StaffId/delete    EmployeeDeleR POST
     /staff/#StaffId/form/edit EmployeeEditR GET

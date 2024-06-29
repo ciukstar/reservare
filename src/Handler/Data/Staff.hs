@@ -62,7 +62,8 @@ import Yesod.Core.Widget (setTitleI)
 import Yesod.Form
     ( FieldSettings
       ( FieldSettings, fsLabel, fsTooltip, fsId, fsName, fsAttrs
-      ), optionsPairs, FieldView (fvInput), runFormPost, FormResult (FormSuccess)
+      )
+    , FormResult (FormSuccess), FieldView (fvInput), optionsPairs, runFormPost
     )
 import Yesod.Form.Functions (generateFormPost)
 import Yesod.Persist (YesodPersist(runDB))

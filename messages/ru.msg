@@ -1,3 +1,8 @@
+AssignmentDate: Дата назначения
+ServiceAssignment: Назначение
+Description: Описание
+Service: Услуга
+Services: Услуги
 ServiceAssignments: Назначения
 Employee: Сотрудник
 Phone: Телефон

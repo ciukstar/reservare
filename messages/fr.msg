@@ -1,3 +1,8 @@
+AssignmentDate: Date d'affectation
+ServiceAssignment: Affectation
+Description: Description
+Service: Service
+Services: Services
 ServiceAssignments: Affectations
 Employee: Employée
 Phone: Téléphone

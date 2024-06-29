@@ -1,3 +1,8 @@
+AssignmentDate: Data atribuirii
+ServiceAssignment: Atribuție
+Description: Descriere
+Service: Serviciu
+Services: Servicii
 ServiceAssignments: Atribuții
 Employee: Angajat
 Phone: Telefon

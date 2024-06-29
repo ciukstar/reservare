@@ -1,6 +1,17 @@
 -- By default this file is used by `persistFileWith` in Model.hs (which is imported by Foundation.hs)
 -- Syntax for this file here: https://github.com/yesodweb/persistent/blob/master/docs/Persistent-entity-syntax.md
 
+Assignment
+    staff StaffId OnDeleteCascade
+    service ServiceId OnDeleteCascade
+    time LocalTime
+
+Service
+    workspace WorkspaceId OnDeleteCascade
+    name Text
+    descr Textarea Maybe
+    UniqueService workspace name
+
 Staff
     name Text
     account UserId Maybe OnDeleteSetNull

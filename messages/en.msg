@@ -1,3 +1,8 @@
+AssignmentDate: Assignment Date
+ServiceAssignment: Assignment
+Description: Description
+Service: Service
+Services: Services
 ServiceAssignments: Assignments
 Employee: Employee
 Phone: Phone
