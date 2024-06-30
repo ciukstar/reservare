@@ -13,14 +13,12 @@
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Model where
 
 import ClassyPrelude.Yesod
 import Database.Persist.Quasi
-import qualified Data.Proxy as P (Proxy)
-import Data.Time.LocalTime (LocalTime, localTimeToUTC, utcToLocalTime, utc)
-import Database.Persist.Sql (PersistFieldSql (sqlType))
 
 
 data StoreType = StoreTypeDatabase | StoreTypeSession | StoreTypeGoogleSecretManager
@@ -33,18 +31,6 @@ data AuthenticationType = UserAuthTypePassword
                         | UserAuthTypeGoogle
     deriving (Show, Read, Eq, Ord)
 derivePersistField "AuthenticationType"
-
-instance PersistField LocalTime where
-    toPersistValue :: LocalTime -> PersistValue
-    toPersistValue x = toPersistValue (localTimeToUTC utc x)
-
-    fromPersistValue :: PersistValue -> Either Text LocalTime
-    fromPersistValue (PersistUTCTime x) = Right (utcToLocalTime utc x)
-    fromPersistValue _ = Left "Invalid LocalTime"
-
-instance PersistFieldSql LocalTime where
-    sqlType :: P.Proxy LocalTime -> SqlType
-    sqlType _ = SqlDayTime
 
 
 -- You can define all of your database entities in the entities file.

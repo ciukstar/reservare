@@ -1,3 +1,4 @@
+TheStart: Începutul
 AssignmentDate: Data atribuirii
 ServiceAssignment: Atribuție
 Description: Descriere

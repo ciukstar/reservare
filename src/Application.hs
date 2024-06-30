@@ -74,6 +74,8 @@ import Handler.Data.Services
     , getServiceEditR, postServiceDeleR, postServiceR
     , getServiceAssignmentsR, getServiceAssignmentNewR
     , postServiceAssignmentsR, getServiceAssignmentR
+    , getServiceAssignmentEditR, postServiceAssignmentDeleR
+    , postServiceAssignmentR
     )
 
 import Handler.Data.Staff

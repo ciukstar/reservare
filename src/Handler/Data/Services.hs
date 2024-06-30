@@ -15,13 +15,20 @@ module Handler.Data.Services
   , getServiceAssignmentNewR
   , postServiceAssignmentsR
   , getServiceAssignmentR
+  , getServiceAssignmentEditR
+  , postServiceAssignmentDeleR
+  , postServiceAssignmentR
   ) where
+
 
 import Control.Monad (void)
 
+import Data.Time.LocalTime (utcToLocalTime, localTimeToUTC, utc)
+
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, desc, asc, selectOne, where_, val
-    , (^.), (==.)
+    , (^.), (==.), (:&)((:&))
+    , innerJoin, on
     )
 import Database.Persist
     (Entity (Entity), entityVal, entityKey, insert_)
@@ -33,6 +40,7 @@ import Foundation
     , DataR
       ( ServicesR, ServiceR, ServiceNewR, ServiceEditR, ServiceDeleR
       , ServiceAssignmentsR, ServiceAssignmentNewR, ServiceAssignmentR
+      , ServiceAssignmentEditR, ServiceAssignmentDeleR
       )
     , AppMessage
       ( MsgServices, MsgAdd, MsgYouMightWantToAddAFew, MsgThereAreNoDataYet
@@ -40,7 +48,7 @@ import Foundation
       , MsgDescription, MsgRecordAdded, MsgServiceAssignments, MsgDetails
       , MsgDeleteAreYouSure, MsgConfirmPlease, MsgEdit, MsgRecordEdited
       , MsgDele, MsgRecordDeleted, MsgInvalidFormData, MsgServiceAssignment
-      , MsgEmployee, MsgAssignmentDate
+      , MsgEmployee, MsgAssignmentDate, MsgTheStart
       )
     )
     
@@ -52,12 +60,14 @@ import Material3
 import Model
     ( statusSuccess, statusError
     , ServiceId, Service(Service, serviceName, serviceWorkspace, serviceDescr)
-    , Workspace (workspaceName)
-    , AssignmentId, Assignment (Assignment, assignmentStaff, assignmentTime)
+    , Workspace (workspaceName, Workspace)
+    , AssignmentId, Assignment (Assignment, assignmentStaff, assignmentStart)
     , Staff (Staff, staffName)
+    , Business (Business)
     , EntityField
-      ( ServiceId, WorkspaceName, WorkspaceId, AssignmentTime, AssignmentId
-      , StaffName, StaffId
+      ( ServiceId, WorkspaceName, WorkspaceId, AssignmentStart, AssignmentId
+      , StaffName, StaffId, AssignmentService, ServiceWorkspace, WorkspaceBusiness
+      , BusinessId
       )
     )
 
@@ -81,8 +91,81 @@ import Yesod.Form.Functions (generateFormPost, runFormPost)
 import Yesod.Persist (YesodPersist(runDB))
 
 
+postServiceAssignmentR :: ServiceId -> AssignmentId -> Handler Html
+postServiceAssignmentR sid aid = do
+
+    assignment <- runDB $ selectOne $ do
+        x <- from $ table @Assignment
+        where_ $ x ^. AssignmentId ==. val aid
+        return x
+        
+    ((fr,fw),et) <- runFormPost $ formServiceAssignment sid assignment
+
+    case fr of
+      FormSuccess r -> do
+          runDB $ P.replace aid r
+          addMessageI statusSuccess MsgRecordEdited
+          redirect $ DataR $ ServiceAssignmentR sid aid
+      _otherwise -> do
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgServiceAssignment
+              idFormAssignment <- newIdent
+              $(widgetFile "data/services/assignments/edit")
+
+
+postServiceAssignmentDeleR :: ServiceId -> AssignmentId -> Handler Html
+postServiceAssignmentDeleR sid aid = do
+
+    ((fr,_),_) <- runFormPost formServiceAssignmentDelete
+    case fr of
+      FormSuccess () -> do
+          runDB $ P.delete aid
+          addMessageI statusSuccess MsgRecordDeleted
+          redirect $ DataR $ ServiceAssignmentsR sid
+      _otherwise -> do
+          addMessageI statusError MsgInvalidFormData
+          redirect $ DataR $ ServiceAssignmentR sid aid
+
+
+getServiceAssignmentEditR :: ServiceId -> AssignmentId -> Handler Html
+getServiceAssignmentEditR sid aid = do
+
+    assignment <- runDB $ selectOne $ do
+        x <- from $ table @Assignment
+        where_ $ x ^. AssignmentId ==. val aid
+        return x
+        
+    (fw,et) <- generateFormPost $ formServiceAssignment sid assignment
+        
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgServiceAssignment
+        idFormAssignment <- newIdent
+        $(widgetFile "data/services/assignments/edit")
+
+
 getServiceAssignmentR :: ServiceId -> AssignmentId -> Handler Html
-getServiceAssignmentR sid aid = undefined
+getServiceAssignmentR sid aid = do
+
+    assignment <- runDB $ selectOne $ do
+        x :& s :& w :& b <- from $ table @Assignment
+            `innerJoin` table @Service `on` (\(x :& s) -> x ^. AssignmentService ==. s ^. ServiceId)
+            `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
+            `innerJoin` table @Business `on` (\(_ :& _ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)
+        where_ $ x ^. AssignmentId ==. val aid
+        return (x,(s,(w,b)))
+
+    (fw2,et2) <- generateFormPost formServiceAssignmentDelete
+        
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgServiceAssignment
+        $(widgetFile "data/services/assignments/assignment")
+
+
+formServiceAssignmentDelete :: Form ()
+formServiceAssignmentDelete extra = return (pure (), [whamlet|#{extra}|])
 
 
 postServiceAssignmentsR :: ServiceId -> Handler Html
@@ -131,10 +214,10 @@ formServiceAssignment sid assignment extra = do
     (timeR, timeV) <- md3mreq md3datetimeLocalField FieldSettings
         { fsLabel = SomeMessage MsgAssignmentDate
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgAssignmentDate)]
-        } (assignmentTime . entityVal <$> assignment)
+        , fsAttrs = [("label", msgr MsgAssignmentDate),("step","1")]
+        } (utcToLocalTime utc . assignmentStart . entityVal <$> assignment)
 
-    return ( Assignment <$> employeeR <*> pure sid <*> timeR
+    return ( Assignment <$> employeeR <*> pure sid <*> (localTimeToUTC utc <$> timeR)
            , [whamlet|#{extra} ^{fvInput employeeV} ^{fvInput timeV}|]
            )
         
@@ -146,9 +229,12 @@ getServiceAssignmentsR :: ServiceId -> Handler Html
 getServiceAssignmentsR sid = do
     
     assignments <- runDB $ select $ do
-        x <- from $ table @Assignment
+        x :& s :& w :& b <- from $ table @Assignment
+            `innerJoin` table @Service `on` (\(x :& s) -> x ^. AssignmentService ==. s ^. ServiceId)
+            `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
+            `innerJoin` table @Business `on` (\(_ :& _ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)
         orderBy [desc (x ^. AssignmentId)]
-        return x
+        return (x,(s,(w,b)))
         
     msgs <- getMessages
     defaultLayout $ do
@@ -167,7 +253,7 @@ postServiceR sid = do
         where_ $ x ^. ServiceId ==. val sid
         return x
         
-    ((fr,fw),et) <- runFormPost $ formServices service
+    ((fr,fw),et) <- runFormPost $ formService service
     case fr of
       FormSuccess r -> do
           runDB $ P.replace sid r
@@ -202,7 +288,7 @@ getServiceEditR sid = do
         where_ $ x ^. ServiceId ==. val sid
         return x
         
-    (fw,et) <- generateFormPost $ formServices service
+    (fw,et) <- generateFormPost $ formService service
         
     msgs <- getMessages
     defaultLayout $ do
@@ -213,7 +299,7 @@ getServiceEditR sid = do
 
 postServicesR :: Handler Html
 postServicesR = do
-    ((fr,fw),et) <- runFormPost $ formServices Nothing
+    ((fr,fw),et) <- runFormPost $ formService Nothing
     case fr of
       FormSuccess r -> do
           runDB $ insert_ r
@@ -229,7 +315,7 @@ postServicesR = do
 
 getServiceNewR :: Handler Html
 getServiceNewR = do
-    (fw,et) <- generateFormPost $ formServices Nothing
+    (fw,et) <- generateFormPost $ formService Nothing
         
     msgs <- getMessages
     defaultLayout $ do
@@ -238,8 +324,8 @@ getServiceNewR = do
         $(widgetFile "data/services/new")
 
 
-formServices :: Maybe (Entity Service) -> Form Service
-formServices service extra = do
+formService :: Maybe (Entity Service) -> Form Service
+formService service extra = do
 
     msgr <- getMessageRender
     

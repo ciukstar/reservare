@@ -8,6 +8,8 @@ import Control.Monad.IO.Class (MonadIO (liftIO))
 import Import.NoFoundation (ReaderT)
 
 import Data.FileEmbed (embedFile)
+import Data.Maybe (fromMaybe)
+import Data.Time (getCurrentTime)
 
 import Database.Persist (PersistStoreWrite (insert, insert_))
 import Database.Persist.SqlBackend (SqlBackend)
@@ -25,6 +27,11 @@ import Model
     , Token (Token, tokenApi, tokenStore)
     , Store (Store, storeToken, storeKey, storeVal)
     , StoreType (StoreTypeDatabase, StoreTypeGoogleSecretManager)
+    , Business (Business, businessOwner, businessName)
+    , Workspace (Workspace, workspaceBusiness, workspaceName, workspaceAddress)
+    , Service (Service, serviceWorkspace, serviceName, serviceDescr)
+    , Staff (Staff, staffName, staffAccount, staffMobile, staffPhone)
+    , Assignment (Assignment, assignmentService, assignmentStaff, assignmentStart)
     )
 
 import Settings (AppSettings)
@@ -130,4 +137,42 @@ fillDemoEn appSettings = do
                                                             |]
 
                       }
+
+    let business1 = Business { businessOwner = usr1
+                             , businessName = "JJ & Co"
+                             }
+
+    b1 <- insert business1
+
+    let workspace1 = Workspace { workspaceBusiness = b1
+                               , workspaceName = "JJ & Co Central"
+                               , workspaceAddress = "9796 Cherry Court Taylors, SC 29687"
+                               }
+
+    w1 <- insert workspace1
+
+    let service1 = Service { serviceWorkspace = w1
+                           , serviceName = "Leisure travel"
+                           , serviceDescr = Just "Travel as you like"
+                           }
+
+    s1 <- insert service1
+
+    let employee1 = Staff { staffName = fromMaybe (userEmail user1) (userName user1)
+                          , staffAccount = Just usr1
+                          , staffMobile = Just "(206) 342-8631"
+                          , staffPhone = Just "(717) 550-1675"
+                          }
+
+    empl1 <- insert employee1
+
+    now <- liftIO getCurrentTime
+
+    let assignment1 = Assignment { assignmentStaff = empl1
+                                 , assignmentService = s1
+                                 , assignmentStart = now
+                                 }
+
+    assig1 <- insert assignment1
+        
     return ()

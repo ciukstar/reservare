@@ -1,3 +1,4 @@
+TheStart: Начало
 AssignmentDate: Дата назначения
 ServiceAssignment: Назначение
 Description: Описание
@@ -14,14 +15,14 @@ Address: Адрес
 Workspaces: Рабочие места
 Details: Подробности
 RecordAdded: Запись добавлена
-Business: Бизнес
+Business: Деятельность
 Owner: Владелец
 TheName: Наименование
 Add: Добавить
 YouMightWantToAddAFew: Возможно, вы захотите добавить несколько
 ThereAreNoDataYet: Данных пока нет
 NoDataYet: Данных пока нет
-Businesses: Предприятия
+Businesses: Деятельности
 Attribution: Атрибуция
 SuperuserCannotBeDeleted: Суперпользователя нельзя удалить
 NotSpecified: Не указано

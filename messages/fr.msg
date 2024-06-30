@@ -1,3 +1,4 @@
+TheStart: Le début
 AssignmentDate: Date d'affectation
 ServiceAssignment: Affectation
 Description: Description
