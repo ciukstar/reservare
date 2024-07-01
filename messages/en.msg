@@ -1,3 +1,8 @@
+
+Next: Next
+ServicesToBook: Services to book
+MakeAnAppointment: Make an appointment
+WelcomeTo: Welcome to
 TheStart: Start
 AssignmentDate: Assignment Date
 ServiceAssignment: Assignment

@@ -13,8 +13,13 @@ header
         margin-left: auto
     
 main
+    display: flex
+    flex-direction: column
+    gap: 1rem
 
-    ##{idFabAdd}
-        position: fixed
-        right: 1rem
-        bottom: 1rem
+    figure
+        text-align: center
+    dl
+        margin: 0 2rem
+        dt + dd
+            margin-bottom: 1rem

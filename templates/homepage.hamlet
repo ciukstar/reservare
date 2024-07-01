@@ -10,4 +10,14 @@
 <main>
   ^{widgetBanner msgs}
 
-^{widgetSnackbar msgs}
+  <p.md-typescale-headline-medium>
+    _{MsgWelcomeTo} _{MsgAppName}
+
+  <md-filled-tonal-button type=link href=@{BookServicesR}>
+    _{MsgServicesToBook}
+
+  <md-filled-tonal-button type=link href=#>
+    _{MsgMakeAnAppointment}
+    
+
+  ^{widgetSnackbar msgs}

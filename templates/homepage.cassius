@@ -4,8 +4,19 @@ header
     padding: 0.5rem
     position: sticky
     top: 0
+    z-index: 1
     display: flex
     align-items: center
     column-gap: 0.5rem
     .header-end
         margin-left: auto
+
+main
+
+    margin: 0 2rem
+    display: flex
+    flex-direction: column
+    row-gap: 1rem
+    
+    p
+        text-align: center

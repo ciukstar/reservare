@@ -53,6 +53,8 @@ import System.Log.FastLogger
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
 
+import Handler.Booking (getBookServicesR, getBookStaffR)
+
 import Handler.Accounts
     ( getAccountR, getAccountPhotoR, getAccountInfoR
     , getAccountEditR, getAccountInfoEditR, postAccountInfoR
@@ -80,7 +82,9 @@ import Handler.Data.Services
 
 import Handler.Data.Staff
     ( getStaffR, getEmployeeR, getEmployeeNewR, postStaffR, getEmployeeEditR
-    , postEmployeeDeleR, postEmployeeR
+    , postEmployeeDeleR, postEmployeeR, getStaffAssignmentsR
+    , postStaffAssignmentsR, getStaffAssignmentR, getStaffAssignmentNewR
+    , getStaffAssignmentEditR, postStaffAssignmentDeleR, postStaffAssignmentR
     )
 
 import Handler.Data.Business

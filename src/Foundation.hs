@@ -182,6 +182,11 @@ instance Yesod App where
 
 
     isAuthorized :: Route App -> Bool -> Handler AuthResult
+
+    
+    isAuthorized BookStaffR _ = return Authorized
+    isAuthorized BookServicesR _ = return Authorized
+
     
     isAuthorized (WorkspaceDeleR uid _ _) _ = isAuthenticatedSelf uid
     isAuthorized (WorkspaceEditR uid _ _) _ = isAuthenticatedSelf uid
@@ -208,6 +213,12 @@ instance Yesod App where
     isAuthorized (DataR ServiceNewR) _ = isAdmin
     isAuthorized (DataR (ServiceR _)) _ = isAdmin
     isAuthorized r@(DataR ServicesR) _ = setUltDest r >> isAdmin
+    
+    isAuthorized (DataR (StaffAssignmentDeleR _ _)) _ = isAdmin
+    isAuthorized (DataR (StaffAssignmentEditR _ _)) _ = isAdmin
+    isAuthorized (DataR (StaffAssignmentR _ _)) _ = isAdmin
+    isAuthorized (DataR (StaffAssignmentNewR _)) _ = isAdmin
+    isAuthorized (DataR (StaffAssignmentsR _)) _ = isAdmin
     
     isAuthorized (DataR (EmployeeDeleR _)) _ = isAdmin
     isAuthorized (DataR (EmployeeEditR _)) _ = isAdmin

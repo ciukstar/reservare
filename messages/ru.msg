@@ -1,3 +1,8 @@
+
+Next: Следующий
+ServicesToBook: Услуги для бронирования
+MakeAnAppointment: Записаться на прием
+WelcomeTo: Добро пожаловать на
 TheStart: Начало
 AssignmentDate: Дата назначения
 ServiceAssignment: Назначение

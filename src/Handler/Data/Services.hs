@@ -23,6 +23,7 @@ module Handler.Data.Services
 
 import Control.Monad (void)
 
+import Data.Time.Format.ISO8601 (iso8601Show)
 import Data.Time.LocalTime (utcToLocalTime, localTimeToUTC, utc)
 
 import Database.Esqueleto.Experimental
@@ -48,7 +49,7 @@ import Foundation
       , MsgDescription, MsgRecordAdded, MsgServiceAssignments, MsgDetails
       , MsgDeleteAreYouSure, MsgConfirmPlease, MsgEdit, MsgRecordEdited
       , MsgDele, MsgRecordDeleted, MsgInvalidFormData, MsgServiceAssignment
-      , MsgEmployee, MsgAssignmentDate, MsgTheStart
+      , MsgEmployee, MsgAssignmentDate, MsgTheStart, MsgBusiness
       )
     )
     
@@ -62,12 +63,12 @@ import Model
     , ServiceId, Service(Service, serviceName, serviceWorkspace, serviceDescr)
     , Workspace (workspaceName, Workspace)
     , AssignmentId, Assignment (Assignment, assignmentStaff, assignmentStart)
-    , Staff (Staff, staffName)
+    , Staff (staffName, Staff)
     , Business (Business)
     , EntityField
-      ( ServiceId, WorkspaceName, WorkspaceId, AssignmentStart, AssignmentId
-      , StaffName, StaffId, AssignmentService, ServiceWorkspace, WorkspaceBusiness
-      , BusinessId
+      ( ServiceId, WorkspaceName, WorkspaceId, AssignmentId, WorkspaceBusiness
+      , StaffName, StaffId, AssignmentService, ServiceWorkspace, BusinessId
+      , AssignmentStaff
       )
     )
 
@@ -149,18 +150,19 @@ getServiceAssignmentR :: ServiceId -> AssignmentId -> Handler Html
 getServiceAssignmentR sid aid = do
 
     assignment <- runDB $ selectOne $ do
-        x :& s :& w :& b <- from $ table @Assignment
+        x :& s :& w :& b :& e <- from $ table @Assignment
             `innerJoin` table @Service `on` (\(x :& s) -> x ^. AssignmentService ==. s ^. ServiceId)
             `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
             `innerJoin` table @Business `on` (\(_ :& _ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)
+            `innerJoin` table @Staff `on` (\(x :& _ :& _ :& _ :& e) -> x ^. AssignmentStaff ==. e ^. StaffId)
         where_ $ x ^. AssignmentId ==. val aid
-        return (x,(s,(w,b)))
+        return (x,(e,(s,(w,b))))
 
     (fw2,et2) <- generateFormPost formServiceAssignmentDelete
         
     msgs <- getMessages
     defaultLayout $ do
-        setTitleI MsgServiceAssignment
+        setTitleI MsgServiceAssignment 
         $(widgetFile "data/services/assignments/assignment")
 
 
@@ -211,14 +213,14 @@ formServiceAssignment sid assignment extra = do
         , fsAttrs = [("label", msgr MsgEmployee)]
         } (assignmentStaff . entityVal <$> assignment)
     
-    (timeR, timeV) <- md3mreq md3datetimeLocalField FieldSettings
+    (startR, startV) <- md3mreq md3datetimeLocalField FieldSettings
         { fsLabel = SomeMessage MsgAssignmentDate
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgAssignmentDate),("step","1")]
         } (utcToLocalTime utc . assignmentStart . entityVal <$> assignment)
 
-    return ( Assignment <$> employeeR <*> pure sid <*> (localTimeToUTC utc <$> timeR)
-           , [whamlet|#{extra} ^{fvInput employeeV} ^{fvInput timeV}|]
+    return ( Assignment <$> employeeR <*> pure sid <*> (localTimeToUTC utc <$> startR)
+           , [whamlet|#{extra} ^{fvInput employeeV} ^{fvInput startV}|]
            )
         
   where
@@ -229,19 +231,21 @@ getServiceAssignmentsR :: ServiceId -> Handler Html
 getServiceAssignmentsR sid = do
     
     assignments <- runDB $ select $ do
-        x :& s :& w :& b <- from $ table @Assignment
+        x :& s :& w :& b :& e <- from $ table @Assignment
             `innerJoin` table @Service `on` (\(x :& s) -> x ^. AssignmentService ==. s ^. ServiceId)
             `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
             `innerJoin` table @Business `on` (\(_ :& _ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)
+            `innerJoin` table @Staff `on` (\(x :& _ :& _ :& _ :& e) -> x ^. AssignmentStaff ==. e ^. StaffId)
+        where_ $ x ^. AssignmentService ==. val sid
         orderBy [desc (x ^. AssignmentId)]
-        return (x,(s,(w,b)))
+        return (x,(e,(s,(w,b))))
         
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignments
         idTabAssignments <- newIdent
         idPanelAssignments <- newIdent
-        idFabAdd <- newIdent
+        idFabAdd <- newIdent 
         $(widgetFile "data/services/assignments/assignments")
 
 

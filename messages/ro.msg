@@ -1,3 +1,7 @@
+Next: Urmatorul
+ServicesToBook: Servicii de rezervat
+MakeAnAppointment: Faceți o programare
+WelcomeTo: Bine ați venit la
 TheStart: Începutul
 AssignmentDate: Data atribuirii
 ServiceAssignment: Atribuție

@@ -2,6 +2,9 @@
 -- Syntax for this file here: https://www.yesodweb.com/book/routing-and-handlers
 
 
+/book/staff    BookStaffR    GET
+/book/services BookServicesR GET
+
     
 /users/#UserId/businesses/#BusinessId/workspaces/#WorkspaceId/form/dele WorkspaceDeleR POST
 /users/#UserId/businesses/#BusinessId/workspaces/#WorkspaceId/form/edit WorkspaceEditR GET
@@ -46,6 +49,12 @@
     /services/new/form               ServiceNewR         GET
     /services/#ServiceId             ServiceR            GET POST
     /services                        ServicesR           GET POST
+    
+    /staff/#StaffId/assignments/#AssignmentId/delete    StaffAssignmentDeleR POST
+    /staff/#StaffId/assignments/#AssignmentId/form/edit StaffAssignmentEditR GET
+    /staff/#StaffId/assignments/new/form                StaffAssignmentNewR  GET
+    /staff/#StaffId/assignments/#AssignmentId           StaffAssignmentR     GET POST
+    /staff/#StaffId/assignments                         StaffAssignmentsR    GET POST
 
     /staff/#StaffId/delete    EmployeeDeleR POST
     /staff/#StaffId/form/edit EmployeeEditR GET

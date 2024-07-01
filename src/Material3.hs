@@ -30,8 +30,7 @@ import qualified Data.List.Safe as LS (head, tail)
 import Data.Text (Text, pack, splitOn)
 import Data.Text.Lazy (toStrict)
 import Data.Time.Calendar (Day)
-import Data.Time (TimeOfDay, LocalTime)
-import Data.Time.Format.ISO8601 (iso8601Show)
+import Data.Time (TimeOfDay, LocalTime, formatTime, defaultTimeLocale)
 
 import qualified Text.Blaze.Html.Renderer.String as S (renderHtml)
 import qualified Text.Blaze.Html.Renderer.Text as T (renderHtml)
@@ -195,7 +194,7 @@ md3datetimeLocalField = datetimeLocalField { fieldView = \theId name attrs ex re
         <md-icon>schedule
 |] }
   where
-    showVal = pack . iso8601Show
+    showVal = pack . formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S"
 
 
 md3textareaField :: RenderMessage m FormMessage => Field (HandlerFor m) Textarea

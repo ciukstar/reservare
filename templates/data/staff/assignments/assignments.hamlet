@@ -1,36 +1,59 @@
 
 <header>
-  ^{widgetMenu}
+  <md-icon-button href=@{DataR StaffR} aria-label=_{MsgBack}>
+    <md-icon>arrow_back
 
   <span.md-typescale-title-large>
     _{MsgServiceAssignments}
 
-  <span #headerEnd>
-    ^{widgetAccount}
-
-
 <main>
 
-  ^{widgetBanner msgs}
+  <md-tabs>
+  
+    <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails
+      onclick="this.querySelector('a[href]').click()">
+      <a href=@{DataR $ EmployeeR eid}>
+      _{MsgDetails}
+      
+    <md-primary-tab ##{idTabAssignments} aria-cotrols=#{idPanelAssignments} active 
+      onclick="this.querySelector('a[href]').click()">
+      <a href=@{DataR $ StaffAssignmentsR eid}>
+      _{MsgServiceAssignments}
+      
 
-  $if null assignments
-    <figure style="text-align:center">
-      <span.on-secondary style="font-size:4rem">&varnothing;
-      <figcaption.md-typescale-body-large>
-        _{MsgThereAreNoDataYet}
-        <div.md-typescale-body-small>
-          _{MsgYouMightWantToAddAFew}
-  $else
-    <md-list>
-      $forall Entity aid (Assignment name _ _ _) <- assignments
-        <md-list-item type=link href=@{DataR $ EmployeeR sid}>
-          <div slot=headline>
-            #{name}
-          <md-icon slot=end>arrow_forward_ios
-        <md-divider>
+  <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
 
-  <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-    <a href=@{DataR EmployeeNewR}>
-    <md-icon slot=icon>add
+  <div ##{idPanelAssignments} role=tabpanel aria-labelledby=#{idTabAssignments}>
+    ^{widgetBanner msgs}
 
-^{widgetSnackbar msgs}
+    $if null assignments
+      <figure style="text-align:center">
+        <span.on-secondary style="font-size:4rem">&varnothing;
+        <figcaption.md-typescale-body-large>
+          _{MsgThereAreNoDataYet}
+          <div.md-typescale-body-small>
+            _{MsgYouMightWantToAddAFew}
+    $else
+      <md-list>
+        $forall (Entity aid (Assignment _ _ time),(employee,(service,(workspace,buisiness)))) <- assignments
+          <md-list-item type=link href=@{DataR $ StaffAssignmentR eid aid}>
+            <div slot=headline>
+              $with Entity _ (Staff name _ _ _) <- employee
+                #{name}
+            <div slot=supporting-text>
+              $with Entity _ (Service _ name _) <- service
+                _{MsgService}: #{name}
+            <div slot=supporting-text>
+              $with (Entity _ (Workspace _ wname _), Entity _ (Business _ bname)) <- (workspace,buisiness)
+                _{MsgWorkspace} : #{bname} (#{wname})
+            $with dt <- iso8601Show time
+              <time slot=supporting-text datetime=#{dt}>
+                #{dt}
+            <md-icon slot=end>arrow_forward_ios
+          <md-divider>    
+ 
+    <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
+      <a href=@{DataR $ StaffAssignmentNewR eid}>
+      <md-icon slot=icon>add
+
+    ^{widgetSnackbar msgs}

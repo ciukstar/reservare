@@ -35,16 +35,20 @@
             _{MsgYouMightWantToAddAFew}
     $else
       <md-list>
-        $forall (Entity aid (Assignment _ _ time),(service,(workspace,buisiness))) <- assignments
+        $forall (Entity aid (Assignment _ _ time),(employee,(service,(workspace,buisiness)))) <- assignments
           <md-list-item type=link href=@{DataR $ ServiceAssignmentR sid aid}>
             <div slot=headline>
-              $with Entity _ (Service _ name _) <- service
+              $with Entity _ (Staff name _ _ _) <- employee
                 #{name}
             <div slot=supporting-text>
-              $with (Entity _ (Workspace _ wname _), Entity _ (Business _ bname)) <- (workspace,buisiness)
-                #{bname} (#{wname})
+              $with Entity _ (Service _ name _) <- service
+                _{MsgService}: #{name}
             <div slot=supporting-text>
-              #{show time}
+              $with (Entity _ (Workspace _ wname _), Entity _ (Business _ bname)) <- (workspace,buisiness)
+                _{MsgWorkspace} : #{bname} (#{wname})
+            $with dt <- iso8601Show time
+              <time slot=supporting-text datetime=#{dt}>
+                #{dt}
             <md-icon slot=end>arrow_forward_ios
           <md-divider>    
  

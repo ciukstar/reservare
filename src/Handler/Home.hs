@@ -7,7 +7,11 @@ module Handler.Home (getHomeR) where
 
 import Foundation
     ( Handler
-    , AppMessage (MsgWelcome, MsgAppName)
+    , Route (BookServicesR)
+    , AppMessage
+      ( MsgWelcome, MsgAppName, MsgWelcomeTo, MsgMakeAnAppointment
+      , MsgServicesToBook
+      )
     )
 
 import Settings (widgetFile)
