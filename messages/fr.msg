@@ -1,4 +1,13 @@
 
+PaymentIntentCancelled: L'intention de paiement a été annulée
+Pay: Payez
+PaymentAmount: Montant du paiement
+Checkout: Vérifier
+PayNow: Payez maintenant
+PayAtVenue: Paiement sur place
+PaymentMethod: Mode de paiement
+AppointmentTime: Heure de rendez-vous
+BookAService: Réserver une prestation
 Next: Suivante
 ServicesToBook: Services à réserver
 MakeAnAppointment: Prendre rendez-vous

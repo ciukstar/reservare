@@ -13,16 +13,10 @@ header
     #headerEnd
         margin-left: auto
 
-main 
-
+main
+    margin: 0 1rem
     display: flex
     flex-direction: column
-    row-gap: 1rem
-
-    details
-      margin: 0 1rem
-      md-chip-set
-          padding: 1rem
 
     ##{idFabNext}
         position: fixed

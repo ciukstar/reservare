@@ -11,6 +11,18 @@
 
   ^{widgetBanner msgs}
 
+  <details>
+    <summary.md-typescale-label-large>_{MsgBusiness}
+    <md-chip-set>
+      $forall Entity _ (Business _ name) <- businesses
+        <md-filter-chip label=#{name}>
+
+  <details>
+    <summary.md-typescale-label-large>_{MsgWorkspace}
+    <md-chip-set>
+      $forall Entity _ (Workspace _ name _) <- workspaces
+        <md-filter-chip label=#{name}>
+
   $if null services
     <figure style="text-align:center">
       <span.on-secondary style="font-size:4rem">&varnothing;
@@ -22,9 +34,11 @@
         <md-list-item type=text>
           <div slot=headline>
             #{name}
-          <div slot=supporting-text>
-            $with (Entity _ (Workspace _ wname _),Entity _ (Business _ bname)) <- (workspace,business)
+          $with (Entity _ (Workspace _ wname address),Entity _ (Business _ bname)) <- (workspace,business)
+            <div slot=supporting-text>
               #{wname} (#{bname})
+            <div slot=supporting-text>
+              #{address}
           <div slot=end>
             <md-radio name=service value=1 touch-target=wrapper>
         <md-divider>

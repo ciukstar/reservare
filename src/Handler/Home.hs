@@ -10,7 +10,7 @@ import Foundation
     , Route (BookServicesR)
     , AppMessage
       ( MsgWelcome, MsgAppName, MsgWelcomeTo, MsgMakeAnAppointment
-      , MsgServicesToBook
+      , MsgBookAService
       )
     )
 

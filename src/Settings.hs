@@ -47,6 +47,10 @@ data GoogleApiConf = GoogleApiConf { googleApiConfClientId :: Text
 
 newtype GcloudConf = GcloudConf { gcloudProjectId :: Text }
 
+data StripeConf = StripeConf { stripeConfPk :: Text
+                             , stripeConfSk :: Text
+                             }
+
 -- | Runtime settings to configure this application. These settings can be
 -- loaded from various sources: defaults, environment variables, config files,
 -- theoretically even a database.
@@ -89,6 +93,8 @@ data AppSettings = AppSettings
     , appGoogleApiConf          :: GoogleApiConf
     , appGcloudConf             :: GcloudConf
     -- ^ Google API config
+    , appStripeConf             :: StripeConf
+    -- ^ Stripe API config
 
     , appAuthDummyLogin         :: Bool
     -- ^ Indicate if auth dummy login should be enabled.
@@ -116,6 +122,14 @@ instance FromJSON GcloudConf where
     parseJSON = withObject "GcloudConf" $ \o -> do
         gcloudProjectId <- o .: "project-id"
         return GcloudConf {..}
+
+
+instance FromJSON StripeConf where
+    parseJSON :: Value -> Parser StripeConf
+    parseJSON = withObject "StripeConf" $ \o -> do
+        stripeConfPk <- o .: "pk"
+        stripeConfSk <- o .: "sk"
+        return StripeConf {..}
 
 
 instance FromJSON ConnectionPoolConfig where
@@ -157,6 +171,7 @@ instance FromJSON AppSettings where
         appSuperuser              <- o .:  "superuser"
         appGoogleApiConf          <- o .: "google-api"
         appGcloudConf             <- o .: "gcloud"
+        appStripeConf             <- o .: "stripe"
 
         appAuthDummyLogin         <- o .:? "auth-dummy-login"      .!= dev
 

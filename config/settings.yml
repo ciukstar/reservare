@@ -51,6 +51,9 @@ google-api:
 gcloud:
   project-id: "_env:YESOD_GCLOUD_PROJECT_ID:reservare"
 
+stripe:
+  pk: "_env:YESOD_STRIPE_PK:???"
+  sk: "_env:YESOD_STRIPE_SK:???"
 
 
 copyright: Insert copyright statement here

@@ -22,12 +22,19 @@
         <md-list-item type=text>
           <div slot=headline>
             #{name}
+          <details slot=supporting-text>
+            <summary style="padding:1rem">MsgWorkingHours
+            <div>
+              <a href=#>09:00, 
+              <a href=#>09:30, 
+              <a href=#>10:00,
+              <a href=#>10:30
           <div slot=end>
             <md-radio name=employee value=1 touch-target=wrapper>
         <md-divider>
 
   <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext} onclick="this.querySelector('a[href]').click()">
-    <a href=#>
+    <a href=@{BookTimingR}>
     <md-icon slot=icon>arrow_forward
 
 ^{widgetSnackbar msgs}

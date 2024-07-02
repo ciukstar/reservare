@@ -1,4 +1,13 @@
 
+PaymentIntentCancelled: Намерение платежа было отменено
+Pay: Заплатить
+PaymentAmount: Сумма платежа
+Checkout: Оформить заказ
+PayNow: Заплатить сейчас
+PayAtVenue: Оплата на месте
+PaymentMethod: Способ оплаты
+AppointmentTime: Время встречи
+BookAService: Забронировать услугу
 Next: Следующий
 ServicesToBook: Услуги для бронирования
 MakeAnAppointment: Записаться на прием

@@ -21,6 +21,10 @@ import ClassyPrelude.Yesod
 import Database.Persist.Quasi
 
 
+data PayMethod = PayAtVenue | PayNow
+    deriving (Show, Read, Eq, Ord)
+derivePersistField "PayMethod"
+
 data StoreType = StoreTypeDatabase | StoreTypeSession | StoreTypeGoogleSecretManager
     deriving (Show, Read, Eq, Ord)
 derivePersistField "StoreType"

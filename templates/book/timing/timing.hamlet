@@ -1,0 +1,27 @@
+
+<header>
+  <md-icon-button href=@{BookStaffR} aria-label=_{MsgBack}>
+    <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgAppointmentTime}
+
+
+<main>
+
+  ^{widgetBanner msgs}
+
+  <md-filled-text-field type=datetime-local label=_{MsgAppointmentTime} #idAppointmentTime>
+    <span slot=trailing-icon style="display:flex;flex-direction:row;align-items:center">
+      <md-icon-button type=button slot=trailing-icon
+        onclick="document.getElementById('idAppointmentTime').shadowRoot.querySelector('input').showPicker()">
+          <md-icon>schedule
+
+  <p>
+    Caledar view ...
+
+  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext} onclick="this.querySelector('a[href]').click()">
+    <a href=@{BookPaymentR}>
+    <md-icon slot=icon>arrow_forward
+
+^{widgetSnackbar msgs}

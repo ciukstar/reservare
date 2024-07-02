@@ -2,8 +2,15 @@
 -- Syntax for this file here: https://www.yesodweb.com/book/routing-and-handlers
 
 
-/book/staff    BookStaffR    GET
-/book/services BookServicesR GET
+/book/pay/cancel            BookPaymentIntentCancelR POST
+/book/pay                   BookPayR                 POST
+/book/pay/intent/#Int/#Text BookPaymentIntentR       POST
+/book/pay/completion        BookPayCompletionR       GET
+/book/checkout              BookCheckoutR            GET
+/book/payment               BookPaymentR             GET
+/book/timing                BookTimingR              GET
+/book/staff                 BookStaffR               GET
+/book/services              BookServicesR            GET
 
     
 /users/#UserId/businesses/#BusinessId/workspaces/#WorkspaceId/form/dele WorkspaceDeleR POST

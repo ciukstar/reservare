@@ -1,3 +1,12 @@
+PaymentIntentCancelled: Intenția de plată a fost anulată
+Pay: Plătiți
+PaymentAmount: Suma de plată
+Checkout: Verifică
+PayNow: Plătiți acum
+PayAtVenue: Plata la locatie
+PaymentMethod: Modalitate de plată
+AppointmentTime: Ora întâlnirii
+BookAService: Rezervați un serviciu
 Next: Urmatorul
 ServicesToBook: Servicii de rezervat
 MakeAnAppointment: Faceți o programare

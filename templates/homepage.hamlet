@@ -14,7 +14,7 @@
     _{MsgWelcomeTo} _{MsgAppName}
 
   <md-filled-tonal-button type=link href=@{BookServicesR}>
-    _{MsgServicesToBook}
+    _{MsgBookAService}
 
   <md-filled-tonal-button type=link href=#>
     _{MsgMakeAnAppointment}

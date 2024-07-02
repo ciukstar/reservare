@@ -1,4 +1,13 @@
 
+PaymentIntentCancelled: Payment intent was cancelled
+Pay: Pay
+PaymentAmount: Payment amount
+Checkout: Checkout
+PayNow: Pay now
+PayAtVenue: Pay at venue
+PaymentMethod: Payment method
+AppointmentTime: Appointment time
+BookAService: Book a service
 Next: Next
 ServicesToBook: Services to book
 MakeAnAppointment: Make an appointment

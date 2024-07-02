@@ -1,0 +1,32 @@
+
+<header>
+  <md-icon-button href=@{BookPaymentR} aria-label=_{MsgBack} ##{idButtonBack}>
+    <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgCheckout}
+
+<main>
+
+  <div.mdc-banner role=banner data-mdc-auto-init=MDCBanner ##{idBannerStripe}>
+
+  ^{widgetBanner msgs}
+
+  <section ##{idSectionPriceTag}>
+    <h4.hint>_{MsgPaymentAmount}
+
+  <form ##{idFormPayment}>
+  
+    <div ##{idElementPayment}>
+      <md-circular-progress indeterminate>
+          
+    <button.mdc-button.mdc-button--raised ##{idButtonSubmitPayment} disabled>
+      <span.mdc-button__ripple>
+      <span.mdc-button__focus-ring>
+      <div.spinner.hidden #spinner>
+      <span.mdc-button__label #button-text>_{MsgPay}
+
+  <button.mdc-button.mdc-button--outlined ##{idButtonCancelPayment} type=button>
+    <span.mdc-button__ripple>
+    <span.mdc-button__focus-ring>
+    <span.mdc-button__label>_{MsgCancel}
