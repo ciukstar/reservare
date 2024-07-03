@@ -10,7 +10,7 @@
 /book/payment               BookPaymentR             GET
 /book/timing                BookTimingR              GET
 /book/staff                 BookStaffR               GET
-/book/services              BookServicesR            GET
+/book/services              BookServicesR            GET POST
 
     
 /users/#UserId/businesses/#BusinessId/workspaces/#WorkspaceId/form/dele WorkspaceDeleR POST

@@ -29,22 +29,11 @@
       <figcaption.md-typescale-body-large>
         _{MsgThereAreNoDataYet}
   $else
-    <md-list>
-      $forall (Entity _ (Service _ name _),(workspace,business)) <- services
-        <md-list-item type=text>
-          <div slot=headline>
-            #{name}
-          $with (Entity _ (Workspace _ wname address),Entity _ (Business _ bname)) <- (workspace,business)
-            <div slot=supporting-text>
-              #{wname} (#{bname})
-            <div slot=supporting-text>
-              #{address}
-          <div slot=end>
-            <md-radio name=service value=1 touch-target=wrapper>
-        <md-divider>
+    <form method=post action=@{BookServicesR} enctype=#{et} ##{idFormService}>
+      ^{fw}
 
-  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext} onclick="this.querySelector('a[href]').click()">
-    <a href=@{BookStaffR}>
-    <md-icon slot=icon>arrow_forward
+    <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext} 
+      onclick="document.getElementById('#{idFormService}').submit()">
+      <md-icon slot=icon>arrow_forward
 
 ^{widgetSnackbar msgs}

@@ -1,4 +1,6 @@
-
+PaymentStatus: Payment status
+SomethingWentWrong: Something went wrong
+PaymentSuccessfullyCompleted: Payment successfully completed
 PaymentIntentCancelled: Payment intent was cancelled
 Pay: Pay
 PaymentAmount: Payment amount

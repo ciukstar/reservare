@@ -1,3 +1,6 @@
+PaymentStatus: Starea plății
+SomethingWentWrong: Ceva n-a mers bine
+PaymentSuccessfullyCompleted: Plata a fost finalizată cu succes
 PaymentIntentCancelled: Intenția de plată a fost anulată
 Pay: Plătiți
 PaymentAmount: Suma de plată

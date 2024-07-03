@@ -1,4 +1,6 @@
-
+PaymentStatus: Статус платежа
+SomethingWentWrong: Что-то пошло не так
+PaymentSuccessfullyCompleted: Платеж успешно завершен
 PaymentIntentCancelled: Намерение платежа было отменено
 Pay: Заплатить
 PaymentAmount: Сумма платежа

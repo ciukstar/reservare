@@ -11,6 +11,7 @@
 
   ^{widgetBanner msgs}
 
-  #{show params}
+  <p>
+    #{show result}
 
   ^{widgetSnackbar msgs}

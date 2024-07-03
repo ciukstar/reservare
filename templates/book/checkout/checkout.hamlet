@@ -14,19 +14,18 @@
 
   <section ##{idSectionPriceTag}>
     <h4.hint>_{MsgPaymentAmount}
+    $with amount <- show amount
+      <div.currency data-value=#{amount} data-currency=#{currency}>
+        #{currency}#{amount}
 
   <form ##{idFormPayment}>
   
     <div ##{idElementPayment}>
       <md-circular-progress indeterminate>
           
-    <button.mdc-button.mdc-button--raised ##{idButtonSubmitPayment} disabled>
-      <span.mdc-button__ripple>
-      <span.mdc-button__focus-ring>
+    <md-filled-button ##{idButtonSubmitPayment} disabled type=submit>
       <div.spinner.hidden #spinner>
-      <span.mdc-button__label #button-text>_{MsgPay}
+      <span #button-text>_{MsgPay}
 
-  <button.mdc-button.mdc-button--outlined ##{idButtonCancelPayment} type=button>
-    <span.mdc-button__ripple>
-    <span.mdc-button__focus-ring>
-    <span.mdc-button__label>_{MsgCancel}
+  <md-text-button ##{idButtonCancelPayment} type=button>
+    _{MsgCancel}

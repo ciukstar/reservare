@@ -19,6 +19,7 @@ module Model where
 
 import ClassyPrelude.Yesod
 import Database.Persist.Quasi
+import Text.Printf (printf, PrintfType)
 
 
 data PayMethod = PayAtVenue | PayNow
@@ -43,6 +44,19 @@ derivePersistField "AuthenticationType"
 -- http://www.yesodweb.com/book/persistent/
 share [mkPersist sqlSettings, mkMigrate "migrateAll"]
     $(persistFileWith lowerCaseSettings "config/models.persistentmodels")
+
+
+endpointStripePaymentIntentCancel :: PrintfType r => r
+endpointStripePaymentIntentCancel = printf $ unpack (endpointStripePaymentIntents <> "/%s/cancel")
+
+endpointStripePaymentIntents :: Text
+endpointStripePaymentIntents = endpointStripe <> "/payment_intents"
+
+endpointStripe :: Text
+endpointStripe = "https://api.stripe.com/v1"
+
+scriptRemoteStripe :: Text
+scriptRemoteStripe = "https://js.stripe.com/v3"
 
 
 ultDestKey :: Text

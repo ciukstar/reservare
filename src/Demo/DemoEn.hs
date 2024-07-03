@@ -158,6 +158,20 @@ fillDemoEn appSettings = do
 
     s1 <- insert service1
 
+    let service2 = Service { serviceWorkspace = w1
+                           , serviceName = "Italia travel"
+                           , serviceDescr = Just "Italian joy"
+                           }
+
+    s2 <- insert service2
+
+    let service3 = Service { serviceWorkspace = w1
+                           , serviceName = "Hello Paris"
+                           , serviceDescr = Just "France awaits"
+                           }
+
+    s3 <- insert service3
+
     let employee1 = Staff { staffName = fromMaybe (userEmail user1) (userName user1)
                           , staffAccount = Just usr1
                           , staffMobile = Just "(206) 342-8631"
@@ -174,5 +188,19 @@ fillDemoEn appSettings = do
                                  }
 
     assig1 <- insert assignment1
+
+    let assignment2 = Assignment { assignmentStaff = empl1
+                                 , assignmentService = s2
+                                 , assignmentStart = now
+                                 }
+
+    assig2 <- insert assignment2
+
+    let assignment3 = Assignment { assignmentStaff = empl1
+                                 , assignmentService = s3
+                                 , assignmentStart = now
+                                 }
+
+    assig3 <- insert assignment3
         
     return ()

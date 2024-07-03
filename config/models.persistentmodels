@@ -11,6 +11,7 @@ Service
     name Text
     descr Textarea Maybe
     UniqueService workspace name
+    deriving Eq
 
 Staff
     name Text

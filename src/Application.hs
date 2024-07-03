@@ -54,7 +54,8 @@ import System.Log.FastLogger
 -- Don't forget to add new modules to your cabal file!
 
 import Handler.Booking
-    ( getBookServicesR, getBookStaffR, getBookTimingR, getBookPaymentR
+    ( getBookServicesR, postBookServicesR
+    , getBookStaffR, getBookTimingR, getBookPaymentR
     , getBookCheckoutR, getBookPayCompletionR, postBookPaymentIntentR
     , postBookPayR, postBookPaymentIntentCancelR
     )

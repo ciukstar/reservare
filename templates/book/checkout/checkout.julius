@@ -62,7 +62,7 @@ async function initialize() {
         method: "POST",
         headers: { "Cotent-Type": "application/x-www-form-urlencoded" }
       }).then(function (result) {
-        window.location.href = '@?{(BookPayR,(:) ("pm",pack $ show PayNow) stati)}';
+        window.location.href = '@?{(BookPaymentR,(:) ("pm",pack $ show PayNow) stati)}';
       });
     });
   });
