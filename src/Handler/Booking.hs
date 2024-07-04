@@ -8,6 +8,7 @@ module Handler.Booking
   ( getBookServicesR
   , postBookServicesR
   , getBookStaffR
+  , postBookStaffR
   , getBookTimingR
   , getBookPaymentR
   , getBookCheckoutR
@@ -23,16 +24,20 @@ import Data.Aeson (object, (.=))
 import Data.Aeson.Lens (key, AsValue (_String))
 import Data.Aeson.Text (encodeToLazyText)
 import qualified Data.Aeson as A (Value)
+import Data.Bifunctor (Bifunctor(first))
 import qualified Data.ByteString as BS (empty)
+import Data.Foldable (find)
 import Data.Function ((&))
 import Data.Text (pack, Text, unpack)
 import Data.Text.Encoding (encodeUtf8)
 
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, asc, innerJoin, on
-    , (^.), (==.), (:&)((:&)), toSqlKey
+    , (^.), (==.), (:&)((:&))
+    , toSqlKey, val, where_
     )
 import Database.Persist (Entity (Entity))
+import qualified Database.Persist as P (exists, Filter)
 import Database.Persist.Sql (fromSqlKey)
     
 import Foundation
@@ -47,24 +52,25 @@ import Foundation
       , MsgBack, MsgStaff, MsgBusiness, MsgWorkspace, MsgAppointmentTime
       , MsgPaymentMethod, MsgPayNow, MsgPayAtVenue, MsgCheckout
       , MsgPaymentAmount, MsgCancel, MsgPay, MsgPaymentIntentCancelled
-      , MsgPaymentSuccessfullyCompleted, MsgSomethingWentWrong, MsgPaymentStatus
+      , MsgPaymentSuccessfullyCompleted, MsgSomethingWentWrong
+      , MsgPaymentStatus
       )
     )
     
 import Model
     ( statusSuccess, scriptRemoteStripe, endpointStripePaymentIntents
     , endpointStripePaymentIntentCancel
-    , Service(Service)
+    , ServiceId, Service(Service)
     , Workspace (Workspace)
     , Business (Business)
-    , Assignment (Assignment)
-    , Staff (Staff)
+    , Assignment
+    , StaffId, Staff (Staff)
     , User (User), PayMethod (PayNow)
     , EntityField
       ( ServiceWorkspace, WorkspaceId, WorkspaceBusiness
       , BusinessId, ServiceName, AssignmentStaff, StaffId, StaffName
-      , BusinessName, WorkspaceName, ServiceId
-      ), ServiceId
+      , BusinessName, WorkspaceName, ServiceId, AssignmentService
+      )
     )
     
 import Network.Wreq
@@ -90,13 +96,14 @@ import Yesod.Core.Handler
     )
 import Yesod.Core
     ( Yesod(defaultLayout), returnJson, MonadIO (liftIO), whamlet
-    , addScriptRemote, MonadHandler (liftHandler)
+    , addScriptRemote, MonadHandler (liftHandler), handlerToWidget
     )
 import Yesod.Core.Types (HandlerFor)
 import Yesod.Core.Widget (setTitleI)
 import Yesod.Form.Input (runInputGet, ireq, iopt)
 import Yesod.Form.Fields
-    ( textField, radioFieldList, intField
+    ( textField, intField, radioField, optionsPairs, OptionList (olOptions)
+    , Option (optionExternalValue, optionInternalValue)
     )
 import Yesod.Persist.Core (YesodPersist(runDB))
 import Yesod.Form.Functions (generateFormPost, mreq, runFormPost)
@@ -174,7 +181,7 @@ getBookCheckoutR = do
     user <- maybeAuth
     case user of
       Nothing -> redirect $ AuthR LoginR
-      Just (Entity uid (User email _ _ _ _ _ _ _)) -> do
+      Just (Entity _ (User email _ _ _ _ _ _ _)) -> do
     
           pk <- stripeConfPk . appStripeConf . appSettings <$> getYesod 
 
@@ -216,6 +223,7 @@ getBookPaymentR = do
 
 getBookTimingR :: Handler Html
 getBookTimingR = do
+    stati <- reqGetParams <$> getRequest
     
     msgs <- getMessages
     defaultLayout $ do
@@ -224,27 +232,112 @@ getBookTimingR = do
         $(widgetFile "book/timing/timing")
 
 
+postBookStaffR :: Handler Html
+postBookStaffR = do
+
+    stati <- reqGetParams <$> getRequest
+    sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
+    eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
+
+    existsStaff <- runDB $ P.exists ([] :: [P.Filter Staff])
+
+    ((fr,fw),et) <- runFormPost $ formStaff sid eid
+    case fr of
+      FormSuccess (sid',eid') -> redirect ( BookTimingR
+                                          , [ ( "sid", pack $ show $ fromSqlKey sid')
+                                            , ( "eid", pack $ show $ fromSqlKey eid')
+                                            ]
+                                          )
+      _otherwise -> do
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgStaff
+              idFormStaff <- newIdent
+              idFabNext <- newIdent
+              $(widgetFile "book/staff/staff")
+
+
 getBookStaffR :: Handler Html
 getBookStaffR = do
 
     stati <- reqGetParams <$> getRequest
+    sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
+    eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
 
-    staff <- runDB $ select $ do
-        x :& e <- from $ table @Assignment
-            `innerJoin` table @Staff `on` (\(x :& e) -> x ^. AssignmentStaff ==. e ^. StaffId)
-        orderBy [asc (e ^. StaffName)]
-        return (x,e)
+    existsStaff <- runDB $ P.exists ([] :: [P.Filter Staff])
+
+    (fw,et) <- generateFormPost $ formStaff sid eid
     
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgStaff
+        idFormStaff <- newIdent
         idFabNext <- newIdent
         $(widgetFile "book/staff/staff")
 
 
+formStaff :: Maybe ServiceId -> Maybe StaffId -> Form (ServiceId,StaffId)
+formStaff sid eid extra = do
+
+    staff <- liftHandler $ runDB $ select $ do
+        x :& e <- from $ table @Assignment
+            `innerJoin` table @Staff `on` (\(x :& e) -> x ^. AssignmentStaff ==. e ^. StaffId)
+        case sid of
+          Just y -> where_ $ x ^. AssignmentService ==. val y
+          Nothing -> where_ $ val False
+        orderBy [asc (e ^. StaffName), asc (e ^. StaffId)]
+        return (x,e)
+        
+    (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>)
+        <$> mreq intField "" (fromIntegral . fromSqlKey <$> sid)
+        
+    (staffR,staffV) <- mreq (md3radioFieldList staff) "" eid
+
+    let r = (,) <$> serviceR <*> staffR
+    let w = [whamlet|#{extra} ^{fvInput serviceV} ^{fvInput staffV}|]
+
+    return (r,w)
+
+  where
+      pairs staff = (\(_,Entity eid' (Staff name _ _ _)) -> (name, eid')) <$> staff
+
+      md3radioFieldList :: [(Entity Assignment,Entity Staff)]
+                        -> Field (HandlerFor App) StaffId
+      md3radioFieldList staff = (radioField (optionsPairs (pairs staff)))
+          { fieldView = \theId name attrs x isReq -> do
+
+                opts <- zip [1 :: Int ..] . olOptions <$> handlerToWidget (optionsPairs (pairs staff))
+
+                let sel (Left _) _ = False
+                    sel (Right y) opt = optionInternalValue opt == y
+
+                let findStaff opt = find (\(_,Entity eid' _) -> eid' == optionInternalValue opt)
+                
+                [whamlet|
+<md-list ##{theId} *{attrs}>
+  $forall (i,opt) <- opts
+    $maybe (_,Entity _ (Staff ename _ _ _)) <- findStaff opt staff
+      <md-list-item type=text>
+        <div slot=headline>
+          #{ename}
+        <details slot=supporting-text>
+          <summary style="padding:1rem">MsgWorkingHours
+          <div>
+            <a href=#>09:00, 
+            <a href=#>09:30, 
+            <a href=#>10:00,
+            <a href=#>10:30
+        <div slot=end>
+          <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt} :sel x opt:checked>
+    <md-divider>
+|]
+              }
+
+
 postBookServicesR :: Handler Html
 postBookServicesR = do
-
+    stati <- reqGetParams <$> getRequest
+    
     ((fr,fw),et) <- runFormPost $ formService Nothing
     
     case fr of
@@ -260,12 +353,7 @@ postBookServicesR = do
               orderBy [asc (x ^. WorkspaceName)]
               return x
 
-          services <- runDB $ select $ do
-              x :& w :& b <- from $ table @Service
-                  `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
-                  `innerJoin` table @Business `on` (\(_ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)
-              orderBy [asc (x ^. ServiceName)]
-              return (x,(w,b))
+          existsService <- runDB $ P.exists ([] :: [P.Filter Service])
 
           msgs <- getMessages
           defaultLayout $ do
@@ -277,7 +365,7 @@ postBookServicesR = do
 
 getBookServicesR :: Handler Html
 getBookServicesR = do
-
+    stati <- reqGetParams <$> getRequest
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     
     businesses <- runDB $ select $ do
@@ -290,7 +378,7 @@ getBookServicesR = do
         orderBy [asc (x ^. WorkspaceName)]
         return x
     
-    services <- runDB $ select $ from $ table @Service
+    existsService <- runDB $ P.exists ([] :: [P.Filter Service])
 
     (fw,et) <- generateFormPost $ formService sid
     
@@ -321,25 +409,30 @@ formService sid extra = do
 
       md3radioFieldList :: [(Entity Service,(Entity Workspace, Entity Business))]
                         -> Field (HandlerFor App) ServiceId
-      md3radioFieldList services = (radioFieldList (pairs services))
+      md3radioFieldList services = (radioField (optionsPairs (pairs services)))
           { fieldView = \theId name attrs x isReq -> do
-                let opts = zip [1 :: Int ..] services
+
+                opts <- zip [1 :: Int ..] . olOptions <$> handlerToWidget (optionsPairs (pairs services))
+
                 let sel (Left _) _ = False
-                    sel (Right y) opt = opt == y
-                let showVal = pack . show . fromSqlKey
+                    sel (Right y) opt = optionInternalValue opt == y
+
+                let findService opt = find (\(Entity sid' _,_) -> sid' == optionInternalValue opt)
+                
                 [whamlet|
 <md-list ##{theId} *{attrs}>
-  $forall (i,(Entity sid (Service _ sname _),(workspace,business))) <- opts
-    <md-list-item type=text>
-      <div slot=headline>
-        #{sname}
-      $with (Entity _ (Workspace _ wname address),Entity _ (Business _ bname)) <- (workspace,business)
-        <div slot=supporting-text>
-          #{wname} (#{bname})
-        <div slot=supporting-text>
-          #{address}
-      <div slot=end>
-        <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{showVal sid} :sel x sid:checked touch-target=wrapper>
+  $forall (i,opt) <- opts
+    $maybe (Entity _ (Service _ sname _),(workspace,business)) <- findService opt services
+      <md-list-item type=text>
+        <div slot=headline>
+          #{sname}
+        $with (Entity _ (Workspace _ wname address),Entity _ (Business _ bname)) <- (workspace,business)
+          <div slot=supporting-text>
+            #{wname} (#{bname})
+          <div slot=supporting-text>
+            #{address}
+        <div slot=end>
+          <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt} :sel x opt:checked>
     <md-divider>
 |]
               }

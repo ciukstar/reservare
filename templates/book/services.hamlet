@@ -23,13 +23,13 @@
       $forall Entity _ (Workspace _ name _) <- workspaces
         <md-filter-chip label=#{name}>
 
-  $if null services
+  $if not existsService
     <figure style="text-align:center">
       <span.on-secondary style="font-size:4rem">&varnothing;
       <figcaption.md-typescale-body-large>
         _{MsgThereAreNoDataYet}
   $else
-    <form method=post action=@{BookServicesR} enctype=#{et} ##{idFormService}>
+    <form method=post action=@?{(BookServicesR,stati)} enctype=#{et} ##{idFormService}>
       ^{fw}
 
     <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext} 

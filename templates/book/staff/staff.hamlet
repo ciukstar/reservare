@@ -11,30 +11,17 @@
 
   ^{widgetBanner msgs}
 
-  $if null staff
+  $if not existsStaff
     <figure style="text-align:center">
       <span.on-secondary style="font-size:4rem">&varnothing;
       <figcaption.md-typescale-body-large>
         _{MsgThereAreNoDataYet}
   $else
-    <md-list>
-      $forall (Entity _ (Assignment _ _ _),Entity _ (Staff name _ _ _)) <- staff
-        <md-list-item type=text>
-          <div slot=headline>
-            #{name}
-          <details slot=supporting-text>
-            <summary style="padding:1rem">MsgWorkingHours
-            <div>
-              <a href=#>09:00, 
-              <a href=#>09:30, 
-              <a href=#>10:00,
-              <a href=#>10:30
-          <div slot=end>
-            <md-radio name=employee value=1 touch-target=wrapper>
-        <md-divider>
+    <form method=post action=@?{(BookStaffR,stati)} enctype=#{et} ##{idFormStaff}>
+      ^{fw}
 
-  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext} onclick="this.querySelector('a[href]').click()">
-    <a href=@{BookTimingR}>
+  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext} 
+    onclick="document.getElementById('#{idFormStaff}').submit()">
     <md-icon slot=icon>arrow_forward
 
 ^{widgetSnackbar msgs}
