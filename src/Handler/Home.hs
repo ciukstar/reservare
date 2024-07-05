@@ -7,7 +7,7 @@ module Handler.Home (getHomeR) where
 
 import Foundation
     ( Handler
-    , Route (BookServicesR)
+    , Route (BookServicesR, StaticR)
     , AppMessage
       ( MsgWelcome, MsgAppName, MsgWelcomeTo, MsgMakeAnAppointment
       , MsgBookAService
@@ -15,6 +15,8 @@ import Foundation
     )
 
 import Settings (widgetFile)
+import Settings.StaticFiles
+    (img_book_online_120dp_00696D_FILL0_wght400_GRAD0_opsz48_svg)
 
 import Text.Hamlet (Html)
 

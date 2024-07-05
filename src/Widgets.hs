@@ -6,12 +6,12 @@ module Widgets
 
 import Foundation
     ( Widget
-    , Route (BusinessesR, HomeR, DataR, AuthR, AccountR, AccountPhotoR)
+    , Route (BusinessesR, HomeR, DataR, AuthR, AccountR, AccountPhotoR, DocsR)
     , DataR (UsersR, TokensR, DataBusinessesR, StaffR, ServicesR)
     , AppMessage
       ( MsgMainMenu, MsgUsers, MsgWelcome, MsgData, MsgSignIn, MsgSignOut
       , MsgUserAccount, MsgPhoto, MsgTokens, MsgBusinesses, MsgBusiness
-      , MsgStaff, MsgServices
+      , MsgStaff, MsgServices, MsgResources, MsgDocumentation, MsgSourceCode
       )
     )
 

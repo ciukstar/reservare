@@ -10,8 +10,10 @@
 <main>
   ^{widgetBanner msgs}
 
-  <p.md-typescale-headline-medium>
-    _{MsgWelcomeTo} _{MsgAppName}
+  <figure>
+    <img src=@{StaticR img_book_online_120dp_00696D_FILL0_wght400_GRAD0_opsz48_svg} loading=lazy height=120 width=120>
+    <figcaption.md-typescale-headline-medium>
+      _{MsgWelcomeTo} _{MsgAppName}
 
   <md-filled-tonal-button type=link href=@{BookServicesR}>
     _{MsgBookAService}

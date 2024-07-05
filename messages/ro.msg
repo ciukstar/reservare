@@ -1,3 +1,9 @@
+SourceCode: Codul sursă
+Resources: Resurse
+Overview: Prezentare generală
+IssueTracking: Raportarea erorilor
+Documentation: Documentație
+ErDiagram: Diagrama ER
 PaymentStatus: Starea plății
 SomethingWentWrong: Ceva n-a mers bine
 PaymentSuccessfullyCompleted: Plata a fost finalizată cu succes
@@ -115,4 +121,12 @@ Data: Date
 MainMenu: Meniu principal
 Users: Utilizatori
 Welcome: Bine ați venit
+AppDocumentation: Documentația aplicației
+AppDescription: Rezervări online pentru servicii și programări
 AppName: Reservare
+
+Doc001 appname href: <a href=#{href} target=_blank>„#{appname}”</a> permite companiilor să înregistreze servicii și resurse pentru care un utilizator le poate rezerva și/sau programa o întâlnire.
+
+Doc002 href: <a href=#{href} target=_blank>Depozitul de proiect</a> pe GitHub.
+
+Doc003 href: Vă rugăm să rețineți că aplicația care rulează în prezent este o aplicație demonstrativă. Orice acțiune este permisă și încurajată. <a href=#{href} target=_blank>Raportați erori</a> pe GitHub.

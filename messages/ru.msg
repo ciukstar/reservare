@@ -1,3 +1,10 @@
+
+SourceCode: Исходный код
+Resources: Ресурсы
+Overview: Обзор
+IssueTracking: Отслеживание ошибок
+Documentation: Документация
+ErDiagram: ER-диаграмма
 PaymentStatus: Статус платежа
 SomethingWentWrong: Что-то пошло не так
 PaymentSuccessfullyCompleted: Платеж успешно завершен
@@ -115,4 +122,12 @@ Data: Данные
 MainMenu: Главное меню
 Users: Пользователи
 Welcome: Добро пожаловать
+AppDocumentation: Документация приложения
+AppDescription: Онлайн-бронирование услуг и встреч
 AppName: Reservare
+
+Doc001 appname href: <a href=#{href} target=_blank>«#{appname}»</a> позволяет компаниям регистрировать услуги и ресурсы, которые пользователь может зарезервировать и/или назначить встречу.
+
+Doc002 href: <a href=#{href} target=_blank>Репозиторий проекта</a> на GitHub.
+
+Doc003 href: Обратите внимание, что приложение, работающее в данный момент, является демонстрационным. Любые действия разрешены и поощряются. <a href=#{href} target=_blank>Сообщайте об ошибках</a> на GitHub.

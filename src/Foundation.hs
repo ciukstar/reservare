@@ -260,6 +260,8 @@ instance Yesod App where
     isAuthorized (AccountR uid) _ = isAuthenticatedSelf uid
     isAuthorized (AccountPhotoR _) _ = return Authorized
     
+    isAuthorized r@DocsR _ = setUltDest r >> return Authorized
+    
     isAuthorized ServiceWorkerR _ = return Authorized
     
     isAuthorized (AuthR _) _ = return Authorized

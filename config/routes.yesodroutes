@@ -32,6 +32,8 @@
 /accounts/#UserId/photo     AccountPhotoR    GET
 /accounts/#UserId           AccountR         GET POST
 
+/resources/docs DocsR GET
+
 / HomeR GET
 
 /sw.js ServiceWorkerR GET

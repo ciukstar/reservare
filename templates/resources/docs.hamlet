@@ -1,0 +1,36 @@
+
+<header.primary>
+  ^{widgetMenu}
+
+  <h1.title-large>
+    _{MsgDocumentation}
+
+  ^{widgetAccount}
+
+<main>
+
+  ^{widgetBanner msgs}
+
+  <section>
+    <h2.headline-medium>_{MsgAppName}
+    <h3.body-large>
+      _{MsgAppDescription}
+
+    <h2.headline-small>
+      _{MsgOverview}
+    <p.body-medium>
+      #{t $ MsgDoc001 (m MsgAppName) (r HomeR)}
+
+  <section>
+    <h2.headline-medium>_{MsgErDiagram}
+    <img #idImgErdDiagram src=@{StaticR img_Reservare_ERD_svg} alt=_{MsgErDiagram} loading=lazy>
+
+  <section>
+    <h2.headline-medium>_{MsgSourceCode}
+    <p.body-medium>#{t $ MsgDoc002 "https://github.com/ciukstar/reservare"}
+
+  <section>
+    <h2.headline-medium>_{MsgIssueTracking}
+    <p.body-medium>#{t $ MsgDoc003 "https://github.com/ciukstar/reservare/issues"}
+
+  ^{widgetSnackbar msgs}

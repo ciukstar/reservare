@@ -1,3 +1,10 @@
+
+SourceCode: Code source
+Resources: Ressources
+Overview: Aperçu
+IssueTracking: Signalement de bogues
+Documentation: Documentation
+ErDiagram: Diagramme ER
 PaymentStatus: Statut de paiement
 SomethingWentWrong: Quelque chose n'a pas fonctionné
 PaymentSuccessfullyCompleted: Paiement effectué avec succès
@@ -115,4 +122,12 @@ Data: Donnés
 MainMenu: Menu principal
 Users: Utilisateurs
 Welcome: Bienvenu
+AppDocumentation: Documentation de l'application
+AppDescription: Réservations en ligne de prestations et de rendez-vous
 AppName: Reservare
+
+Doc001 appname href: <a href=#{href} target=_blank>« #{appname} »</a> permet aux entreprises d'enregistrer des services et des ressources pour lesquels un utilisateur peut réserver et/ou prendre rendez-vous.
+
+Doc002 href: <a href=#{href} target=_blank>Le référentiel du projet</a> sur GitHub.
+
+Doc003 href: Veuillez noter que l'application actuellement en cours d'exécution est une application de démonstration. Toutes les actions sont autorisées et encouragées. <a href=#{href} target=_blank>Signalez les bugs</a> sur GitHub.

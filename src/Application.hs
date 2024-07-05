@@ -67,6 +67,8 @@ import Handler.Accounts
     , postAccountR
     )
 
+import Handler.Resources (getDocsR)
+
 import Handler.Home ( getHomeR )
 
 import Handler.Business

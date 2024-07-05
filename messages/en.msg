@@ -1,3 +1,10 @@
+
+SourceCode: Source code
+Resources: Resources
+Overview: Overview
+IssueTracking: Issue tracking
+Documentation: Documentation
+ErDiagram: ER Diagram
 PaymentStatus: Payment status
 SomethingWentWrong: Something went wrong
 PaymentSuccessfullyCompleted: Payment successfully completed
@@ -115,4 +122,12 @@ Data: Data
 MainMenu: Main menu
 Users: Users
 Welcome: Welcome
+AppDocumentation: App documentation
+AppDescription: Online bookings for services and appointments
 AppName: Reservare
+
+Doc001 appname@Text href@Text: <a href=#{href} target=_blank>“#{appname}”</a> allows businesses to register services and resources that a user can book and/or schedule an appointment for.
+
+Doc002 href@Text: <a href=#{href} target=_blank>Project repository</a> on GitHub.
+
+Doc003 href@Text: Please note that the application currently running is a demo application. Any actions are allowed and encouraged. <a href=#{href} target=_blank>Report issues</a> on GitHub.
