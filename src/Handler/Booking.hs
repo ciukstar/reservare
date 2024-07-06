@@ -317,7 +317,7 @@ formStaff sid eid extra = do
 <md-list ##{theId} *{attrs}>
   $forall (i,opt) <- opts
     $maybe (_,Entity _ (Staff ename _ _ _)) <- findStaff opt staff
-      <md-list-item type=text>
+      <md-list-item type=text onclick="this.querySelector('md-radio').click()">
         <div slot=headline>
           #{ename}
         <details slot=supporting-text>
@@ -328,7 +328,8 @@ formStaff sid eid extra = do
             <a href=#>10:00,
             <a href=#>10:30
         <div slot=end>
-          <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt} :sel x opt:checked>
+          <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
+            :sel x opt:checked touch-target=wrapper>
     <md-divider>
 |]
               }
@@ -423,7 +424,7 @@ formService sid extra = do
 <md-list ##{theId} *{attrs}>
   $forall (i,opt) <- opts
     $maybe (Entity _ (Service _ sname _),(workspace,business)) <- findService opt services
-      <md-list-item type=text>
+      <md-list-item type=button onclick="this.querySelector('md-radio').click()">
         <div slot=headline>
           #{sname}
         $with (Entity _ (Workspace _ wname address),Entity _ (Business _ bname)) <- (workspace,business)
@@ -432,7 +433,8 @@ formService sid extra = do
           <div slot=supporting-text>
             #{address}
         <div slot=end>
-          <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt} :sel x opt:checked>
+          <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
+            :sel x opt:checked touch-target=wrapper>
     <md-divider>
 |]
               }

@@ -2,10 +2,11 @@
 <header.primary>
   ^{widgetMenu}
 
-  <h1.title-large>
+  <span.md-typescale-title-large>
     _{MsgDocumentation}
 
-  ^{widgetAccount}
+  <span.header-end>
+    ^{widgetAccount}
 
 <main>
 

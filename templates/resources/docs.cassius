@@ -1,7 +1,7 @@
 
 header
     height: var(--app-top-appbar-height,64px)
-    padding: 0.5rem
+    padding: 0 0.5rem
     position: sticky
     top: 0
     z-index: 1

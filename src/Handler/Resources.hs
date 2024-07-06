@@ -5,8 +5,7 @@ module Handler.Resources (getDocsR) where
 
 import Foundation
     ( Handler
-    , Route (StaticR, HomeR, AuthR, DataR)
-    , DataR ()
+    , Route (StaticR, HomeR)
     , AppMessage
       ( MsgAppDocumentation, MsgAppDescription, MsgErDiagram, MsgDocumentation
       , MsgAppName, MsgIssueTracking, MsgOverview, MsgSourceCode
@@ -23,7 +22,6 @@ import Text.Hamlet (Html)
 
 import Widgets (widgetMenu, widgetAccount, widgetBanner, widgetSnackbar)
 
-import Yesod.Auth (Route (LoginR))
 import Yesod.Core
     ( Yesod(defaultLayout), setUltDestCurrent, getMessages, getUrlRender
     , getMessageRender
