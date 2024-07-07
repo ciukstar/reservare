@@ -20,7 +20,7 @@
   <details>
     <summary.md-typescale-label-large>_{MsgWorkspace}
     <md-chip-set>
-      $forall Entity _ (Workspace _ name _) <- workspaces
+      $forall Entity _ (Workspace _ name _ _ _) <- workspaces
         <md-filter-chip label=#{name}>
 
   $if not existsService

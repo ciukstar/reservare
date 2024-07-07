@@ -8,7 +8,7 @@ Array.from(
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
     useGrouping: true
-  }).format(x.dataset.value);
+  }).format(x.dataset.value / 100);
 });
 
 Array.from(

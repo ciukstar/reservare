@@ -1,6 +1,6 @@
 
 <header>
-  <md-icon-button href=@{BookTimingR} aria-label=_{MsgBack}>
+  <md-icon-button href=@?{(BookTimingR,stati)} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
   <span.md-typescale-title-large>
@@ -10,26 +10,12 @@
 <main>
 
   ^{widgetBanner msgs}
-  
-  <md-list>
-    <md-list-item type=text>
-      <div slot=start>
-        <md-icon>credit_card
-      <div slot=headline>
-        _{MsgPayNow}
-      <div slot=end>
-        <md-radio name=employee value=1 touch-target=wrapper>
-    <md-divider>
-    <md-list-item type=text>
-      <div slot=start>
-        <md-icon>point_of_sale
-      <div slot=headline>
-        _{MsgPayAtVenue}
-      <div slot=end>
-        <md-radio name=employee value=1 touch-target=wrapper>
 
-  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext} onclick="this.querySelector('a[href]').click()">
-    <a href=@{BookCheckoutR}>
+  <form method=post action=@?{(BookPaymentR,stati)} enctype=#{et} ##{idFormPayment}>
+    ^{fw}
+
+  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext}
+    onclick="document.getElementById('#{idFormPayment}').submit()">
     <md-icon slot=icon>arrow_forward
 
 ^{widgetSnackbar msgs}

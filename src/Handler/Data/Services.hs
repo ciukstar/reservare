@@ -49,18 +49,18 @@ import Foundation
       , MsgDescription, MsgRecordAdded, MsgServiceAssignments, MsgDetails
       , MsgDeleteAreYouSure, MsgConfirmPlease, MsgEdit, MsgRecordEdited
       , MsgDele, MsgRecordDeleted, MsgInvalidFormData, MsgServiceAssignment
-      , MsgEmployee, MsgAssignmentDate, MsgTheStart, MsgBusiness
+      , MsgEmployee, MsgAssignmentDate, MsgTheStart, MsgBusiness, MsgPrice
       )
     )
     
 import Material3
     ( md3mreq, md3textField, md3textareaField, md3mopt, md3selectField
-    , md3datetimeLocalField
+    , md3datetimeLocalField, md3intField
     )
 
 import Model
     ( statusSuccess, statusError
-    , ServiceId, Service(Service, serviceName, serviceWorkspace, serviceDescr)
+    , ServiceId, Service(Service, serviceName, serviceWorkspace, serviceDescr, servicePrice)
     , Workspace (workspaceName, Workspace)
     , AssignmentId, Assignment (Assignment, assignmentStaff, assignmentStart)
     , Staff (staffName, Staff)
@@ -355,9 +355,15 @@ formService service extra = do
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgDescription)]
         } (serviceDescr . entityVal <$> service)
+    
+    (priceR,priceV) <- md3mreq md3intField FieldSettings
+        { fsLabel = SomeMessage MsgPrice
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgPrice)]
+        } (servicePrice . entityVal <$> service)
 
-    return ( Service <$> workspaceR <*> nameR <*> descrR
-           , [whamlet|#{extra} ^{fvInput workspaceV} ^{fvInput nameV} ^{fvInput descrV}|]
+    return ( Service <$> workspaceR <*> nameR <*> descrR <*> priceR
+           , [whamlet|#{extra} ^{fvInput workspaceV} ^{fvInput nameV} ^{fvInput descrV} ^{fvInput priceV}|]
            )
         
   where
@@ -368,9 +374,10 @@ formService service extra = do
 getServiceR :: ServiceId -> Handler Html
 getServiceR sid = do
     service <- runDB $ selectOne $ do
-        x <- from $ table @Service
+        x :& w <- from $ table @Service
+            `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
         where_ $ x ^. ServiceId ==. val sid
-        return x
+        return (x,w)
 
     (fw2,et2) <- generateFormPost formServiceDelete
         
@@ -390,9 +397,10 @@ getServicesR :: Handler Html
 getServicesR = do
     
     services <- runDB $ select $ do
-        x <- from $ table @Service
+        x :& w <- from $ table @Service
+            `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
         orderBy [desc (x ^. ServiceId)]
-        return x
+        return (x,w)
         
     msgs <- getMessages
     defaultLayout $ do

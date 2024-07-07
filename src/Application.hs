@@ -56,7 +56,8 @@ import System.Log.FastLogger
 import Handler.Booking
     ( getBookServicesR, postBookServicesR
     , getBookStaffR, postBookStaffR
-    , getBookTimingR, getBookPaymentR
+    , getBookTimingR, postBookTimingR
+    , getBookPaymentR, postBookPaymentR
     , getBookCheckoutR, getBookPayCompletionR, postBookPaymentIntentR
     , postBookPayR, postBookPaymentIntentCancelR
     )

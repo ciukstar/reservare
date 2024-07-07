@@ -1,3 +1,6 @@
+Price: Preț
+Currency: Valuta
+TimeZone: Fusul orar
 SourceCode: Codul sursă
 Resources: Resurse
 Overview: Prezentare generală

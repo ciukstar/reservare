@@ -47,16 +47,21 @@ import Foundation
       , MsgCancel, MsgSave, MsgBack, MsgFullName, MsgAccount, MsgMobile
       , MsgPhone, MsgRecordAdded, MsgEmployee, MsgServiceAssignments
       , MsgDetails, MsgDeleteAreYouSure, MsgEdit, MsgDele, MsgConfirmPlease
-      , MsgInvalidFormData, MsgRecordDeleted, MsgRecordEdited, MsgWorkspace, MsgService, MsgAssignmentDate, MsgServiceAssignment, MsgTheStart, MsgBusiness
+      , MsgInvalidFormData, MsgRecordDeleted, MsgRecordEdited, MsgWorkspace
+      , MsgService, MsgAssignmentDate, MsgServiceAssignment, MsgTheStart
+      , MsgBusiness
       )
     )
     
-import Material3 (md3mreq, md3telField, md3textField, md3mopt, md3selectField, md3datetimeLocalField)
+import Material3
+    ( md3mreq, md3telField, md3textField, md3mopt, md3selectField
+    , md3datetimeLocalField
+    )
 
 import Model
     ( statusError, statusSuccess
     , StaffId, Staff (Staff, staffName, staffMobile, staffPhone, staffAccount)
-    , User (User, userName, userEmail)
+    , User (userName, userEmail)
     , AssignmentId, Assignment (Assignment, assignmentService, assignmentStart)
     , Service (Service, serviceName)
     , Workspace (Workspace)

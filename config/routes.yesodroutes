@@ -7,8 +7,8 @@
 /book/pay/intent/#Int/#Text BookPaymentIntentR       POST
 /book/pay/completion        BookPayCompletionR       GET
 /book/checkout              BookCheckoutR            GET
-/book/payment               BookPaymentR             GET
-/book/timing                BookTimingR              GET
+/book/payment               BookPaymentR             GET POST
+/book/timing                BookTimingR              GET POST
 /book/staff                 BookStaffR               GET POST
 /book/services              BookServicesR            GET POST
 

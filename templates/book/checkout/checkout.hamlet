@@ -14,9 +14,8 @@
 
   <section ##{idSectionPriceTag}>
     <h4.hint>_{MsgPaymentAmount}
-    $with amount <- show amount
-      <div.currency data-value=#{amount} data-currency=#{currency}>
-        #{currency}#{amount}
+    <div.currency data-value=#{cents} data-currency=#{currency}>
+      #{currency}#{cents}
 
   <form ##{idFormPayment}>
   

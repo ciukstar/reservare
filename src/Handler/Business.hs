@@ -20,7 +20,7 @@ module Handler.Business
   , postWorkspaceDeleR
   ) where
 
-import Data.Text (Text)
+import Data.Text (Text, unpack, pack)
 
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, innerJoin, on
@@ -43,7 +43,7 @@ import Foundation
       , MsgAdd, MsgOwner, MsgTheName, MsgSave, MsgCancel, MsgBusiness
       , MsgBack, MsgDele, MsgEdit, MsgDeleteAreYouSure, MsgConfirmPlease
       , MsgRecordDeleted, MsgInvalidFormData, MsgRecordEdited, MsgRecordAdded
-      , MsgDetails, MsgWorkspaces, MsgAddress, MsgWorkspace, MsgAlreadyExists
+      , MsgDetails, MsgWorkspaces, MsgAddress, MsgWorkspace, MsgAlreadyExists, MsgTimeZone, MsgCurrency
       )
     )
 
@@ -53,7 +53,7 @@ import Model
     ( statusError, statusSuccess
     , BusinessId, Business(Business, businessName)
     , UserId, User (User)
-    , WorkspaceId, Workspace (Workspace, workspaceName, workspaceAddress)
+    , WorkspaceId, Workspace (Workspace, workspaceName, workspaceAddress, workspaceTzo, workspaceCurrency)
     , EntityField
       ( UserId, BusinessId, BusinessOwner, WorkspaceId
       , WorkspaceBusiness, BusinessName, WorkspaceName
@@ -204,9 +204,21 @@ formWorkspace bid workspace extra = do
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgAddress)]
         } (workspaceAddress . entityVal <$> workspace)
+        
+    (tzoR, tzoV) <- md3mreq md3textField FieldSettings
+        { fsLabel = SomeMessage MsgTimeZone
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgTimeZone)]
+        } (pack . show . workspaceTzo . entityVal <$> workspace)
+        
+    (currencyR, currencyV) <- md3mreq md3textField FieldSettings
+        { fsLabel = SomeMessage MsgCurrency
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgCurrency)]
+        } (workspaceCurrency . entityVal <$> workspace)
 
-    return ( Workspace bid <$> nameR <*> addrR
-           , [whamlet|#{extra} ^{fvInput nameV} ^{fvInput addrV}|]
+    return ( Workspace bid <$> nameR <*> addrR <*> (read . unpack <$> tzoR) <*> currencyR
+           , [whamlet|#{extra} ^{fvInput nameV} ^{fvInput addrV} ^{fvInput tzoV} ^{fvInput currencyV}|]
            )
   where
       

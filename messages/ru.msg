@@ -1,4 +1,7 @@
 
+Price: Цена
+Currency: Валюта
+TimeZone: Часовой пояс
 SourceCode: Исходный код
 Resources: Ресурсы
 Overview: Обзор

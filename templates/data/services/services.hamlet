@@ -22,10 +22,12 @@
           _{MsgYouMightWantToAddAFew}
   $else
     <md-list>
-      $forall Entity sid (Service _ name _) <- services
+      $forall (Entity sid (Service _ name _ price),Entity _ (Workspace _ _ _ _ currency)) <- services
         <md-list-item type=link href=@{DataR $ ServiceR sid}>
           <div slot=headline>
             #{name}
+          <div.currency slot=supporting-text data-value=#{price} data-currency=#{currency}>
+            #{currency}#{price}
           <md-icon slot=end>arrow_forward_ios
         <md-divider>
 

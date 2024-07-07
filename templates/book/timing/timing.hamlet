@@ -11,17 +11,14 @@
 
   ^{widgetBanner msgs}
 
-  <md-filled-text-field type=datetime-local label=_{MsgAppointmentTime} #idAppointmentTime>
-    <span slot=trailing-icon style="display:flex;flex-direction:row;align-items:center">
-      <md-icon-button type=button slot=trailing-icon
-        onclick="document.getElementById('idAppointmentTime').shadowRoot.querySelector('input').showPicker()">
-          <md-icon>schedule
+  <form method=post action=@?{(BookTimingR,stati)} enctype=#{et} ##{idFormTiming}>
+    ^{fw}
 
   <p>
     Caledar view ...
 
-  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext} onclick="this.querySelector('a[href]').click()">
-    <a href=@{BookPaymentR}>
+  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext}
+    onclick="document.getElementById('#{idFormTiming}').submit()">
     <md-icon slot=icon>arrow_forward
 
 ^{widgetSnackbar msgs}

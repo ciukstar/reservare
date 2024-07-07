@@ -1,4 +1,7 @@
 
+Price: Prix
+Currency: Devise
+TimeZone: Fuseau horaire
 SourceCode: Code source
 Resources: Ressources
 Overview: Aperçu

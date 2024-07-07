@@ -18,8 +18,15 @@
 module Model where
 
 import ClassyPrelude.Yesod
-import Database.Persist.Quasi
+
+
+import qualified Data.Proxy as DP (Proxy (Proxy))
+import Data.Time.LocalTime (TimeZone (timeZoneMinutes), minutesToTimeZone) 
+
+import Database.Persist.Quasi ( lowerCaseSettings )
+
 import Text.Printf (printf, PrintfType)
+import Database.Persist.Sql (PersistFieldSql (sqlType))
 
 
 data PayMethod = PayAtVenue | PayNow
@@ -37,6 +44,18 @@ data AuthenticationType = UserAuthTypePassword
     deriving (Show, Read, Eq, Ord)
 derivePersistField "AuthenticationType"
 
+
+instance PersistField TimeZone where
+  toPersistValue :: TimeZone -> PersistValue
+  toPersistValue x = toPersistValue $ timeZoneMinutes x
+
+  fromPersistValue :: PersistValue -> Either Text TimeZone
+  fromPersistValue (PersistInt64 x) = Right $ minutesToTimeZone $ fromIntegral x
+  fromPersistValue _ = Left "Invalid TimeZone"
+
+instance PersistFieldSql TimeZone where
+    sqlType :: DP.Proxy TimeZone -> SqlType
+    sqlType _ = SqlInt64
 
 -- You can define all of your database entities in the entities file.
 -- You can find more information on persistent and how to declare entities

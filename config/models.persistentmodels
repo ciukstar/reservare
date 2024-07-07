@@ -10,6 +10,7 @@ Service
     workspace WorkspaceId OnDeleteCascade
     name Text
     descr Textarea Maybe
+    price Int
     UniqueService workspace name
     deriving Eq
 
@@ -23,6 +24,8 @@ Workspace
     business BusinessId OnDeleteCascade
     name Text
     address Textarea
+    tzo TimeZone
+    currency Text
     UiqueWorkspace business name
 
 Business

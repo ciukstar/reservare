@@ -16,6 +16,7 @@ module Material3
   , md3switchField
   , md3htmlField
   , md3doubleField
+  , md3intField
   , md3dayField
   , md3timeField
   , md3datetimeLocalField
@@ -45,7 +46,7 @@ import Yesod.Form.Fields
     , Option (optionExternalValue, optionDisplay, optionInternalValue)
     , textareaField, Textarea (Textarea), selectField, checkBoxField, htmlField
     , FormMessage, doubleField, dayField, timeField, datetimeLocalField
-    , optionsPairs, multiSelectField
+    , optionsPairs, multiSelectField, intField
     )
 import Yesod.Form.Functions (mopt, mreq)
 import Yesod.Form.Types
@@ -217,6 +218,14 @@ md3htmlField = htmlField { fieldView = \theId name attrs x req -> [whamlet|
 
 md3doubleField :: RenderMessage m FormMessage => Field (HandlerFor m) Double
 md3doubleField = doubleField { fieldView = \theId name attrs ex req -> [whamlet|
+<md-filled-text-field ##{theId} type=number name=#{name} :req:required value=#{either id (pack . show) ex} *{attrs}>
+  $if elem "error" (fst <$> attrs)
+    <md-icon slot=trailing-icon>error
+|] }
+
+
+md3intField :: RenderMessage m FormMessage => Field (HandlerFor m) Int
+md3intField = intField { fieldView = \theId name attrs ex req -> [whamlet|
 <md-filled-text-field ##{theId} type=number name=#{name} :req:required value=#{either id (pack . show) ex} *{attrs}>
   $if elem "error" (fst <$> attrs)
     <md-icon slot=trailing-icon>error

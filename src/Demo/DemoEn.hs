@@ -5,11 +5,11 @@
 module Demo.DemoEn (fillDemoEn) where
 
 import Control.Monad.IO.Class (MonadIO (liftIO))
-import Import.NoFoundation (ReaderT)
+import Import.NoFoundation (ReaderT, Workspace (workspaceTzo, workspaceCurrency), Service (servicePrice))
 
 import Data.FileEmbed (embedFile)
 import Data.Maybe (fromMaybe)
-import Data.Time (getCurrentTime)
+import Data.Time (getCurrentTime, utc)
 
 import Database.Persist (PersistStoreWrite (insert, insert_))
 import Database.Persist.SqlBackend (SqlBackend)
@@ -147,6 +147,8 @@ fillDemoEn appSettings = do
     let workspace1 = Workspace { workspaceBusiness = b1
                                , workspaceName = "JJ & Co Central"
                                , workspaceAddress = "9796 Cherry Court Taylors, SC 29687"
+                               , workspaceTzo = utc
+                               , workspaceCurrency = "GBP"
                                }
 
     w1 <- insert workspace1
@@ -154,6 +156,7 @@ fillDemoEn appSettings = do
     let service1 = Service { serviceWorkspace = w1
                            , serviceName = "Leisure travel"
                            , serviceDescr = Just "Travel as you like"
+                           , servicePrice = 10000
                            }
 
     s1 <- insert service1
@@ -161,6 +164,7 @@ fillDemoEn appSettings = do
     let service2 = Service { serviceWorkspace = w1
                            , serviceName = "Italia travel"
                            , serviceDescr = Just "Italian joy"
+                           , servicePrice = 20000
                            }
 
     s2 <- insert service2
@@ -168,6 +172,7 @@ fillDemoEn appSettings = do
     let service3 = Service { serviceWorkspace = w1
                            , serviceName = "Hello Paris"
                            , serviceDescr = Just "France awaits"
+                           , servicePrice = 25000
                            }
 
     s3 <- insert service3

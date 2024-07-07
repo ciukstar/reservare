@@ -5,12 +5,10 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 module Handler.Booking
-  ( getBookServicesR
-  , postBookServicesR
-  , getBookStaffR
-  , postBookStaffR
-  , getBookTimingR
-  , getBookPaymentR
+  ( getBookServicesR, postBookServicesR
+  , getBookStaffR, postBookStaffR
+  , getBookTimingR, postBookTimingR
+  , getBookPaymentR, postBookPaymentR
   , getBookCheckoutR
   , getBookPayCompletionR
   , postBookPaymentIntentR
@@ -30,6 +28,8 @@ import Data.Foldable (find)
 import Data.Function ((&))
 import Data.Text (pack, Text, unpack)
 import Data.Text.Encoding (encodeUtf8)
+import Data.Time (UTCTime)
+import Data.Time.LocalTime (utcToLocalTime, utc, localTimeToUTC)
 
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, asc, innerJoin, on
@@ -56,6 +56,7 @@ import Foundation
       , MsgPaymentStatus
       )
     )
+import Material3 (md3datetimeLocalField, md3mreq)
     
 import Model
     ( statusSuccess, scriptRemoteStripe, endpointStripePaymentIntents
@@ -65,7 +66,7 @@ import Model
     , Business (Business)
     , Assignment
     , StaffId, Staff (Staff)
-    , User (User), PayMethod (PayNow)
+    , User (User), PayMethod (PayNow, PayAtVenue)
     , EntityField
       ( ServiceWorkspace, WorkspaceId, WorkspaceBusiness
       , BusinessId, ServiceName, AssignmentStaff, StaffId, StaffName
@@ -85,6 +86,7 @@ import Settings
 
 import Text.Hamlet (Html)
 import Text.Julius (rawJS)
+import Text.Read (readMaybe)
 
 import Widgets (widgetSnackbar, widgetBanner)
 
@@ -92,7 +94,7 @@ import Yesod.Auth (maybeAuth, Route (LoginR))
 import Yesod.Core.Handler
     ( getMessages, newIdent, getYesod, getUrlRenderParams
     , getRequest, YesodRequest (reqGetParams), redirect, addMessageI
-    , getMessageRender
+    , getMessageRender, setUltDestCurrent
     )
 import Yesod.Core
     ( Yesod(defaultLayout), returnJson, MonadIO (liftIO), whamlet
@@ -100,14 +102,16 @@ import Yesod.Core
     )
 import Yesod.Core.Types (HandlerFor)
 import Yesod.Core.Widget (setTitleI)
+import Yesod.Form (FieldView(fvInput), FormResult (FormSuccess), Field (fieldView))
 import Yesod.Form.Input (runInputGet, ireq, iopt)
 import Yesod.Form.Fields
     ( textField, intField, radioField, optionsPairs, OptionList (olOptions)
-    , Option (optionExternalValue, optionInternalValue)
+    , Option (optionExternalValue, optionInternalValue), datetimeLocalField
     )
-import Yesod.Persist.Core (YesodPersist(runDB))
 import Yesod.Form.Functions (generateFormPost, mreq, runFormPost)
-import Yesod.Form (FieldView(fvInput), FormResult (FormSuccess), Field (fieldView))
+import Yesod.Persist.Core (YesodPersist(runDB))
+import Data.Monoid (Sum(Sum, getSum))
+import Safe (headMay)
 
 
 postBookPaymentIntentCancelR :: Handler ()
@@ -177,18 +181,31 @@ getBookCheckoutR :: Handler Html
 getBookCheckoutR = do
 
     stati <- reqGetParams <$> getRequest
+    sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
+    -- eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
+    -- tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
+    -- pid <- (readMaybe . unpack =<<) <$> runInputGet ( iopt textField "pid" )
 
     user <- maybeAuth
     case user of
-      Nothing -> redirect $ AuthR LoginR
+      Nothing -> do
+          setUltDestCurrent
+          redirect $ AuthR LoginR
       Just (Entity _ (User email _ _ _ _ _ _ _)) -> do
     
           pk <- stripeConfPk . appStripeConf . appSettings <$> getYesod 
 
-          let items = [object ["id" .= ("Liesure Time" :: Text)]]
-          let amount = 10 :: Double
-          let cents = truncate $ 100 * amount
-          let currency = "USD"
+          services <- runDB ( select $ do
+              x :& w <- from $ table @Service
+                  `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
+              case sid of
+                Just y -> where_ $ x ^. ServiceId ==. val y
+                Nothing -> where_ $ val False
+              return (x, w) )
+
+          let items = (\(Entity _ (Service _ name _ _),_) -> object ["id" .= name]) <$> services
+          let cents = getSum $ mconcat $ (\(Entity _ (Service _ _ _ price),_) -> Sum price) <$> services
+          let currency = maybe "USD" (\(_, Entity _ (Workspace _ _ _ _ c)) -> c) (headMay services)
 
           rndr <- getUrlRenderParams
 
@@ -211,25 +228,159 @@ getBookCheckoutR = do
               $(widgetFile "book/checkout/checkout")
 
 
+postBookPaymentR :: Handler Html
+postBookPaymentR = do
+    stati <- reqGetParams <$> getRequest
+    sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
+    eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
+    tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
+    pid <- (readMaybe . unpack =<<) <$> runInputGet ( iopt textField "pid" )
+
+    ((fr,fw),et) <- runFormPost $ formPayment sid eid tid pid
+
+    case fr of
+      FormSuccess (sid',eid',tid',pid') -> redirect ( BookCheckoutR
+                                                    , [ ( "sid", pack $ show $ fromSqlKey sid')
+                                                      , ( "eid", pack $ show $ fromSqlKey eid')
+                                                      , ( "tid", pack $ show $ utcToLocalTime utc tid')
+                                                      , ( "pid", pack $ show pid')
+                                                      ]
+                                                    )
+      _otherwise -> do
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgPaymentMethod
+              idFormPayment <- newIdent
+              idFabNext <- newIdent
+              $(widgetFile "book/payment/payment")
+
+
 getBookPaymentR :: Handler Html
 getBookPaymentR = do
+    stati <- reqGetParams <$> getRequest
+    sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
+    eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
+    tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
+    pid <- (readMaybe . unpack =<<) <$> runInputGet ( iopt textField "pid" )
+
+    (fw,et) <- generateFormPost $ formPayment sid eid tid pid
     
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgPaymentMethod
+        idFormPayment <- newIdent
         idFabNext <- newIdent
         $(widgetFile "book/payment/payment")
+
+
+formPayment :: Maybe ServiceId -> Maybe StaffId -> Maybe UTCTime -> Maybe PayMethod
+            -> Form (ServiceId,StaffId,UTCTime,PayMethod)
+formPayment sid eid time method extra = do
+        
+    (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>)
+        <$> mreq intField "" (fromIntegral . fromSqlKey <$> sid)
+        
+    (staffR,staffV) <- first (toSqlKey . fromIntegral @Integer <$>)
+        <$> mreq intField "" (fromIntegral . fromSqlKey <$> eid)
+        
+    (timeR,timeV) <- mreq datetimeLocalField "" (utcToLocalTime utc <$> time)
+
+    let methods = [((MsgPayNow,PayNow),"credit_card"),((MsgPayAtVenue,PayAtVenue),"point_of_sale")]
+        
+    (methodR,methodV) <- md3mreq (md3radioFieldList methods) "" method
+
+    let r = (,,,) <$> serviceR <*> staffR <*> (localTimeToUTC utc <$> timeR) <*> methodR
+    let w = [whamlet|#{extra} ^{fvInput serviceV} ^{fvInput staffV} ^{fvInput timeV} ^{fvInput methodV}|]
+
+    return (r,w)
+
+  where
+
+      md3radioFieldList :: [((AppMessage,PayMethod),Text)] -> Field (HandlerFor App) PayMethod
+      md3radioFieldList methods = (radioField (optionsPairs (fst <$> methods)))
+          { fieldView = \theId name attrs x isReq -> do
+
+                opts <- zip [1 :: Int ..] . olOptions <$> handlerToWidget (optionsPairs (fst <$> methods))
+
+                let sel (Left _) _ = False
+                    sel (Right y) opt = optionInternalValue opt == y
+
+                let findMethod opt = find (\((_,m),_) -> m == optionInternalValue opt)
+                
+                [whamlet|
+<md-list ##{theId} *{attrs}>
+  $forall (i,opt) <- opts
+    $maybe ((msg,_),icon) <- findMethod opt methods
+      <md-list-item type=text onclick="this.querySelector('md-radio').click()">
+        <md-icon slot=start>
+          #{icon}
+        <div slot=headline>
+          _{msg}
+        <div slot=end>
+          <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
+            :sel x opt:checked touch-target=wrapper>
+    <md-divider>
+|]
+              }
+
+
+postBookTimingR :: Handler Html
+postBookTimingR = do
+    stati <- reqGetParams <$> getRequest
+    sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
+    eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
+    tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
+
+    ((fr,fw),et) <- runFormPost $ formTiming sid eid tid
+
+    case fr of
+      FormSuccess (sid',eid',tid') -> redirect ( BookPaymentR
+                                               , [ ( "sid", pack $ show $ fromSqlKey sid')
+                                                 , ( "eid", pack $ show $ fromSqlKey eid')
+                                                 , ( "tid", pack $ show $ utcToLocalTime utc tid')
+                                                 ]
+                                               )
+      _otherwise -> do    
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgAppointmentTime
+              idFormTiming <- newIdent
+              idFabNext <- newIdent
+              $(widgetFile "book/timing/timing")
 
 
 getBookTimingR :: Handler Html
 getBookTimingR = do
     stati <- reqGetParams <$> getRequest
+    sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
+    eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
+    tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
+
+    (fw,et) <- generateFormPost $ formTiming sid eid tid
     
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgAppointmentTime
+        idFormTiming <- newIdent
         idFabNext <- newIdent
         $(widgetFile "book/timing/timing")
+
+
+formTiming :: Maybe ServiceId -> Maybe StaffId -> Maybe UTCTime -> Form (ServiceId,StaffId,UTCTime)
+formTiming sid eid time extra = do
+        
+    (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>)
+        <$> mreq intField "" (fromIntegral . fromSqlKey <$> sid)
+        
+    (staffR,staffV) <- first (toSqlKey . fromIntegral @Integer <$>)
+        <$> mreq intField "" (fromIntegral . fromSqlKey <$> eid)
+        
+    (timeR,timeV) <- md3mreq md3datetimeLocalField "" (utcToLocalTime utc <$> time)
+
+    let r = (,,) <$> serviceR <*> staffR <*> (localTimeToUTC utc <$> timeR)
+    let w = [whamlet|#{extra} ^{fvInput serviceV} ^{fvInput staffV} ^{fvInput timeV}|]
+
+    return (r,w)
 
 
 postBookStaffR :: Handler Html
@@ -406,7 +557,7 @@ formService sid extra = do
     return (serviceR,[whamlet|#{extra} ^{fvInput serviceV}|])
 
   where
-      pairs services = (\(Entity sid' (Service _ name _),_) -> (name, sid')) <$> services
+      pairs services = (\(Entity sid' (Service _ name _ _),_) -> (name, sid')) <$> services
 
       md3radioFieldList :: [(Entity Service,(Entity Workspace, Entity Business))]
                         -> Field (HandlerFor App) ServiceId
@@ -423,15 +574,15 @@ formService sid extra = do
                 [whamlet|
 <md-list ##{theId} *{attrs}>
   $forall (i,opt) <- opts
-    $maybe (Entity _ (Service _ sname _),(workspace,business)) <- findService opt services
+    $maybe (Entity _ (Service _ sname _ price),(workspace,business)) <- findService opt services
       <md-list-item type=button onclick="this.querySelector('md-radio').click()">
         <div slot=headline>
           #{sname}
-        $with (Entity _ (Workspace _ wname address),Entity _ (Business _ bname)) <- (workspace,business)
+        $with (Entity _ (Workspace _ wname _ _ currency),Entity _ (Business _ bname)) <- (workspace,business)
           <div slot=supporting-text>
             #{wname} (#{bname})
-          <div slot=supporting-text>
-            #{address}
+          <div.currency slot=supporting-text data-value=#{price} data-currency=#{currency}>
+            #{currency}#{price}
         <div slot=end>
           <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
             :sel x opt:checked touch-target=wrapper>

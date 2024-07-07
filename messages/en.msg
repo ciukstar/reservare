@@ -1,4 +1,7 @@
 
+Price: Price
+Currency: Currency
+TimeZone: Time zone
 SourceCode: Source code
 Resources: Resources
 Overview: Overview

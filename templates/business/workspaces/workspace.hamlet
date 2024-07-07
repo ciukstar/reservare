@@ -29,7 +29,7 @@
 
   ^{widgetBanner msgs}
 
-  $maybe (Entity _ (Workspace _ name address), Entity _ (Business _ bname), Entity _ (User oemail _ _ _ _ oname _ _)) <- workspace
+  $maybe (Entity _ (Workspace _ name address tzo currency), Entity _ (Business _ bname), Entity _ (User oemail _ _ _ _ oname _ _)) <- workspace
     <dl>
 
       <dt.md-typescale-label-large scope=row>_{MsgBusiness}
@@ -50,5 +50,13 @@
       <dt.md-typescale-label-large scope=row>_{MsgAddress}
       <dd.md-typescale-body-medium>
         #{address}
+
+      <dt.md-typescale-label-large scope=row>_{MsgTimeZone}
+      <dd.md-typescale-body-medium>
+        #{show tzo}
+
+      <dt.md-typescale-label-large scope=row>_{MsgCurrency}
+      <dd.md-typescale-body-medium>
+        #{currency}
 
   ^{widgetSnackbar msgs}

@@ -36,7 +36,7 @@
             _{MsgYouMightWantToAddAFew}
     $else
       <md-list>
-        $forall Entity wid (Workspace _ name address) <- workspaces
+        $forall Entity wid (Workspace _ name address _ _) <- workspaces
           <md-list-item type=link href=@{DataR $ DataWorkspaceR bid wid}>
             <div slot=headline>
               #{name}
