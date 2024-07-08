@@ -1,4 +1,15 @@
 
+Sun: Sun
+Sat: Sat
+Fri: Fri
+Thu: Thu
+Wed: Wed
+Tue: Tue
+Mon: Mon
+ViewBookingDetails: View booking details
+ReturnToHomePage: Return to Home Page
+YourBookingHasBeenCreatedSuccessfully: Your booking has been created successfully
+Finish: Finish
 Price: Price
 Currency: Currency
 TimeZone: Time zone

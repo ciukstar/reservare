@@ -1,3 +1,14 @@
+Sun: dum.
+Sat: sâm.
+Fri: vin.
+Thu: joi
+Wed: mie.
+Tue: mar.
+Mon: lun.
+ViewBookingDetails: Vizualizați detaliile rezervării
+ReturnToHomePage: Înapoi la pagina de start
+YourBookingHasBeenCreatedSuccessfully: Rezervarea dvs. a fost creată cu succes
+Finish: Finalizare
 Price: Preț
 Currency: Valuta
 TimeZone: Fusul orar

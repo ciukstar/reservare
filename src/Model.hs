@@ -27,6 +27,8 @@ import Database.Persist.Quasi ( lowerCaseSettings )
 
 import Text.Printf (printf, PrintfType)
 import Database.Persist.Sql (PersistFieldSql (sqlType))
+import Data.Time.Calendar.Month (Month)
+import Text.Read (readMaybe)
 
 
 data PayMethod = PayAtVenue | PayNow
@@ -57,12 +59,21 @@ instance PersistFieldSql TimeZone where
     sqlType :: DP.Proxy TimeZone -> SqlType
     sqlType _ = SqlInt64
 
+
+instance PathPiece Month where
+    toPathPiece :: Month -> Text
+    toPathPiece = pack . show
+
+    fromPathPiece :: Text -> Maybe Month
+    fromPathPiece = readMaybe . unpack
+
 -- You can define all of your database entities in the entities file.
 -- You can find more information on persistent and how to declare entities
 -- at:
 -- http://www.yesodweb.com/book/persistent/
 share [mkPersist sqlSettings, mkMigrate "migrateAll"]
     $(persistFileWith lowerCaseSettings "config/models.persistentmodels")
+
 
 
 endpointStripePaymentIntentCancel :: PrintfType r => r

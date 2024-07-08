@@ -3,6 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 module Handler.Booking
   ( getBookServicesR, postBookServicesR
@@ -14,6 +15,7 @@ module Handler.Booking
   , postBookPaymentIntentR
   , postBookPayR
   , postBookPaymentIntentCancelR
+  , getBookPayAtVenueCompletionR
   ) where
 
 import Control.Lens ((^?), (?~))
@@ -26,9 +28,14 @@ import Data.Bifunctor (Bifunctor(first))
 import qualified Data.ByteString as BS (empty)
 import Data.Foldable (find)
 import Data.Function ((&))
+import Data.Monoid (Sum(Sum, getSum))
 import Data.Text (pack, Text, unpack)
 import Data.Text.Encoding (encodeUtf8)
-import Data.Time (UTCTime)
+import Data.Time
+    ( UTCTime (utctDay), weekFirstDay, DayOfWeek (Monday)
+    , DayPeriod (periodFirstDay), addDays, toGregorian, getCurrentTime
+    )
+import Data.Time.Calendar.Month (addMonths, pattern YearMonth, Month)
 import Data.Time.LocalTime (utcToLocalTime, utc, localTimeToUTC)
 
 import Database.Esqueleto.Experimental
@@ -45,15 +52,17 @@ import Foundation
     , Route
       ( HomeR, BookServicesR, BookStaffR, BookTimingR, BookPaymentR
       , BookCheckoutR, BookPayCompletionR, BookPaymentIntentR
-      , BookPaymentIntentCancelR, AuthR
+      , BookPaymentIntentCancelR, AuthR, BookPayAtVenueCompletionR
       )
     , AppMessage
       ( MsgServices, MsgNext, MsgServices, MsgThereAreNoDataYet
       , MsgBack, MsgStaff, MsgBusiness, MsgWorkspace, MsgAppointmentTime
       , MsgPaymentMethod, MsgPayNow, MsgPayAtVenue, MsgCheckout
       , MsgPaymentAmount, MsgCancel, MsgPay, MsgPaymentIntentCancelled
-      , MsgPaymentSuccessfullyCompleted, MsgSomethingWentWrong
-      , MsgPaymentStatus
+      , MsgSomethingWentWrong, MsgPaymentStatus, MsgReturnToHomePage
+      , MsgYourBookingHasBeenCreatedSuccessfully, MsgViewBookingDetails
+      , MsgFinish, MsgService, MsgEmployee
+      , MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
       )
     )
 import Material3 (md3datetimeLocalField, md3mreq)
@@ -79,6 +88,8 @@ import Network.Wreq
     , FormParam ((:=)), getWith
     )
 
+import Safe (headMay)
+
 import Settings
     ( widgetFile, StripeConf (stripeConfPk, stripeConfSk)
     , AppSettings (appStripeConf)
@@ -99,10 +110,14 @@ import Yesod.Core.Handler
 import Yesod.Core
     ( Yesod(defaultLayout), returnJson, MonadIO (liftIO), whamlet
     , addScriptRemote, MonadHandler (liftHandler), handlerToWidget
+    , SomeMessage (SomeMessage)
     )
 import Yesod.Core.Types (HandlerFor)
 import Yesod.Core.Widget (setTitleI)
-import Yesod.Form (FieldView(fvInput), FormResult (FormSuccess), Field (fieldView))
+import Yesod.Form
+    ( FieldView(fvInput), FormResult (FormSuccess), Field (fieldView)
+    , FieldSettings (fsLabel, fsTooltip, fsId, fsName, fsAttrs, FieldSettings)
+    )
 import Yesod.Form.Input (runInputGet, ireq, iopt)
 import Yesod.Form.Fields
     ( textField, intField, radioField, optionsPairs, OptionList (olOptions)
@@ -110,8 +125,24 @@ import Yesod.Form.Fields
     )
 import Yesod.Form.Functions (generateFormPost, mreq, runFormPost)
 import Yesod.Persist.Core (YesodPersist(runDB))
-import Data.Monoid (Sum(Sum, getSum))
-import Safe (headMay)
+import Data.Maybe (fromMaybe)
+
+
+getBookPayAtVenueCompletionR :: Handler Html
+getBookPayAtVenueCompletionR = do
+
+    -- stati <- reqGetParams <$> getRequest
+    -- sid <- (toSqlKey @Service <$>) <$> runInputGet ( iopt intField "sid" )
+    -- eid <- (toSqlKey @Staff <$>) <$> runInputGet ( iopt intField "eid" )
+    -- tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
+    -- pid <- (readMaybe @PayMethod . unpack =<<) <$> runInputGet ( iopt textField "pid" )
+
+    -- record booking
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgPaymentStatus
+        $(widgetFile "book/completion/venue/completion")
 
 
 postBookPaymentIntentCancelR :: Handler ()
@@ -167,7 +198,7 @@ getBookPayCompletionR = do
     msgr <- getMessageRender
     
     let result = case status of
-          Just "succeeded" -> msgr MsgPaymentSuccessfullyCompleted
+          Just "succeeded" -> msgr MsgYourBookingHasBeenCreatedSuccessfully
           Just s -> s
           Nothing -> msgr MsgSomethingWentWrong
     
@@ -236,16 +267,28 @@ postBookPaymentR = do
     tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
     pid <- (readMaybe . unpack =<<) <$> runInputGet ( iopt textField "pid" )
 
+    today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
+    let month = maybe today ((\(y,m,_) -> YearMonth y m) . toGregorian . utctDay) tid
+
     ((fr,fw),et) <- runFormPost $ formPayment sid eid tid pid
 
     case fr of
-      FormSuccess (sid',eid',tid',pid') -> redirect ( BookCheckoutR
-                                                    , [ ( "sid", pack $ show $ fromSqlKey sid')
-                                                      , ( "eid", pack $ show $ fromSqlKey eid')
-                                                      , ( "tid", pack $ show $ utcToLocalTime utc tid')
-                                                      , ( "pid", pack $ show pid')
-                                                      ]
-                                                    )
+      FormSuccess (sid',eid',tid',pid'@PayNow) -> redirect
+        ( BookCheckoutR
+        , [ ( "sid", pack $ show $ fromSqlKey sid')
+          , ( "eid", pack $ show $ fromSqlKey eid')
+          , ( "tid", pack $ show $ utcToLocalTime utc tid')
+          , ( "pid", pack $ show pid')
+          ]
+        )
+      FormSuccess (sid',eid',tid',pid'@PayAtVenue) -> redirect
+        ( BookPayAtVenueCompletionR
+        , [ ( "sid", pack $ show $ fromSqlKey sid')
+          , ( "eid", pack $ show $ fromSqlKey eid')
+          , ( "tid", pack $ show $ utcToLocalTime utc tid')
+          , ( "pid", pack $ show pid')
+          ]
+        )
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
@@ -263,6 +306,9 @@ getBookPaymentR = do
     tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
     pid <- (readMaybe . unpack =<<) <$> runInputGet ( iopt textField "pid" )
 
+    today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
+    let month = maybe today ((\(y,m,_) -> YearMonth y m) . toGregorian . utctDay) tid
+    
     (fw,et) <- generateFormPost $ formPayment sid eid tid pid
     
     msgs <- getMessages
@@ -276,14 +322,26 @@ getBookPaymentR = do
 formPayment :: Maybe ServiceId -> Maybe StaffId -> Maybe UTCTime -> Maybe PayMethod
             -> Form (ServiceId,StaffId,UTCTime,PayMethod)
 formPayment sid eid time method extra = do
+
+    msgr <- getMessageRender 
+    
+    (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
+        { fsLabel = SomeMessage MsgService
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgService),("hidden","hidden")]
+        } (fromIntegral . fromSqlKey <$> sid)
         
-    (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>)
-        <$> mreq intField "" (fromIntegral . fromSqlKey <$> sid)
+    (staffR,staffV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
+        { fsLabel = SomeMessage MsgEmployee
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgEmployee),("hidden","hidden")]
+        } (fromIntegral . fromSqlKey <$> eid)
         
-    (staffR,staffV) <- first (toSqlKey . fromIntegral @Integer <$>)
-        <$> mreq intField "" (fromIntegral . fromSqlKey <$> eid)
-        
-    (timeR,timeV) <- mreq datetimeLocalField "" (utcToLocalTime utc <$> time)
+    (timeR,timeV) <- mreq datetimeLocalField FieldSettings
+        { fsLabel = SomeMessage MsgAppointmentTime
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgAppointmentTime),("hidden","hidden")]
+        } (utcToLocalTime utc <$> time)
 
     let methods = [((MsgPayNow,PayNow),"credit_card"),((MsgPayAtVenue,PayAtVenue),"point_of_sale")]
         
@@ -324,12 +382,14 @@ formPayment sid eid time method extra = do
               }
 
 
-postBookTimingR :: Handler Html
-postBookTimingR = do
+postBookTimingR :: Month -> Handler Html
+postBookTimingR month = do
     stati <- reqGetParams <$> getRequest
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
     tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
+
+    today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
 
     ((fr,fw),et) <- runFormPost $ formTiming sid eid tid
 
@@ -340,40 +400,65 @@ postBookTimingR = do
                                                  , ( "tid", pack $ show $ utcToLocalTime utc tid')
                                                  ]
                                                )
-      _otherwise -> do    
+      _otherwise -> do
+
+          let start = weekFirstDay Monday (periodFirstDay month)
+          let end = addDays 41 start
+          let page = [start .. end]
+          let next = addMonths 1 month
+          let prev = addMonths (-1) month
+          
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgAppointmentTime
               idFormTiming <- newIdent
+              idCalendarPage <- newIdent        
               idFabNext <- newIdent
               $(widgetFile "book/timing/timing")
 
 
-getBookTimingR :: Handler Html
-getBookTimingR = do
+getBookTimingR :: Month -> Handler Html
+getBookTimingR month = do
     stati <- reqGetParams <$> getRequest
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
     tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
 
+    today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
+
     (fw,et) <- generateFormPost $ formTiming sid eid tid
+
+    let start = weekFirstDay Monday (periodFirstDay month)
+    let end = addDays 41 start
+    let page = [start .. end]
+    let next = addMonths 1 month
+    let prev = addMonths (-1) month    
     
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgAppointmentTime
         idFormTiming <- newIdent
+        idCalendarPage <- newIdent  
         idFabNext <- newIdent
         $(widgetFile "book/timing/timing")
 
 
 formTiming :: Maybe ServiceId -> Maybe StaffId -> Maybe UTCTime -> Form (ServiceId,StaffId,UTCTime)
 formTiming sid eid time extra = do
+
+    msgr <- getMessageRender
+    
+    (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
+        { fsLabel = SomeMessage MsgService
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgService),("hidden","hidden")]
+        } (fromIntegral . fromSqlKey <$> sid)
         
-    (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>)
-        <$> mreq intField "" (fromIntegral . fromSqlKey <$> sid)
-        
-    (staffR,staffV) <- first (toSqlKey . fromIntegral @Integer <$>)
-        <$> mreq intField "" (fromIntegral . fromSqlKey <$> eid)
+    (staffR,staffV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
+        { fsLabel = SomeMessage MsgEmployee
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgEmployee),("hidden","hidden")]
+        } (fromIntegral . fromSqlKey <$> eid)
         
     (timeR,timeV) <- md3mreq md3datetimeLocalField "" (utcToLocalTime utc <$> time)
 
@@ -392,9 +477,12 @@ postBookStaffR = do
 
     existsStaff <- runDB $ P.exists ([] :: [P.Filter Staff])
 
+    today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
+    month <- fromMaybe today . (readMaybe . unpack =<<) <$> runInputGet ( iopt textField "month" )
+
     ((fr,fw),et) <- runFormPost $ formStaff sid eid
     case fr of
-      FormSuccess (sid',eid') -> redirect ( BookTimingR
+      FormSuccess (sid',eid') -> redirect ( BookTimingR month
                                           , [ ( "sid", pack $ show $ fromSqlKey sid')
                                             , ( "eid", pack $ show $ fromSqlKey eid')
                                             ]
@@ -438,9 +526,14 @@ formStaff sid eid extra = do
           Nothing -> where_ $ val False
         orderBy [asc (e ^. StaffName), asc (e ^. StaffId)]
         return (x,e)
+
+    msgr <- getMessageRender
         
-    (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>)
-        <$> mreq intField "" (fromIntegral . fromSqlKey <$> sid)
+    (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
+        { fsLabel = SomeMessage MsgService
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgService),("hidden","hidden")]
+        } (fromIntegral . fromSqlKey <$> sid)
         
     (staffR,staffV) <- mreq (md3radioFieldList staff) "" eid
 

@@ -98,6 +98,7 @@ import Yesod.Form.I18n.English (englishFormMessage)
 import Yesod.Form.I18n.French (frenchFormMessage)
 import Yesod.Form.I18n.Romanian (romanianFormMessage)
 import Yesod.Form.I18n.Russian (russianFormMessage)
+import Data.Time.Calendar.Month (Month)
 
 
 -- | The foundation datatype for your application. This can be a good place to
@@ -184,13 +185,14 @@ instance Yesod App where
     isAuthorized :: Route App -> Bool -> Handler AuthResult
 
     
+    isAuthorized r@BookPayAtVenueCompletionR _ = setUltDest r >> return Authorized
     isAuthorized r@BookPaymentIntentCancelR _ = setUltDest r >> return Authorized
     isAuthorized r@BookPayR _ = setUltDest r >> return Authorized
     isAuthorized r@(BookPaymentIntentR _ _) _ = setUltDest r >> return Authorized
     isAuthorized r@BookPayCompletionR _ = setUltDest r >> return Authorized
     isAuthorized r@BookCheckoutR _ = setUltDest r >> return Authorized
     isAuthorized r@BookPaymentR _ = setUltDest r >> return Authorized
-    isAuthorized r@BookTimingR _ = setUltDest r >> return Authorized
+    isAuthorized r@(BookTimingR _) _ = setUltDest r >> return Authorized
     isAuthorized r@BookStaffR _ = setUltDest r >> return Authorized
     isAuthorized r@BookServicesR _ = setUltDest r >> return Authorized
 

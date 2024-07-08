@@ -1,4 +1,15 @@
 
+Sun: dim.
+Sat: sam.
+Fri: ven.
+Thu: jeu.
+Wed: mer.
+Tue: mar.
+Mon: lun.
+ViewBookingDetails: Afficher les détails de la réservation
+ReturnToHomePage: Retour à la page d'accueil
+YourBookingHasBeenCreatedSuccessfully: Votre réservation a été créée avec succès
+Finish: Finir
 Price: Prix
 Currency: Devise
 TimeZone: Fuseau horaire

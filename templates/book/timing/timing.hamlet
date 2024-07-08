@@ -11,11 +11,33 @@
 
   ^{widgetBanner msgs}
 
-  <form method=post action=@?{(BookTimingR,stati)} enctype=#{et} ##{idFormTiming}>
+  <form method=post action=@?{(BookTimingR today,stati)} enctype=#{et} ##{idFormTiming}>
     ^{fw}
+  
+  <div.calendar ##{idCalendarPage}>
+    <div.header>
+      <md-icon-button type=link href=@?{(BookTimingR prev,stati)} rel=nofollow>
+        <md-icon>arrow_back
+      $with m <- show month
+        <time.month-of-year datetime=#{m}>
+          #{m}
+      <md-icon-button type=link href=@?{(BookTimingR next,stati)} rel=nofollow>
+        <md-icon>arrow_forward
 
-  <p>
-    Caledar view ...
+    $forall wd <- [MsgMon,MsgTue,MsgWed,MsgThu,MsgFri,MsgSat,MsgSun]
+      <div.col-header>
+        _{wd}
+    $forall i <- [0,1,2,3,4,5]
+      $forall day <- take 7 (drop (i * 7) page)
+        <div.cell>
+          $with (y,m,d) <- toGregorian day
+            $if (==) month (YearMonth y m)
+              <a href=# rel=nofollow>
+                <time.day-of-month datetime=#{show day}>
+                  <small>#{d}
+            $else
+              <time.day-of-month datetime=#{show day} style="color:var(--theme-text-hint-on-light)">
+                <small>#{d}
 
   <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext}
     onclick="document.getElementById('#{idFormTiming}').submit()">

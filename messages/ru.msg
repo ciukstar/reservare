@@ -1,4 +1,15 @@
 
+Sun: вс
+Sat: сб
+Fri: пт
+Thu: чт
+Wed: ср
+Tue: вт
+Mon: пн
+ViewBookingDetails: Посмотреть детали бронирования
+ReturnToHomePage: Вернуться на главную страницу
+YourBookingHasBeenCreatedSuccessfully: Ваше бронирование успешно создано
+Finish: Завершить
 Price: Цена
 Currency: Валюта
 TimeZone: Часовой пояс
