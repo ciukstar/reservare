@@ -32,9 +32,11 @@
         <div.cell>
           $with (y,m,d) <- toGregorian day
             $if (==) month (YearMonth y m)
-              <a href=# rel=nofollow>
-                <time.day-of-month datetime=#{show day}>
+              
+              <a href=@?{(BookTimeSlotsR day,stati)}>
+                <time.day-of-month datetime=#{show day} style="font-size:1.2rem;line-height:1.4rem">
                   <small>#{d}
+                  
             $else
               <time.day-of-month datetime=#{show day} style="color:var(--theme-text-hint-on-light)">
                 <small>#{d}

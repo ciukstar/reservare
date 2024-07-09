@@ -42,14 +42,6 @@ main
         div.cell
             text-align: center
             vertical-align: text-top
-            > a
-                height: 100%
-                display: flex
-                flex-direction: column
-                justify-content: space-between
-                text-decoration: none
-                time.day-of-month
-                    font-weight: 500
 
     ##{idFabNext}
         position: fixed

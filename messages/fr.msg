@@ -1,4 +1,5 @@
-
+SelectTime: Sélectionnez l'heure
+Select: Sélectionner
 Sun: dim.
 Sat: sam.
 Fri: ven.

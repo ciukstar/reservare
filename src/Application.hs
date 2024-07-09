@@ -57,6 +57,7 @@ import Handler.Booking
     ( getBookServicesR, postBookServicesR
     , getBookStaffR, postBookStaffR
     , getBookTimingR, postBookTimingR
+    , getBookTimeSlotsR
     , getBookPaymentR, postBookPaymentR
     , getBookCheckoutR, getBookPayCompletionR, postBookPaymentIntentR
     , postBookPayR, postBookPaymentIntentCancelR

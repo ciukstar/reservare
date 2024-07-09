@@ -1,4 +1,5 @@
-
+SelectTime: Выберите время
+Select: Выбирать
 Sun: вс
 Sat: сб
 Fri: пт

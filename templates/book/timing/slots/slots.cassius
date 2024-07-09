@@ -1,0 +1,24 @@
+
+header
+    position: sticky
+    top: 0
+    z-index: 2
+    height: var(--app-top-appbar-height,64px)
+    padding: 0.5rem 1rem
+    display: flex
+    justify-content: flex-start
+    align-items: center
+    column-gap: 0.5rem
+
+main
+    margin: 0 1rem
+    display: flex
+    flex-direction: column
+    div.list-frame
+        max-height: calc(0.6 * 100vh)
+        overflow: auto
+    div.actions
+        margin: 1rem
+        display: flex
+        justify-content: flex-end
+        column-gap: 0.5rem

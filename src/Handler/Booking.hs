@@ -9,6 +9,7 @@ module Handler.Booking
   ( getBookServicesR, postBookServicesR
   , getBookStaffR, postBookStaffR
   , getBookTimingR, postBookTimingR
+  , getBookTimeSlotsR
   , getBookPaymentR, postBookPaymentR
   , getBookCheckoutR
   , getBookPayCompletionR
@@ -33,7 +34,7 @@ import Data.Text (pack, Text, unpack)
 import Data.Text.Encoding (encodeUtf8)
 import Data.Time
     ( UTCTime (utctDay), weekFirstDay, DayOfWeek (Monday)
-    , DayPeriod (periodFirstDay), addDays, toGregorian, getCurrentTime
+    , DayPeriod (periodFirstDay), addDays, toGregorian, getCurrentTime, Day
     )
 import Data.Time.Calendar.Month (addMonths, pattern YearMonth, Month)
 import Data.Time.LocalTime (utcToLocalTime, utc, localTimeToUTC)
@@ -50,8 +51,8 @@ import Database.Persist.Sql (fromSqlKey)
 import Foundation
     ( Handler, Form, App (appSettings)
     , Route
-      ( HomeR, BookServicesR, BookStaffR, BookTimingR, BookPaymentR
-      , BookCheckoutR, BookPayCompletionR, BookPaymentIntentR
+      ( HomeR, BookServicesR, BookStaffR, BookTimingR, BookTimeSlotsR
+      , BookPaymentR, BookCheckoutR, BookPayCompletionR, BookPaymentIntentR
       , BookPaymentIntentCancelR, AuthR, BookPayAtVenueCompletionR
       )
     , AppMessage
@@ -61,7 +62,7 @@ import Foundation
       , MsgPaymentAmount, MsgCancel, MsgPay, MsgPaymentIntentCancelled
       , MsgSomethingWentWrong, MsgPaymentStatus, MsgReturnToHomePage
       , MsgYourBookingHasBeenCreatedSuccessfully, MsgViewBookingDetails
-      , MsgFinish, MsgService, MsgEmployee
+      , MsgFinish, MsgService, MsgEmployee, MsgSelect, MsgSelectTime
       , MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
       )
     )
@@ -369,7 +370,7 @@ formPayment sid eid time method extra = do
 <md-list ##{theId} *{attrs}>
   $forall (i,opt) <- opts
     $maybe ((msg,_),icon) <- findMethod opt methods
-      <md-list-item type=text onclick="this.querySelector('md-radio').click()">
+      <md-list-item type=button onclick="this.querySelector('md-radio').click()">
         <md-icon slot=start>
           #{icon}
         <div slot=headline>
@@ -382,12 +383,32 @@ formPayment sid eid time method extra = do
               }
 
 
+getBookTimeSlotsR :: Day -> Handler Html
+getBookTimeSlotsR day = do
+    stati <- reqGetParams <$> getRequest
+
+    let month = (\(y,m,_) -> YearMonth y m) . toGregorian $ day
+
+    let slots = [ "09:00","09:30","10:00","10:30","11:00","11:30"
+                , "12:00","12:30","13:00","13:30","14:00","14:30"
+                , "15:00","15:30","16:00","16:30","17:00","17:30"
+                , "18:00"
+                ] :: [Text]
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgAppointmentTime
+        $(widgetFile "book/timing/slots/slots")
+
+
 postBookTimingR :: Month -> Handler Html
 postBookTimingR month = do
     stati <- reqGetParams <$> getRequest
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
     tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
+
+    let selectedDay = utctDay <$> tid
 
     today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
 
@@ -423,6 +444,8 @@ getBookTimingR month = do
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
     tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
+
+    let selectedDay = utctDay <$> tid
 
     today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
 

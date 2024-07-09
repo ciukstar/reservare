@@ -1,3 +1,5 @@
+SelectTime: Selectați ora
+Select: Selectează
 Sun: dum.
 Sat: sâm.
 Fri: vin.
