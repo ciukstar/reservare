@@ -1,3 +1,4 @@
+
 Array.from(
   document.querySelectorAll('time.month-of-year[datetime]')
 ).forEach(function (x) {
@@ -5,6 +6,32 @@ Array.from(
     navigator.language,
     { year: 'numeric',
       month: 'long'
+    }
+  );
+});
+
+Array.from(
+  document.querySelectorAll('time.time-of-day[datetime]')
+).forEach(function (x) {
+  x.textContent = new Date(x.getAttribute('datetime')).toLocaleTimeString(
+    navigator.language,
+    { hour: 'numeric',
+      minute: 'numeric'
+    }
+  );
+});
+
+Array.from(
+  document.querySelectorAll('time.full-datetime[datetime]')
+).forEach(function (x) {
+  x.textContent = new Date(x.getAttribute('datetime')).toLocaleDateString(
+    navigator.language,
+    { year: 'numeric',
+      month: 'long',
+      weekday: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric'
     }
   );
 });

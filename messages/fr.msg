@@ -1,3 +1,5 @@
+SelectAvailableDayAndTimePlease: Veuillez sélectionner le jour et l'heure disponibles pour le rendez-vous
+AppointmentSetFor: Rendez-vous fixé au
 SelectTime: Sélectionnez l'heure
 Select: Sélectionner
 Sun: dim.

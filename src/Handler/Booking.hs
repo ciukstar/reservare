@@ -9,7 +9,7 @@ module Handler.Booking
   ( getBookServicesR, postBookServicesR
   , getBookStaffR, postBookStaffR
   , getBookTimingR, postBookTimingR
-  , getBookTimeSlotsR
+  , getBookTimeSlotsR, postBookTimeSlotsR
   , getBookPaymentR, postBookPaymentR
   , getBookCheckoutR
   , getBookPayCompletionR
@@ -34,7 +34,9 @@ import Data.Text (pack, Text, unpack)
 import Data.Text.Encoding (encodeUtf8)
 import Data.Time
     ( UTCTime (utctDay), weekFirstDay, DayOfWeek (Monday)
-    , DayPeriod (periodFirstDay), addDays, toGregorian, getCurrentTime, Day
+    , DayPeriod (periodFirstDay), addDays, toGregorian, getCurrentTime
+    , Day, nominalDay, LocalTime (LocalTime, localDay), addLocalTime
+    , TimeOfDay (TimeOfDay)
     )
 import Data.Time.Calendar.Month (addMonths, pattern YearMonth, Month)
 import Data.Time.LocalTime (utcToLocalTime, utc, localTimeToUTC)
@@ -64,9 +66,11 @@ import Foundation
       , MsgYourBookingHasBeenCreatedSuccessfully, MsgViewBookingDetails
       , MsgFinish, MsgService, MsgEmployee, MsgSelect, MsgSelectTime
       , MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
+      , MsgAppointmentSetFor, MsgSelectAvailableDayAndTimePlease
       )
     )
-import Material3 (md3datetimeLocalField, md3mreq)
+    
+import Material3 (md3mreq)
     
 import Model
     ( statusSuccess, scriptRemoteStripe, endpointStripePaymentIntents
@@ -118,6 +122,7 @@ import Yesod.Core.Widget (setTitleI)
 import Yesod.Form
     ( FieldView(fvInput), FormResult (FormSuccess), Field (fieldView)
     , FieldSettings (fsLabel, fsTooltip, fsId, fsName, fsAttrs, FieldSettings)
+    , Option (optionDisplay)
     )
 import Yesod.Form.Input (runInputGet, ireq, iopt)
 import Yesod.Form.Fields
@@ -383,22 +388,115 @@ formPayment sid eid time method extra = do
               }
 
 
-getBookTimeSlotsR :: Day -> Handler Html
-getBookTimeSlotsR day = do
+postBookTimeSlotsR :: Day -> Handler Html
+postBookTimeSlotsR day = do
     stati <- reqGetParams <$> getRequest
+    sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
+    eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
+    tid <- runInputGet ( iopt datetimeLocalField "tid" )
 
     let month = (\(y,m,_) -> YearMonth y m) . toGregorian $ day
 
-    let slots = [ "09:00","09:30","10:00","10:30","11:00","11:30"
-                , "12:00","12:30","13:00","13:30","14:00","14:30"
-                , "15:00","15:30","16:00","16:30","17:00","17:30"
-                , "18:00"
-                ] :: [Text]
+    ((fr,fw),et) <- runFormPost $ formTimeSlot day sid eid tid
+    case fr of
+      FormSuccess (sid',eid',tid') -> redirect
+        ( BookTimingR month
+        , [ ( "sid", pack $ show $ fromSqlKey sid')
+          , ( "eid", pack $ show $ fromSqlKey eid')
+          , ( "tid", pack $ show tid')
+          ]
+        )
+      _otherwise -> do    
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgAppointmentTime
+              idFormSlots <- newIdent
+              $(widgetFile "book/timing/slots/slots")
+
+
+getBookTimeSlotsR :: Day -> Handler Html
+getBookTimeSlotsR day = do
+    stati <- reqGetParams <$> getRequest
+    sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
+    eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
+    tid <- runInputGet ( iopt datetimeLocalField "tid" )
+
+    let month = (\(y,m,_) -> YearMonth y m) . toGregorian $ day
+
+    (fw,et) <- generateFormPost $ formTimeSlot day sid eid tid
     
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgAppointmentTime
+        idFormSlots <- newIdent
         $(widgetFile "book/timing/slots/slots")
+        
+
+formTimeSlot :: Day -> Maybe ServiceId -> Maybe StaffId -> Maybe LocalTime
+             -> Form (ServiceId,StaffId,LocalTime)
+formTimeSlot day sid eid tid extra = do
+   
+    msgr <- getMessageRender
+    
+    (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
+        { fsLabel = SomeMessage MsgService
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgService),("hidden","hidden")]
+        } (fromIntegral . fromSqlKey <$> sid)
+        
+    (staffR,staffV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
+        { fsLabel = SomeMessage MsgEmployee
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgEmployee),("hidden","hidden")]
+        } (fromIntegral . fromSqlKey <$> eid)
+
+    let now = LocalTime day (TimeOfDay 9 30 0)
+    let halfHour = (nominalDay / 24) / 2
+    
+    let slots = [ now
+                , addLocalTime halfHour now
+                , addLocalTime (2 * halfHour) now
+                , addLocalTime (3 * halfHour) now
+                , addLocalTime (4 * halfHour) now
+                , addLocalTime (5 * halfHour) now
+                , addLocalTime (6 * halfHour) now
+                ] :: [LocalTime]
+        
+    (slotsR,slotsV) <- mreq (md3radioFieldList slots) "" tid
+
+    let r = (,,) <$> serviceR <*> staffR <*> slotsR
+    let w = [whamlet|#{extra} ^{fvInput serviceV} ^{fvInput staffV} ^{fvInput slotsV}|]
+            
+    return (r,w)
+
+  where
+      pairs services = (\x -> (pack $ show x, x)) <$> services
+
+      md3radioFieldList :: [LocalTime]
+                        -> Field (HandlerFor App) LocalTime
+      md3radioFieldList slots = (radioField (optionsPairs (pairs slots)))
+          { fieldView = \theId name attrs x isReq -> do
+
+                opts <- zip [1 :: Int ..] . olOptions <$> handlerToWidget (optionsPairs (pairs slots))
+
+                let sel (Left _) _ = False
+                    sel (Right y) opt = optionInternalValue opt == y
+                
+                [whamlet|
+<md-list ##{theId} *{attrs}>
+  $forall (i,opt) <- opts
+    <md-list-item type=button onclick="this.querySelector('md-radio').click()">
+      $with dt <- optionDisplay opt
+        <time.time-slot slot=headline datetime=#{dt}>
+          #{optionDisplay opt}
+        <time.full-time-slot slot=supporting-text datetime=#{dt}>
+          #{dt}
+      <div slot=end>
+        <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
+          :sel x opt:checked touch-target=wrapper>
+    <md-divider>
+|]
+              }
 
 
 postBookTimingR :: Month -> Handler Html
@@ -406,9 +504,7 @@ postBookTimingR month = do
     stati <- reqGetParams <$> getRequest
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
-    tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
-
-    let selectedDay = utctDay <$> tid
+    tid <- runInputGet ( iopt datetimeLocalField "tid" )
 
     today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
 
@@ -416,9 +512,9 @@ postBookTimingR month = do
 
     case fr of
       FormSuccess (sid',eid',tid') -> redirect ( BookPaymentR
-                                               , [ ( "sid", pack $ show $ fromSqlKey sid')
-                                                 , ( "eid", pack $ show $ fromSqlKey eid')
-                                                 , ( "tid", pack $ show $ utcToLocalTime utc tid')
+                                               , [ ( "sid", pack $ show $ fromSqlKey sid' )
+                                                 , ( "eid", pack $ show $ fromSqlKey eid' )
+                                                 , ( "tid", pack $ show tid' )
                                                  ]
                                                )
       _otherwise -> do
@@ -443,9 +539,9 @@ getBookTimingR month = do
     stati <- reqGetParams <$> getRequest
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
-    tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
+    tid <- runInputGet ( iopt datetimeLocalField "tid" )
 
-    let selectedDay = utctDay <$> tid
+    
 
     today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
 
@@ -466,7 +562,7 @@ getBookTimingR month = do
         $(widgetFile "book/timing/timing")
 
 
-formTiming :: Maybe ServiceId -> Maybe StaffId -> Maybe UTCTime -> Form (ServiceId,StaffId,UTCTime)
+formTiming :: Maybe ServiceId -> Maybe StaffId -> Maybe LocalTime -> Form (ServiceId,StaffId,LocalTime)
 formTiming sid eid time extra = do
 
     msgr <- getMessageRender
@@ -483,9 +579,13 @@ formTiming sid eid time extra = do
         , fsAttrs = [("label", msgr MsgEmployee),("hidden","hidden")]
         } (fromIntegral . fromSqlKey <$> eid)
         
-    (timeR,timeV) <- md3mreq md3datetimeLocalField "" (utcToLocalTime utc <$> time)
+    (timeR,timeV) <- mreq datetimeLocalField FieldSettings
+        { fsLabel = SomeMessage MsgAppointmentTime
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgAppointmentTime),("hidden","hidden")]
+        } time
 
-    let r = (,,) <$> serviceR <*> staffR <*> (localTimeToUTC utc <$> timeR)
+    let r = (,,) <$> serviceR <*> staffR <*> timeR
     let w = [whamlet|#{extra} ^{fvInput serviceV} ^{fvInput staffV} ^{fvInput timeV}|]
 
     return (r,w)

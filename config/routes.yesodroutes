@@ -9,7 +9,7 @@
 /book/pay/completion          BookPayCompletionR        GET
 /book/checkout                BookCheckoutR             GET
 /book/payment                 BookPaymentR              GET POST
-/book/timing/#Day/slots       BookTimeSlotsR            GET
+/book/timing/#Day/slots       BookTimeSlotsR            GET POST
 /book/timing/#Month           BookTimingR               GET POST
 /book/staff                   BookStaffR                GET POST
 /book/services                BookServicesR             GET POST

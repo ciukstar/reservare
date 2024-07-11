@@ -1,3 +1,5 @@
+SelectAvailableDayAndTimePlease: Пожалуйста, выберите свободный день и время для записи
+AppointmentSetFor: Встреча назначена на
 SelectTime: Выберите время
 Select: Выбирать
 Sun: вс

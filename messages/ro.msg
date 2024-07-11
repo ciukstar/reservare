@@ -1,3 +1,5 @@
+SelectAvailableDayAndTimePlease: Vă rugăm să selectați ziua și ora disponibile pentru întâlnire
+AppointmentSetFor: Întâlnirea stabilită pentru
 SelectTime: Selectați ora
 Select: Selectează
 Sun: dum.

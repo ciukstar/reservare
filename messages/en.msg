@@ -1,3 +1,5 @@
+SelectAvailableDayAndTimePlease: Please select the available day and time for the appointment
+AppointmentSetFor: Appointment set for
 SelectTime: Select time
 Select: Select
 Sun: Sun

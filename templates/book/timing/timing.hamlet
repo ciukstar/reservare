@@ -10,9 +10,6 @@
 <main>
 
   ^{widgetBanner msgs}
-
-  <form method=post action=@?{(BookTimingR today,stati)} enctype=#{et} ##{idFormTiming}>
-    ^{fw}
   
   <div.calendar ##{idCalendarPage}>
     <div.header>
@@ -29,17 +26,31 @@
         _{wd}
     $forall i <- [0,1,2,3,4,5]
       $forall day <- take 7 (drop (i * 7) page)
-        <div.cell>
-          $with (y,m,d) <- toGregorian day
-            $if (==) month (YearMonth y m)
-              
-              <a href=@?{(BookTimeSlotsR day,stati)}>
-                <time.day-of-month datetime=#{show day} style="font-size:1.2rem;line-height:1.4rem">
-                  <small>#{d}
-                  
-            $else
-              <time.day-of-month datetime=#{show day} style="color:var(--theme-text-hint-on-light)">
+        $with (y,m,d) <- toGregorian day
+          $if (==) month (YearMonth y m)
+            <a.cell href=@?{(BookTimeSlotsR day,stati)} 
+              :(Just day) == (localDay <$> tid):.primary
+              :(Just day) /= (localDay <$> tid):.primary-negative>
+              <time.day-of-month datetime=#{show day}>
                 <small>#{d}
+              $maybe slot <- tid
+                $if (==) day (localDay slot)
+                  $with dt <- show slot
+                    <time.time-of-day datetime=#{dt}>
+                      #{dt}
+          $else
+            <div>
+
+  <section.prompt>
+    $maybe slot <- tid
+      $with dt <- show slot
+        <p.md-typescale-label-large>_{MsgAppointmentSetFor}
+        <time.full-datetime.md-typescale-body-large datetime=#{dt}>#{dt}
+    $nothing
+      <p.md-typescale-body-medium>_{MsgSelectAvailableDayAndTimePlease}
+
+  <form method=post action=@?{(BookTimingR today,stati)} enctype=#{et} ##{idFormTiming}>
+    ^{fw}
 
   <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext}
     onclick="document.getElementById('#{idFormTiming}').submit()">

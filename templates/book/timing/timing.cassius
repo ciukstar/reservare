@@ -28,7 +28,7 @@ main
         gap: 0.5rem
         padding: 0 0.5rem
         grid-template-columns: repeat(7,1fr)
-        grid-template-rows: auto auto repeat(6,1fr)
+        grid-template-rows: repeat(8,1fr)
         grid-template-areas: "head head head head head head head"
         div.header
             grid-area: head
@@ -38,10 +38,23 @@ main
             align-items: center
         div.col-header
             text-align: center
-            font-weight: 500
-        div.cell
+        .cell
             text-align: center
             vertical-align: text-top
+            border: 1px solid var(--md-sys-color-surface-dim,black)
+            border-radius: 8px
+            text-decoration: none
+            time.day-of-month
+                font-size: 1.2rem
+                line-height: 1.4rem
+            time.time-of-day
+                display: block
+                font-size: 0.7rem
+                line-height: 1
+                text-decoration: none
+
+    section.prompt
+        text-align: center        
 
     ##{idFabNext}
         position: fixed

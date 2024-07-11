@@ -12,23 +12,18 @@
   
   <p>
     $with d <- show day
-      <time.md-typescale-label-large datetime=#{d}>
+      <time.day.md-typescale-label-large datetime=#{d}>
         #{d}
 
 
-  <div.list-frame>
-    <md-list>
-      $forall slot <- slots
-        <md-list-item type=button onclick="this.querySelector('md-radio').click()">
-          <div slot=headline>
-            #{slot}
-          <md-radio slot=end name=slot>
-        <md-divider>
-      
-  <div.actions>
-    <md-text-button type=link href=@?{(BookTimingR month,stati)}>
-      _{MsgCancel}
-    <md-filled-button type=button>
-      _{MsgSelect}
+  <form method=post action=@?{(BookTimeSlotsR day,stati)} enctype=#{et} novalidate ##{idFormSlots}>
+    <div.list-frame>
+      ^{fw}
+
+    <div.actions>
+      <md-text-button type=button href=@?{(BookTimingR month,stati)}>
+        _{MsgCancel}
+      <md-filled-button type=submit>
+        _{MsgSelect}
 
   ^{widgetSnackbar msgs}

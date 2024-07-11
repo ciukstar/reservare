@@ -14,11 +14,15 @@ main
     margin: 0 1rem
     display: flex
     flex-direction: column
-    div.list-frame
-        max-height: calc(0.6 * 100vh)
-        overflow: auto
-    div.actions
-        margin: 1rem
-        display: flex
-        justify-content: flex-end
-        column-gap: 0.5rem
+    
+    ##{idFormSlots}
+    
+        div.list-frame
+            max-height: calc(0.6 * 100vh)
+            overflow: auto
+        
+        .actions
+            margin: 1rem
+            display: flex
+            justify-content: flex-end
+            column-gap: 0.5rem
