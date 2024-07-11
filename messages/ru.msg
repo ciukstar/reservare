@@ -1,3 +1,6 @@
+WorkingHours: Рабочее время
+UnitMinutes: минуты
+SchedulingInterval: Интервал планирования
 SelectAvailableDayAndTimePlease: Пожалуйста, выберите свободный день и время для записи
 AppointmentSetFor: Встреча назначена на
 SelectTime: Выберите время

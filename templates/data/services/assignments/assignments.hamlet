@@ -35,7 +35,7 @@
             _{MsgYouMightWantToAddAFew}
     $else
       <md-list>
-        $forall (Entity aid (Assignment _ _ time),(employee,(service,(workspace,buisiness)))) <- assignments
+        $forall (Entity aid (Assignment _ _ time _),(employee,(service,(workspace,buisiness)))) <- assignments
           <md-list-item type=link href=@{DataR $ ServiceAssignmentR sid aid}>
             <div slot=headline>
               $with Entity _ (Staff name _ _ _) <- employee

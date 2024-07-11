@@ -1,3 +1,6 @@
+WorkingHours: Ore de lucru
+UnitMinutes: minute
+SchedulingInterval: Interval de programare
 SelectAvailableDayAndTimePlease: Vă rugăm să selectați ziua și ora disponibile pentru întâlnire
 AppointmentSetFor: Întâlnirea stabilită pentru
 SelectTime: Selectați ora

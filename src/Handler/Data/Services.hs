@@ -23,6 +23,7 @@ module Handler.Data.Services
 
 import Control.Monad (void)
 
+import Data.Time (nominalDiffTimeToSeconds, secondsToNominalDiffTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Data.Time.LocalTime (utcToLocalTime, localTimeToUTC, utc)
 
@@ -50,6 +51,7 @@ import Foundation
       , MsgDeleteAreYouSure, MsgConfirmPlease, MsgEdit, MsgRecordEdited
       , MsgDele, MsgRecordDeleted, MsgInvalidFormData, MsgServiceAssignment
       , MsgEmployee, MsgAssignmentDate, MsgTheStart, MsgBusiness, MsgPrice
+      , MsgSchedulingInterval, MsgUnitMinutes
       )
     )
     
@@ -62,7 +64,7 @@ import Model
     ( statusSuccess, statusError
     , ServiceId, Service(Service, serviceName, serviceWorkspace, serviceDescr, servicePrice)
     , Workspace (workspaceName, Workspace)
-    , AssignmentId, Assignment (Assignment, assignmentStaff, assignmentStart)
+    , AssignmentId, Assignment (Assignment, assignmentStaff, assignmentStart, assignmentSlotInterval)
     , Staff (staffName, Staff)
     , Business (Business)
     , EntityField
@@ -218,10 +220,19 @@ formServiceAssignment sid assignment extra = do
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgAssignmentDate),("step","1")]
         } (utcToLocalTime utc . assignmentStart . entityVal <$> assignment)
+    
+    (intervalR, intervalV) <- md3mreq md3intField FieldSettings
+        { fsLabel = SomeMessage MsgSchedulingInterval
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgSchedulingInterval),("supporting-text", msgr MsgUnitMinutes)]
+        } (truncate . (/ 60) . nominalDiffTimeToSeconds . assignmentSlotInterval . entityVal <$> assignment)
 
-    return ( Assignment <$> employeeR <*> pure sid <*> (localTimeToUTC utc <$> startR)
-           , [whamlet|#{extra} ^{fvInput employeeV} ^{fvInput startV}|]
-           )
+    let r = Assignment <$> employeeR <*> pure sid <*> (localTimeToUTC utc <$> startR)
+            <*> ((* 60) . secondsToNominalDiffTime . fromIntegral <$> intervalR)
+
+    let w = [whamlet|#{extra} ^{fvInput employeeV} ^{fvInput startV} ^{fvInput intervalV}|]
+    
+    return (r, w)
         
   where
       options e = (staffName . entityVal $ e, entityKey e)

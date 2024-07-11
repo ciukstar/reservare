@@ -1,3 +1,6 @@
+WorkingHours: Heures d'ouverture
+UnitMinutes: minutes
+SchedulingInterval: Intervalle de planification
 SelectAvailableDayAndTimePlease: Veuillez sélectionner le jour et l'heure disponibles pour le rendez-vous
 AppointmentSetFor: Rendez-vous fixé au
 SelectTime: Sélectionnez l'heure

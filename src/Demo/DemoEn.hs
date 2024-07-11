@@ -5,11 +5,14 @@
 module Demo.DemoEn (fillDemoEn) where
 
 import Control.Monad.IO.Class (MonadIO (liftIO))
-import Import.NoFoundation (ReaderT, Workspace (workspaceTzo, workspaceCurrency), Service (servicePrice))
+import Import.NoFoundation
+    ( ReaderT, Workspace (workspaceTzo, workspaceCurrency)
+    , Service (servicePrice), Assignment (assignmentSlotInterval)
+    )
 
 import Data.FileEmbed (embedFile)
 import Data.Maybe (fromMaybe)
-import Data.Time (getCurrentTime, utc)
+import Data.Time (getCurrentTime, utc, nominalDay)
 
 import Database.Persist (PersistStoreWrite (insert, insert_))
 import Database.Persist.SqlBackend (SqlBackend)
@@ -186,10 +189,14 @@ fillDemoEn appSettings = do
     empl1 <- insert employee1
 
     now <- liftIO getCurrentTime
+    let oneHour = nominalDay / 24
+    let halfHour = oneHour / 2
+    let quarterHour = halfHour / 2
 
     let assignment1 = Assignment { assignmentStaff = empl1
                                  , assignmentService = s1
                                  , assignmentStart = now
+                                 , assignmentSlotInterval = quarterHour
                                  }
 
     assig1 <- insert assignment1
@@ -197,6 +204,7 @@ fillDemoEn appSettings = do
     let assignment2 = Assignment { assignmentStaff = empl1
                                  , assignmentService = s2
                                  , assignmentStart = now
+                                 , assignmentSlotInterval = halfHour
                                  }
 
     assig2 <- insert assignment2
@@ -204,6 +212,7 @@ fillDemoEn appSettings = do
     let assignment3 = Assignment { assignmentStaff = empl1
                                  , assignmentService = s3
                                  , assignmentStart = now
+                                 , assignmentSlotInterval = oneHour
                                  }
 
     assig3 <- insert assignment3

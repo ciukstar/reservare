@@ -28,7 +28,7 @@
 <main>
   ^{widgetBanner msgs}
 
-  $maybe (Entity _ (Assignment _ _ start),(employee,(service,(workspace,buisiness)))) <- assignment
+  $maybe (Entity _ (Assignment _ _ start interval),(employee,(service,(workspace,buisiness)))) <- assignment
     <dl>
 
       <dt.md-typescale-label-large>_{MsgEmployee}
@@ -40,6 +40,10 @@
       <dd.md-typescale-body-medium>
         $with dt <- iso8601Show start
           <time datetime=#{dt}>#{dt}
+
+      <dt.md-typescale-label-large>_{MsgSchedulingInterval}
+      <dd.md-typescale-body-medium>
+        #{show $ truncate ((nominalDiffTimeToSeconds interval) / 60)} _{MsgUnitMinutes}
 
       <dt.md-typescale-label-large>_{MsgService}
       <dd.md-typescale-body-medium>

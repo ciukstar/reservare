@@ -18,6 +18,7 @@ module Handler.Data.Business
   , getDataWorkspaceEditR
   , postDataWorkspaceR
   , postDataWorkspaceDeleR
+  , getDataWorkingHoursR
   ) where
 
 import Data.Maybe (fromMaybe)
@@ -39,14 +40,15 @@ import Foundation
     , DataR
       ( DataBusinessesR, DataBusinessNewR, DataBusinessR, DataBusinessEditR
       , DataBusinessDeleR, DataWorkspacesR, DataWorkspaceNewR, DataWorkspaceR
-      , DataWorkspaceEditR, DataWorkspaceDeleR
+      , DataWorkspaceEditR, DataWorkspaceDeleR, DataWorkingHoursR
       )
     , AppMessage
       ( MsgBusinesses, MsgThereAreNoDataYet, MsgYouMightWantToAddAFew
       , MsgAdd, MsgOwner, MsgTheName, MsgSave, MsgCancel, MsgBusiness
       , MsgBack, MsgDele, MsgEdit, MsgDeleteAreYouSure, MsgConfirmPlease
       , MsgRecordDeleted, MsgInvalidFormData, MsgRecordEdited, MsgRecordAdded
-      , MsgDetails, MsgWorkspaces, MsgAddress, MsgWorkspace, MsgAlreadyExists, MsgCurrency, MsgTimeZone
+      , MsgDetails, MsgWorkspaces, MsgAddress, MsgWorkspace, MsgAlreadyExists
+      , MsgCurrency, MsgTimeZone, MsgWorkingHours
       )
     )
 
@@ -56,11 +58,14 @@ import Model
     ( statusError, statusSuccess
     , BusinessId, Business(Business, businessOwner, businessName)
     , User (User, userName, userEmail)
-    , WorkspaceId, Workspace (Workspace, workspaceName, workspaceAddress, workspaceCurrency, workspaceTzo)
+    , WorkspaceId
+    , Workspace
+      ( Workspace, workspaceName, workspaceAddress, workspaceCurrency, workspaceTzo
+      )
     , EntityField
       ( UserName, UserId, BusinessId, BusinessOwner, WorkspaceId
-      , WorkspaceBusiness, BusinessName, WorkspaceName
-      )
+      , WorkspaceBusiness, BusinessName, WorkspaceName, WorkingHoursWorkspace
+      ), WorkingHours (WorkingHours)
     )
 
 import Settings (widgetFile)
@@ -83,6 +88,23 @@ import Yesod.Form
     , FieldView (fvInput), FormResult (FormSuccess)
     )
 import Yesod.Persist.Core (runDB)
+
+
+getDataWorkingHoursR :: BusinessId -> WorkspaceId -> Handler Html
+getDataWorkingHoursR bid wid = do
+
+    hours <- runDB $ select $ do
+        x <- from $ table @WorkingHours
+        where_ $ x ^. WorkingHoursWorkspace ==. val wid
+        return x
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgWorkingHours
+        idTabWorkingHours <- newIdent
+        idPanelWorkingHours <- newIdent
+        idFabAdd <- newIdent
+        $(widgetFile "data/business/workspaces/hours/hours")
 
 
 postDataWorkspaceDeleR :: BusinessId -> WorkspaceId -> Handler Html
@@ -155,6 +177,8 @@ getDataWorkspaceR bid wid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkspace
+        idTabDetails <- newIdent
+        idPanelDetails <- newIdent
         $(widgetFile "data/business/workspaces/workspace")
         
 

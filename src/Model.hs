@@ -21,13 +21,16 @@ import ClassyPrelude.Yesod
 
 
 import qualified Data.Proxy as DP (Proxy (Proxy))
-import Data.Time.LocalTime (TimeZone (timeZoneMinutes), minutesToTimeZone) 
+import Data.Time.Calendar.Month (Month)
+import Data.Time
+    ( NominalDiffTime, nominalDiffTimeToSeconds, secondsToNominalDiffTime )
+import Data.Time.LocalTime
+    ( TimeZone (timeZoneMinutes), minutesToTimeZone, TimeOfDay )
 
 import Database.Persist.Quasi ( lowerCaseSettings )
+import Database.Persist.Sql (PersistFieldSql (sqlType))
 
 import Text.Printf (printf, PrintfType)
-import Database.Persist.Sql (PersistFieldSql (sqlType))
-import Data.Time.Calendar.Month (Month)
 import Text.Read (readMaybe)
 
 
@@ -45,6 +48,19 @@ data AuthenticationType = UserAuthTypePassword
                         | UserAuthTypeGoogle
     deriving (Show, Read, Eq, Ord)
 derivePersistField "AuthenticationType"
+
+instance PersistField NominalDiffTime where
+    toPersistValue :: NominalDiffTime -> PersistValue
+    toPersistValue x = PersistInt64 (truncate (nominalDiffTimeToSeconds x))
+
+    fromPersistValue :: PersistValue -> Either Text NominalDiffTime
+    fromPersistValue (PersistInt64 x) = Right (secondsToNominalDiffTime (fromIntegral x))
+    fromPersistValue _ = Left "Invalid NominalDiffTime"
+
+
+instance PersistFieldSql NominalDiffTime where
+    sqlType :: DP.Proxy NominalDiffTime -> SqlType
+    sqlType _ = SqlInt64
 
 
 instance PersistField TimeZone where

@@ -1,3 +1,6 @@
+WorkingHours: Working hours
+UnitMinutes: minutes
+SchedulingInterval: Scheduling interval
 SelectAvailableDayAndTimePlease: Please select the available day and time for the appointment
 AppointmentSetFor: Appointment set for
 SelectTime: Select time

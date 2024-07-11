@@ -1,0 +1,54 @@
+
+<header>
+  <md-icon-button href=@{DataR $ DataWorkspaceR bid wid} aria-label=_{MsgBack}>
+    <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgWorkspace}
+
+<main>
+
+  <md-tabs>
+  
+    <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails
+      onclick="this.querySelector('a[href]').click()">
+      
+      <a href=@{DataR $ DataWorkspaceR bid wid}>
+      _{MsgDetails}
+      
+    <md-primary-tab ##{idTabWorkingHours} aria-cotrols=#{idPanelWorkingHours} active
+      onclick="this.querySelector('a[href]').click()">
+      
+      <a href=@{DataR $ DataWorkingHoursR bid wid}>
+      _{MsgWorkingHours}
+      
+
+  <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
+
+  <div ##{idPanelWorkingHours} role=tabpanel aria-labelledby=#{idTabWorkingHours}>
+
+    ^{widgetBanner msgs}
+
+    $if null hours
+      <figure style="text-align:center">
+        <span.on-secondary style="font-size:4rem">&varnothing;
+        <figcaption.md-typescale-body-large>
+          _{MsgThereAreNoDataYet}
+          <div.md-typescale-body-small>
+            _{MsgYouMightWantToAddAFew}
+    $else
+      <md-list>
+        $forall Entity hid (WorkingHours _ day start end) <- hours
+          <md-list-item type=link href=#>
+            <div slot=headline>
+              #{show day}
+            <div slot=supporting-text>
+              #{show start} - #{show end}
+            <md-icon slot=end>arrow_forward_ios
+          <md-divider>
+
+    <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
+      <a href=#>
+      <md-icon slot=icon>add
+
+    ^{widgetSnackbar msgs}

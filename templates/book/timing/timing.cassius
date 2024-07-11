@@ -41,9 +41,10 @@ main
         .cell
             text-align: center
             vertical-align: text-top
+            text-decoration: none
             border: 1px solid var(--md-sys-color-surface-dim,black)
             border-radius: 8px
-            text-decoration: none
+            box-shadow: 1px 1px 1px var(--md-sys-color-surface-dim)
             time.day-of-month
                 font-size: 1.2rem
                 line-height: 1.4rem

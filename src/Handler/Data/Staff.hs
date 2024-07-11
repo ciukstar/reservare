@@ -49,20 +49,20 @@ import Foundation
       , MsgDetails, MsgDeleteAreYouSure, MsgEdit, MsgDele, MsgConfirmPlease
       , MsgInvalidFormData, MsgRecordDeleted, MsgRecordEdited, MsgWorkspace
       , MsgService, MsgAssignmentDate, MsgServiceAssignment, MsgTheStart
-      , MsgBusiness
+      , MsgBusiness, MsgSchedulingInterval, MsgUnitMinutes
       )
     )
     
 import Material3
     ( md3mreq, md3telField, md3textField, md3mopt, md3selectField
-    , md3datetimeLocalField
+    , md3datetimeLocalField, md3intField
     )
 
 import Model
     ( statusError, statusSuccess
     , StaffId, Staff (Staff, staffName, staffMobile, staffPhone, staffAccount)
     , User (userName, userEmail)
-    , AssignmentId, Assignment (Assignment, assignmentService, assignmentStart)
+    , AssignmentId, Assignment (Assignment, assignmentService, assignmentStart, assignmentSlotInterval)
     , Service (Service, serviceName)
     , Workspace (Workspace)
     , Business (Business)
@@ -94,6 +94,7 @@ import Yesod.Form
 import Yesod.Form.Functions (generateFormPost)
 import Yesod.Persist (YesodPersist(runDB))
 import Data.Time.LocalTime (utc, utcToLocalTime, localTimeToUTC)
+import Data.Time (nominalDiffTimeToSeconds, secondsToNominalDiffTime)
 
 
 postStaffAssignmentDeleR :: StaffId -> AssignmentId -> Handler Html
@@ -222,10 +223,19 @@ formServiceAssignment eid assignment extra = do
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgAssignmentDate),("step","1")]
         } (utcToLocalTime utc . assignmentStart . entityVal <$> assignment)
+    
+    (intervalR, intervalV) <- md3mreq md3intField FieldSettings
+        { fsLabel = SomeMessage MsgSchedulingInterval
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgSchedulingInterval),("supporting-text", msgr MsgUnitMinutes)]
+        } (truncate . (/ 60) . nominalDiffTimeToSeconds . assignmentSlotInterval . entityVal <$> assignment)
 
-    return ( Assignment eid <$> serviceR <*> (localTimeToUTC utc <$> startR)
-           , [whamlet|#{extra} ^{fvInput serviceV} ^{fvInput startV}|]
-           )
+    let r = Assignment eid <$> serviceR <*> (localTimeToUTC utc <$> startR)
+            <*> ((* 60) . secondsToNominalDiffTime . fromIntegral <$> intervalR)
+
+    let w = [whamlet|#{extra} ^{fvInput serviceV} ^{fvInput startV} ^{fvInput intervalV}|]
+
+    return (r, w)
         
   where
       options e = (serviceName . entityVal $ e, entityKey e)

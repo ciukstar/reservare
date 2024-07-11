@@ -1,6 +1,6 @@
 
 <header>
-  <md-icon-button href=@{DataR DataBusinessesR} aria-label=_{MsgBack}>
+  <md-icon-button href=@{DataR $ DataWorkspacesR bid} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
   <span.md-typescale-title-large>
@@ -27,36 +27,55 @@
 
 <main>
 
-  ^{widgetBanner msgs}
+  <md-tabs>
+  
+    <md-primary-tab ##{idTabDetails} aria-cotrols=#{idPanelDetails} active
+      onclick="this.querySelector('a[href]').click()">
+      
+      <a href=@{DataR $ DataWorkspaceR bid wid}>
+      _{MsgDetails}
+      
+    <md-primary-tab #idTabWorkingHours aria-cotrols=idPanelWorkingHours
+      onclick="this.querySelector('a[href]').click()">
+      
+      <a href=@{DataR $ DataWorkingHoursR bid wid}>
+      _{MsgWorkingHours}
+      
 
-  $maybe (Entity _ (Workspace _ name address tzo currency), Entity _ (Business _ bname), Entity _ (User oemail _ _ _ _ oname _ _)) <- workspace
-    <dl>
+  <div ##{idPanelDetails} role=tabpanel aria-labelledby=#{idTabDetails}>
 
-      <dt.md-typescale-label-large scope=row>_{MsgBusiness}
-      <dd.md-typescale-body-medium>
-        #{bname}
+    ^{widgetBanner msgs}
 
-      <dt.md-typescale-label-large scope=row>_{MsgOwner}
-      <dd.md-typescale-body-medium>
-        $maybe name <- oname
+    $maybe (Entity _ (Workspace _ name address tzo currency), Entity _ (Business _ bname), Entity _ (User oemail _ _ _ _ oname _ _)) <- workspace
+      <dl>
+
+        <dt.md-typescale-label-large scope=row>_{MsgBusiness}
+        <dd.md-typescale-body-medium>
+          #{bname}
+
+        <dt.md-typescale-label-large scope=row>_{MsgOwner}
+        <dd.md-typescale-body-medium>
+          $maybe name <- oname
+            #{name}
+          $nothing
+            #{oemail}
+
+        <dt.md-typescale-label-large scope=row>_{MsgWorkspace}
+        <dd.md-typescale-body-medium>
           #{name}
-        $nothing
-          #{oemail}
 
-      <dt.md-typescale-label-large scope=row>_{MsgWorkspace}
-      <dd.md-typescale-body-medium>
-        #{name}
+        <dt.md-typescale-label-large scope=row>_{MsgAddress}
+        <dd.md-typescale-body-medium>
+          #{address}
 
-      <dt.md-typescale-label-large scope=row>_{MsgAddress}
-      <dd.md-typescale-body-medium>
-        #{address}
+        <dt.md-typescale-label-large scope=row>_{MsgTimeZone}
+        <dd.md-typescale-body-medium>
+          #{show tzo}
 
-      <dt.md-typescale-label-large scope=row>_{MsgTimeZone}
-      <dd.md-typescale-body-medium>
-        #{show tzo}
+        <dt.md-typescale-label-large scope=row>_{MsgCurrency}
+        <dd.md-typescale-body-medium>
+          #{currency}
 
-      <dt.md-typescale-label-large scope=row>_{MsgCurrency}
-      <dd.md-typescale-body-medium>
-        #{currency}
+    ^{widgetSnackbar msgs}
 
-  ^{widgetSnackbar msgs}
+  <div #idPanelWorkingHours role=tabpanel aria-labelledby=idTabWorkingHours hidden>

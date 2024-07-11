@@ -36,7 +36,7 @@ import Data.Time
     ( UTCTime (utctDay), weekFirstDay, DayOfWeek (Monday)
     , DayPeriod (periodFirstDay), addDays, toGregorian, getCurrentTime
     , Day, nominalDay, LocalTime (LocalTime, localDay), addLocalTime
-    , TimeOfDay (TimeOfDay)
+    , TimeOfDay (TimeOfDay), nominalDiffTimeToSeconds, secondsToNominalDiffTime
     )
 import Data.Time.Calendar.Month (addMonths, pattern YearMonth, Month)
 import Data.Time.LocalTime (utcToLocalTime, utc, localTimeToUTC)
@@ -44,7 +44,7 @@ import Data.Time.LocalTime (utcToLocalTime, utc, localTimeToUTC)
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, asc, innerJoin, on
     , (^.), (==.), (:&)((:&))
-    , toSqlKey, val, where_
+    , toSqlKey, val, where_, selectOne, Value (unValue)
     )
 import Database.Persist (Entity (Entity))
 import qualified Database.Persist as P (exists, Filter)
@@ -78,13 +78,13 @@ import Model
     , ServiceId, Service(Service)
     , Workspace (Workspace)
     , Business (Business)
-    , Assignment
+    , Assignment (Assignment)
     , StaffId, Staff (Staff)
     , User (User), PayMethod (PayNow, PayAtVenue)
     , EntityField
       ( ServiceWorkspace, WorkspaceId, WorkspaceBusiness
       , BusinessId, ServiceName, AssignmentStaff, StaffId, StaffName
-      , BusinessName, WorkspaceName, ServiceId, AssignmentService
+      , BusinessName, WorkspaceName, ServiceId, AssignmentService, AssignmentSlotInterval
       )
     )
     
@@ -450,17 +450,26 @@ formTimeSlot day sid eid tid extra = do
         , fsAttrs = [("label", msgr MsgEmployee),("hidden","hidden")]
         } (fromIntegral . fromSqlKey <$> eid)
 
-    let now = LocalTime day (TimeOfDay 9 30 0)
-    let halfHour = (nominalDay / 24) / 2
+    interval <- maybe (secondsToNominalDiffTime (15 * 60)) unValue <$> liftHandler ( runDB $ selectOne $ do
+        x <- from $ table @Assignment
+        case sid of
+          Just y -> where_ $ x ^. AssignmentService ==. val y
+          Nothing -> where_ $ val False
+        case eid of
+          Just y -> where_ $ x ^. AssignmentStaff ==. val y
+          Nothing -> where_ $ val False
+        return (x ^. AssignmentSlotInterval) )
+
+    let outset = LocalTime day (TimeOfDay 9 0 0)
     
-    let slots = [ now
-                , addLocalTime halfHour now
-                , addLocalTime (2 * halfHour) now
-                , addLocalTime (3 * halfHour) now
-                , addLocalTime (4 * halfHour) now
-                , addLocalTime (5 * halfHour) now
-                , addLocalTime (6 * halfHour) now
-                ] :: [LocalTime]
+    let slots = [ addLocalTime (0 * interval) outset
+                , addLocalTime (1 * interval) outset
+                , addLocalTime (2 * interval) outset
+                , addLocalTime (3 * interval) outset
+                , addLocalTime (4 * interval) outset
+                , addLocalTime (5 * interval) outset
+                , addLocalTime (6 * interval) outset
+                ]
         
     (slotsR,slotsV) <- mreq (md3radioFieldList slots) "" tid
 
@@ -489,8 +498,6 @@ formTimeSlot day sid eid tid extra = do
       $with dt <- optionDisplay opt
         <time.time-slot slot=headline datetime=#{dt}>
           #{optionDisplay opt}
-        <time.full-time-slot slot=supporting-text datetime=#{dt}>
-          #{dt}
       <div slot=end>
         <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
           :sel x opt:checked touch-target=wrapper>

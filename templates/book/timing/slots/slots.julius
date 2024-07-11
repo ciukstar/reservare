@@ -6,6 +6,7 @@ Array.from(
     navigator.language,
     { year: 'numeric',
       month: 'long',
+      weekday: 'long',
       day: 'numeric'
     }
   );

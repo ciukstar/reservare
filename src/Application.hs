@@ -113,6 +113,7 @@ import Handler.Data.Business
     , getDataWorkspaceEditR
     , postDataWorkspaceR
     , postDataWorkspaceDeleR
+    , getDataWorkingHoursR
     )
 
 import Handler.Data.Users
