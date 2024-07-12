@@ -1,0 +1,41 @@
+
+<header.background>
+  <md-icon-button href=@?{(DataR $ DataWorkingHoursR bid wid month,stati)} aria-label=_{MsgBack}>
+    <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgWorkingHours}
+
+<main>
+
+  ^{widgetBanner msgs}
+  
+  <p>
+    $with d <- show day
+      <time.day.md-typescale-label-large datetime=#{d}>
+        #{d}
+
+  $if null slots
+    <figure style="text-align:center">
+      <span.on-secondary style="font-size:4rem">&varnothing;
+      <figcaption.md-typescale-body-large>
+        _{MsgThereAreNoDataYet}
+        <div.md-typescale-body-small>
+          _{MsgYouMightWantToAddAFew}
+  $else
+    <md-list>
+      $forall Entity sid (WorkingHours _ _ start end) <- slots
+        <md-list-item type=link href=#>
+          <div slot=headline>
+            $with (st,et) <- (show start,show end)
+              <time.time-of-day datetime=#{st}>#{st}
+              \ - #
+              <time.time-of-day datetime=#{et}>#{et}
+          <md-icon slot=end>arrow_forward_ios
+        <md-divider>
+
+  <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
+    <a href=#>
+    <md-icon slot=icon>add
+
+  ^{widgetSnackbar msgs}

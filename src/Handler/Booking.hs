@@ -35,8 +35,8 @@ import Data.Text.Encoding (encodeUtf8)
 import Data.Time
     ( UTCTime (utctDay), weekFirstDay, DayOfWeek (Monday)
     , DayPeriod (periodFirstDay), addDays, toGregorian, getCurrentTime
-    , Day, nominalDay, LocalTime (LocalTime, localDay), addLocalTime
-    , TimeOfDay (TimeOfDay), nominalDiffTimeToSeconds, secondsToNominalDiffTime
+    , Day, LocalTime (LocalTime, localDay), TimeOfDay (TimeOfDay)
+    , addLocalTime, secondsToNominalDiffTime
     )
 import Data.Time.Calendar.Month (addMonths, pattern YearMonth, Month)
 import Data.Time.LocalTime (utcToLocalTime, utc, localTimeToUTC)
@@ -78,13 +78,14 @@ import Model
     , ServiceId, Service(Service)
     , Workspace (Workspace)
     , Business (Business)
-    , Assignment (Assignment)
+    , Assignment
     , StaffId, Staff (Staff)
     , User (User), PayMethod (PayNow, PayAtVenue)
     , EntityField
       ( ServiceWorkspace, WorkspaceId, WorkspaceBusiness
       , BusinessId, ServiceName, AssignmentStaff, StaffId, StaffName
-      , BusinessName, WorkspaceName, ServiceId, AssignmentService, AssignmentSlotInterval
+      , BusinessName, WorkspaceName, ServiceId, AssignmentService
+      , AssignmentSlotInterval
       )
     )
     
@@ -548,8 +549,6 @@ getBookTimingR month = do
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
     tid <- runInputGet ( iopt datetimeLocalField "tid" )
 
-    
-
     today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
 
     (fw,et) <- generateFormPost $ formTiming sid eid tid
@@ -558,7 +557,7 @@ getBookTimingR month = do
     let end = addDays 41 start
     let page = [start .. end]
     let next = addMonths 1 month
-    let prev = addMonths (-1) month    
+    let prev = addMonths (-1) month
     
     msgs <- getMessages
     defaultLayout $ do

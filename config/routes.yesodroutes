@@ -72,8 +72,10 @@
     /staff/new/form           EmployeeNewR  GET
     /staff/#StaffId           EmployeeR     GET POST
     /staff                    StaffR        GET POST
+
     
-    /businesses/#BusinessId/workspaces/#WorkspaceId/hours DataWorkingHoursR GET
+    /businesses/#BusinessId/workspaces/#WorkspaceId/#Day/slots   DataWorkingSlotsR GET
+    /businesses/#BusinessId/workspaces/#WorkspaceId/#Month/hours DataWorkingHoursR GET
 
     /businesses/#BusinessId/workspaces/#WorkspaceId/form/dele DataWorkspaceDeleR POST
     /businesses/#BusinessId/workspaces/#WorkspaceId/form/edit DataWorkspaceEditR GET

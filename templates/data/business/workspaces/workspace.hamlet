@@ -38,7 +38,7 @@
     <md-primary-tab #idTabWorkingHours aria-cotrols=idPanelWorkingHours
       onclick="this.querySelector('a[href]').click()">
       
-      <a href=@{DataR $ DataWorkingHoursR bid wid}>
+      <a href=@{DataR $ DataWorkingHoursR bid wid month}>
       _{MsgWorkingHours}
       
 

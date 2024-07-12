@@ -114,6 +114,7 @@ import Handler.Data.Business
     , postDataWorkspaceR
     , postDataWorkspaceDeleR
     , getDataWorkingHoursR
+    , getDataWorkingSlotsR
     )
 
 import Handler.Data.Users

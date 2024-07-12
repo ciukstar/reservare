@@ -2,6 +2,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 module Handler.Data.Business
   ( getDataBusinessesR
@@ -19,10 +20,17 @@ module Handler.Data.Business
   , postDataWorkspaceR
   , postDataWorkspaceDeleR
   , getDataWorkingHoursR
+  , getDataWorkingSlotsR
   ) where
 
 import Data.Maybe (fromMaybe)
 import Data.Text (Text, unpack, pack)
+import Data.Time.Calendar
+    ( DayOfWeek (Monday), DayPeriod (periodFirstDay)
+    , weekFirstDay, addDays, toGregorian, Day
+    )
+import Data.Time.Calendar.Month (Month, addMonths, pattern YearMonth)
+import Data.Time.LocalTime (LocalTime(localDay))
 
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, asc, innerJoin, on
@@ -41,6 +49,7 @@ import Foundation
       ( DataBusinessesR, DataBusinessNewR, DataBusinessR, DataBusinessEditR
       , DataBusinessDeleR, DataWorkspacesR, DataWorkspaceNewR, DataWorkspaceR
       , DataWorkspaceEditR, DataWorkspaceDeleR, DataWorkingHoursR
+      , DataWorkingSlotsR
       )
     , AppMessage
       ( MsgBusinesses, MsgThereAreNoDataYet, MsgYouMightWantToAddAFew
@@ -49,6 +58,7 @@ import Foundation
       , MsgRecordDeleted, MsgInvalidFormData, MsgRecordEdited, MsgRecordAdded
       , MsgDetails, MsgWorkspaces, MsgAddress, MsgWorkspace, MsgAlreadyExists
       , MsgCurrency, MsgTimeZone, MsgWorkingHours
+      , MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
       )
     )
 
@@ -64,7 +74,7 @@ import Model
       )
     , EntityField
       ( UserName, UserId, BusinessId, BusinessOwner, WorkspaceId
-      , WorkspaceBusiness, BusinessName, WorkspaceName, WorkingHoursWorkspace
+      , WorkspaceBusiness, BusinessName, WorkspaceName, WorkingHoursWorkspace, WorkingHoursDay
       ), WorkingHours (WorkingHours)
     )
 
@@ -78,31 +88,64 @@ import Widgets (widgetBanner, widgetSnackbar, widgetAccount, widgetMenu)
 import Yesod.Core
     ( Yesod(defaultLayout), getMessages, getMessageRender
     , MonadHandler (liftHandler), redirect, whamlet, addMessageI
+    , YesodRequest (reqGetParams), getRequest, MonadIO (liftIO)
     )
 import Yesod.Core.Handler (newIdent)
 import Yesod.Core.Widget (setTitleI)
-import Yesod.Form.Functions (generateFormPost, runFormPost, checkM)
-import Yesod.Form.Fields (optionsPairs)
 import Yesod.Form
     ( Field, FieldSettings (FieldSettings, fsName, fsLabel, fsTooltip, fsId, fsAttrs)
     , FieldView (fvInput), FormResult (FormSuccess)
     )
+import Yesod.Form.Input (runInputGet, iopt) 
+import Yesod.Form.Functions (generateFormPost, runFormPost, checkM)
+import Yesod.Form.Fields (optionsPairs, datetimeLocalField)
 import Yesod.Persist.Core (runDB)
+import Data.Time (UTCTime(utctDay), getCurrentTime)
 
 
-getDataWorkingHoursR :: BusinessId -> WorkspaceId -> Handler Html
-getDataWorkingHoursR bid wid = do
+getDataWorkingSlotsR :: BusinessId -> WorkspaceId -> Day -> Handler Html
+getDataWorkingSlotsR bid wid day = do
+    
+    stati <- reqGetParams <$> getRequest
+    
+    slots <- runDB $ select $ do
+        x <- from $ table @WorkingHours
+        where_ $ x ^. WorkingHoursWorkspace ==. val wid
+        where_ $ x ^. WorkingHoursDay ==. val day
+        return x
 
+    let month = (\(y,m,_) -> YearMonth y m) . toGregorian $ day
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgWorkingHours
+        idFabAdd <- newIdent
+        $(widgetFile "data/business/workspaces/hours/slots/slots")
+
+
+getDataWorkingHoursR :: BusinessId -> WorkspaceId -> Month -> Handler Html
+getDataWorkingHoursR bid wid month = do
+
+    stati <- reqGetParams <$> getRequest
+    tid <- runInputGet ( iopt datetimeLocalField "tid" )
+    
     hours <- runDB $ select $ do
         x <- from $ table @WorkingHours
         where_ $ x ^. WorkingHoursWorkspace ==. val wid
         return x
+
+    let start = weekFirstDay Monday (periodFirstDay month)
+    let end = addDays 41 start
+    let page = [start .. end]
+    let next = addMonths 1 month
+    let prev = addMonths (-1) month
     
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkingHours
         idTabWorkingHours <- newIdent
         idPanelWorkingHours <- newIdent
+        idCalendarPage <- newIdent
         idFabAdd <- newIdent
         $(widgetFile "data/business/workspaces/hours/hours")
 
@@ -173,6 +216,8 @@ getDataWorkspaceR bid wid = do
         return (x,b,o)
 
     (fw2,et2) <- generateFormPost formWorkspaceDelete
+    
+    month <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
     
     msgs <- getMessages
     defaultLayout $ do

@@ -19,7 +19,7 @@
     <md-primary-tab ##{idTabWorkingHours} aria-cotrols=#{idPanelWorkingHours} active
       onclick="this.querySelector('a[href]').click()">
       
-      <a href=@{DataR $ DataWorkingHoursR bid wid}>
+      <a href=@{DataR $ DataWorkingHoursR bid wid month}>
       _{MsgWorkingHours}
       
 
@@ -29,26 +29,34 @@
 
     ^{widgetBanner msgs}
 
-    $if null hours
-      <figure style="text-align:center">
-        <span.on-secondary style="font-size:4rem">&varnothing;
-        <figcaption.md-typescale-body-large>
-          _{MsgThereAreNoDataYet}
-          <div.md-typescale-body-small>
-            _{MsgYouMightWantToAddAFew}
-    $else
-      <md-list>
-        $forall Entity hid (WorkingHours _ day start end) <- hours
-          <md-list-item type=link href=#>
-            <div slot=headline>
-              #{show day}
-            <div slot=supporting-text>
-              #{show start} - #{show end}
-            <md-icon slot=end>arrow_forward_ios
-          <md-divider>
+    <div.calendar ##{idCalendarPage}>
+      <div.header>
+        <md-icon-button type=link href=@?{(DataR $ DataWorkingHoursR bid wid prev,stati)} rel=nofollow>
+          <md-icon>arrow_back
+        $with m <- show month
+          <time.month-of-year datetime=#{m}>
+            #{m}
+        <md-icon-button type=link href=@?{(DataR $ DataWorkingHoursR bid wid next,stati)} rel=nofollow>
+          <md-icon>arrow_forward
 
-    <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-      <a href=#>
-      <md-icon slot=icon>add
+      $forall wd <- [MsgMon,MsgTue,MsgWed,MsgThu,MsgFri,MsgSat,MsgSun]
+        <div.col-header>
+          _{wd}
+      $forall i <- [0,1,2,3,4,5]
+        $forall day <- take 7 (drop (i * 7) page)
+          $with (y,m,d) <- toGregorian day
+            $if (==) month (YearMonth y m)
+              <a.cell href=@?{(DataR $ DataWorkingSlotsR bid wid day,stati)} 
+                :(Just day) == (localDay <$> tid):.primary
+                :(Just day) /= (localDay <$> tid):.primary-negative>
+                <time.day-of-month datetime=#{show day}>
+                  <small>#{d}
+                $maybe slot <- tid
+                  $if (==) day (localDay slot)
+                    $with dt <- show slot
+                      <time.time-of-day datetime=#{dt}>
+                        #{dt}
+            $else
+              <div>
 
     ^{widgetSnackbar msgs}

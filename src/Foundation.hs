@@ -237,7 +237,8 @@ instance Yesod App where
     isAuthorized r@(DataR StaffR) _ = setUltDest r >> isAdmin
     
     
-    isAuthorized (DataR (DataWorkingHoursR _ _)) _ = isAdmin
+    isAuthorized (DataR (DataWorkingSlotsR _ _ _)) _ = isAdmin
+    isAuthorized (DataR (DataWorkingHoursR _ _ _)) _ = isAdmin
     
     isAuthorized (DataR (DataWorkspaceDeleR _ _)) _ = isAdmin
     isAuthorized (DataR (DataWorkspaceEditR _ _)) _ = isAdmin
