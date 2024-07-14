@@ -224,6 +224,14 @@ instance Yesod App where
     isAuthorized (DataR (ServiceR _)) _ = isAdmin
     isAuthorized r@(DataR ServicesR) _ = setUltDest r >> isAdmin
     
+    
+    isAuthorized (DataR (StaffScheduleSlotDeleR _ _ _ _)) _ = isAdmin
+    isAuthorized (DataR (StaffScheduleSlotEditR _ _ _ _)) _ = isAdmin
+    isAuthorized (DataR (StaffScheduleSlotNewR _ _ _)) _ = isAdmin
+    isAuthorized (DataR (StaffScheduleSlotR _ _ _ _)) _ = isAdmin
+    isAuthorized (DataR (StaffScheduleSlotsR _ _ _)) _ = isAdmin
+    isAuthorized (DataR (StaffScheduleR _ _ _)) _ = isAdmin
+    
     isAuthorized (DataR (StaffAssignmentDeleR _ _)) _ = isAdmin
     isAuthorized (DataR (StaffAssignmentEditR _ _)) _ = isAdmin
     isAuthorized (DataR (StaffAssignmentR _ _)) _ = isAdmin
@@ -237,6 +245,10 @@ instance Yesod App where
     isAuthorized r@(DataR StaffR) _ = setUltDest r >> isAdmin
     
     
+    isAuthorized (DataR (DataWorkingSlotDeleR _ _ _ _)) _ = isAdmin
+    isAuthorized (DataR (DataWorkingSlotEditR _ _ _ _)) _ = isAdmin
+    isAuthorized (DataR (DataWorkingSlotR _ _ _ _)) _ = isAdmin
+    isAuthorized (DataR (DataWorkingSlotNewR _ _ _)) _ = isAdmin
     isAuthorized (DataR (DataWorkingSlotsR _ _ _)) _ = isAdmin
     isAuthorized (DataR (DataWorkingHoursR _ _ _)) _ = isAdmin
     

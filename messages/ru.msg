@@ -1,3 +1,9 @@
+WorkSchedule: График работы
+SymbolMinute: мин
+SymbolHour: ч
+Day: День
+EndTime: Время окончания
+StartTime: Время начала
 WorkingHours: Рабочее время
 UnitMinutes: минуты
 SchedulingInterval: Интервал планирования
@@ -146,7 +152,7 @@ AppDocumentation: Документация приложения
 AppDescription: Онлайн-бронирование услуг и встреч
 AppName: Reservare
 
-Doc001 appname href: <a href=#{href} target=_blank>«#{appname}»</a> позволяет компаниям регистрировать услуги и ресурсы, которые пользователь может зарезервировать и/или назначить встречу.
+Doc001 appname href: <a href=#{href} target=_blank>«#{appname}»</a> позволяет компаниям регистрировать услуги и ресурсы, которые клиент может зарезервировать и/или назначить встречу.
 
 Doc002 href: <a href=#{href} target=_blank>Репозиторий проекта</a> на GitHub.
 

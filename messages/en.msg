@@ -1,3 +1,9 @@
+WorkSchedule: Schedule
+SymbolMinute: min
+SymbolHour: h
+Day: Day
+EndTime: End time
+StartTime: Start time
 WorkingHours: Working hours
 UnitMinutes: minutes
 SchedulingInterval: Scheduling interval
@@ -146,7 +152,7 @@ AppDocumentation: App documentation
 AppDescription: Online bookings for services and appointments
 AppName: Reservare
 
-Doc001 appname@Text href@Text: <a href=#{href} target=_blank>“#{appname}”</a> allows businesses to register services and resources that a user can book and/or schedule an appointment for.
+Doc001 appname@Text href@Text: <a href=#{href} target=_blank>“#{appname}”</a> allows businesses to register services and resources that a customer can book and/or schedule an appointment for.
 
 Doc002 href@Text: <a href=#{href} target=_blank>Project repository</a> on GitHub.
 

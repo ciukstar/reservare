@@ -1,18 +1,28 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 module Demo.DemoEn (fillDemoEn) where
 
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Import.NoFoundation
-    ( ReaderT, Workspace (workspaceTzo, workspaceCurrency)
+    ( forM_, ReaderT, Workspace (workspaceTzo, workspaceCurrency)
     , Service (servicePrice), Assignment (assignmentSlotInterval)
+    , WorkingHours
+      ( WorkingHours, workingHoursWorkspace, workingHoursDay
+      , workingHoursStart, workingHoursEnd
+      ), unless, when
     )
 
 import Data.FileEmbed (embedFile)
 import Data.Maybe (fromMaybe)
-import Data.Time (getCurrentTime, utc, nominalDay)
+import Data.Time
+    ( getCurrentTime, utc, nominalDay, LocalTime (LocalTime)
+    , utctDay, TimeOfDay (TimeOfDay), DayPeriod (periodFirstDay, periodLastDay), DayOfWeek (Saturday, Sunday, Friday), dayOfWeek
+    )
+import Data.Time.Calendar (toGregorian)
+import Data.Time.Calendar.Month (pattern YearMonth)
 
 import Database.Persist (PersistStoreWrite (insert, insert_))
 import Database.Persist.SqlBackend (SqlBackend)
@@ -47,6 +57,8 @@ import Yesod.Auth.Email (saltPass)
 fillDemoEn :: MonadIO m => AppSettings -> ReaderT SqlBackend m ()
 fillDemoEn appSettings = do
 
+    now <- liftIO getCurrentTime
+    let today = utctDay now
     
     pass1 <- liftIO $ saltPass "marylopez"
     let user1 = User { userEmail = "marylopez@xmail.edu"
@@ -156,6 +168,32 @@ fillDemoEn appSettings = do
 
     w1 <- insert workspace1
 
+    let (y,m,_) = toGregorian today
+
+    forM_ [periodFirstDay (YearMonth y m) .. periodLastDay (YearMonth y m)] $ \day -> do
+        unless (Friday == dayOfWeek day || Saturday == dayOfWeek day || Sunday == dayOfWeek day) $ do
+            insert_ WorkingHours { workingHoursWorkspace = w1
+                                 , workingHoursDay = day
+                                 , workingHoursStart = TimeOfDay 9 0 0
+                                 , workingHoursEnd = TimeOfDay 13 0 0
+                                 }
+            insert_ WorkingHours { workingHoursWorkspace = w1
+                                 , workingHoursDay = day
+                                 , workingHoursStart = TimeOfDay 14 0 0
+                                 , workingHoursEnd = TimeOfDay 18 0 0
+                                 }
+        when (Friday == dayOfWeek day) $ do
+            insert_ WorkingHours { workingHoursWorkspace = w1
+                                 , workingHoursDay = day
+                                 , workingHoursStart = TimeOfDay 10 30 0
+                                 , workingHoursEnd = TimeOfDay 13 0 0
+                                 }
+            insert_ WorkingHours { workingHoursWorkspace = w1
+                                 , workingHoursDay = day
+                                 , workingHoursStart = TimeOfDay 14 0 0
+                                 , workingHoursEnd = TimeOfDay 17 45 0
+                                 }
+
     let service1 = Service { serviceWorkspace = w1
                            , serviceName = "Leisure travel"
                            , serviceDescr = Just "Travel as you like"
@@ -187,8 +225,6 @@ fillDemoEn appSettings = do
                           }
 
     empl1 <- insert employee1
-
-    now <- liftIO getCurrentTime
     let oneHour = nominalDay / 24
     let halfHour = oneHour / 2
     let quarterHour = halfHour / 2

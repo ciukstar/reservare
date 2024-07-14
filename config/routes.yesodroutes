@@ -60,6 +60,14 @@
     /services/new/form               ServiceNewR         GET
     /services/#ServiceId             ServiceR            GET POST
     /services                        ServicesR           GET POST
+
+    
+    /staff/#StaffId/assignments/#AssignmentId/#Day/slots/#ScheduleId/form/dele StaffScheduleSlotDeleR POST
+    /staff/#StaffId/assignments/#AssignmentId/#Day/slots/#ScheduleId/form/edit StaffScheduleSlotEditR GET
+    /staff/#StaffId/assignments/#AssignmentId/#Day/slots/new/form              StaffScheduleSlotNewR  GET
+    /staff/#StaffId/assignments/#AssignmentId/#Day/slots/#ScheduleId           StaffScheduleSlotR     GET POST
+    /staff/#StaffId/assignments/#AssignmentId/#Day/slots                       StaffScheduleSlotsR    GET POST
+    /staff/#StaffId/assignments/#AssignmentId/#Month/schedule                  StaffScheduleR         GET
     
     /staff/#StaffId/assignments/#AssignmentId/delete    StaffAssignmentDeleR POST
     /staff/#StaffId/assignments/#AssignmentId/form/edit StaffAssignmentEditR GET
@@ -74,8 +82,12 @@
     /staff                    StaffR        GET POST
 
     
-    /businesses/#BusinessId/workspaces/#WorkspaceId/#Day/slots   DataWorkingSlotsR GET
-    /businesses/#BusinessId/workspaces/#WorkspaceId/#Month/hours DataWorkingHoursR GET
+    /businesses/#BusinessId/workspaces/#WorkspaceId/#Day/slots/#WorkingHoursId/form/dele DataWorkingSlotDeleR POST
+    /businesses/#BusinessId/workspaces/#WorkspaceId/#Day/slots/#WorkingHoursId/form/edit DataWorkingSlotEditR GET
+    /businesses/#BusinessId/workspaces/#WorkspaceId/#Day/slots/new/form                  DataWorkingSlotNewR  GET
+    /businesses/#BusinessId/workspaces/#WorkspaceId/#Day/slots/#WorkingHoursId           DataWorkingSlotR     GET POST
+    /businesses/#BusinessId/workspaces/#WorkspaceId/#Day/slots                           DataWorkingSlotsR    GET POST
+    /businesses/#BusinessId/workspaces/#WorkspaceId/#Month/hours                         DataWorkingHoursR    GET
 
     /businesses/#BusinessId/workspaces/#WorkspaceId/form/dele DataWorkspaceDeleR POST
     /businesses/#BusinessId/workspaces/#WorkspaceId/form/edit DataWorkspaceEditR GET

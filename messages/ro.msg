@@ -1,3 +1,9 @@
+WorkSchedule: Orarul de lucru
+SymbolMinute: min
+SymbolHour: h
+Day: Ziua
+EndTime: Ora de încheiere
+StartTime: Ora de începere
 WorkingHours: Ore de lucru
 UnitMinutes: minute
 SchedulingInterval: Interval de programare
@@ -146,7 +152,7 @@ AppDocumentation: Documentația aplicației
 AppDescription: Rezervări online pentru servicii și programări
 AppName: Reservare
 
-Doc001 appname href: <a href=#{href} target=_blank>„#{appname}”</a> permite companiilor să înregistreze servicii și resurse pentru care un utilizator le poate rezerva și/sau programa o întâlnire.
+Doc001 appname href: <a href=#{href} target=_blank>„#{appname}”</a> permite companiilor să înregistreze servicii și resurse pentru care un client le poate rezerva și/sau programa o întâlnire.
 
 Doc002 href: <a href=#{href} target=_blank>Depozitul de proiect</a> pe GitHub.
 

@@ -1,3 +1,9 @@
+WorkSchedule: Horaire de travail
+SymbolMinute: min
+SymbolHour: h
+Day: Jour
+EndTime: Heure de fin
+StartTime: Heure de début
 WorkingHours: Heures d'ouverture
 UnitMinutes: minutes
 SchedulingInterval: Intervalle de planification
@@ -146,7 +152,7 @@ AppDocumentation: Documentation de l'application
 AppDescription: Réservations en ligne de prestations et de rendez-vous
 AppName: Reservare
 
-Doc001 appname href: <a href=#{href} target=_blank>« #{appname} »</a> permet aux entreprises d'enregistrer des services et des ressources pour lesquels un utilisateur peut réserver et/ou prendre rendez-vous.
+Doc001 appname href: <a href=#{href} target=_blank>« #{appname} »</a> permet aux entreprises d'enregistrer des services et des ressources pour lesquels un client peut réserver et/ou prendre rendez-vous.
 
 Doc002 href: <a href=#{href} target=_blank>Le référentiel du projet</a> sur GitHub.
 

@@ -1,0 +1,52 @@
+
+header
+    position: sticky
+    top: 0
+    z-index: 1
+    height: var(--app-top-appbar-height,64px)
+    padding: 0 0.5rem
+    display: flex
+    justify-content: flex-start
+    align-items: center
+    column-gap: 0.5rem
+    
+main
+    display: flex
+    flex-direction: column
+    gap: 1rem
+
+    ##{idCalendarPage}
+        display: grid
+        gap: 0.5rem
+        padding: 0 0.5rem
+        grid-template-columns: repeat(7,1fr)
+        grid-template-rows: repeat(8,1fr)
+        grid-template-areas: "head head head head head head head"
+        div.header
+            grid-area: head
+            display: flex
+            flex-direction: row
+            justify-content: space-between
+            align-items: center
+        div.col-header
+            text-align: center
+        .cell
+            text-align: center
+            vertical-align: text-top
+            text-decoration: none
+            border: 1px solid var(--md-sys-color-surface-dim,black)
+            border-radius: 8px
+            box-shadow: 1px 1px 1px var(--md-sys-color-surface-dim)
+            time.day-of-month
+                font-size: 1.2rem
+                line-height: 1.4rem
+            time.time-of-day
+                display: block
+                font-size: 0.7rem
+                line-height: 1
+                text-decoration: none
+
+    ##{idFabAdd}
+        position: fixed
+        right: 1rem
+        bottom: 1rem

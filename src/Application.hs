@@ -96,6 +96,10 @@ import Handler.Data.Staff
     , postEmployeeDeleR, postEmployeeR, getStaffAssignmentsR
     , postStaffAssignmentsR, getStaffAssignmentR, getStaffAssignmentNewR
     , getStaffAssignmentEditR, postStaffAssignmentDeleR, postStaffAssignmentR
+    , getStaffScheduleR, getStaffScheduleSlotsR, postStaffScheduleSlotsR
+    , getStaffScheduleSlotR, postStaffScheduleSlotR
+    , getStaffScheduleSlotNewR, getStaffScheduleSlotEditR
+    , postStaffScheduleSlotDeleR
     )
 
 import Handler.Data.Business
@@ -114,7 +118,11 @@ import Handler.Data.Business
     , postDataWorkspaceR
     , postDataWorkspaceDeleR
     , getDataWorkingHoursR
-    , getDataWorkingSlotsR
+    , getDataWorkingSlotsR, postDataWorkingSlotsR
+    , getDataWorkingSlotNewR
+    , getDataWorkingSlotR, postDataWorkingSlotR
+    , getDataWorkingSlotEditR
+    , postDataWorkingSlotDeleR
     )
 
 import Handler.Data.Users

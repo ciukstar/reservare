@@ -21,21 +21,33 @@ module Handler.Data.Business
   , postDataWorkspaceDeleR
   , getDataWorkingHoursR
   , getDataWorkingSlotsR
+  , getDataWorkingSlotNewR
+  , getDataWorkingSlotR
+  , getDataWorkingSlotEditR
+  , postDataWorkingSlotDeleR
+  , postDataWorkingSlotsR
+  , postDataWorkingSlotR
   ) where
 
+import qualified Data.Map as M (Map, fromListWith, member, notMember, lookup)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text, unpack, pack)
+import Data.Time
+    ( UTCTime(utctDay), getCurrentTime, LocalTime (LocalTime)
+    , DayPeriod (periodLastDay), diffLocalTime, nominalDiffTimeToSeconds
+    )
 import Data.Time.Calendar
     ( DayOfWeek (Monday), DayPeriod (periodFirstDay)
     , weekFirstDay, addDays, toGregorian, Day
     )
 import Data.Time.Calendar.Month (Month, addMonths, pattern YearMonth)
-import Data.Time.LocalTime (LocalTime(localDay))
+import Data.Time.Clock (NominalDiffTime)
+import Data.Time.Format (formatTime, defaultTimeLocale)
 
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, asc, innerJoin, on
     , (^.), (==.), (:&)((:&))
-    , desc, selectOne, where_, val
+    , desc, selectOne, where_, val, between
     )
 import Database.Persist
     ( Entity (Entity), PersistStoreWrite (delete)
@@ -49,7 +61,8 @@ import Foundation
       ( DataBusinessesR, DataBusinessNewR, DataBusinessR, DataBusinessEditR
       , DataBusinessDeleR, DataWorkspacesR, DataWorkspaceNewR, DataWorkspaceR
       , DataWorkspaceEditR, DataWorkspaceDeleR, DataWorkingHoursR
-      , DataWorkingSlotsR
+      , DataWorkingSlotsR, DataWorkingSlotNewR, DataWorkingSlotR
+      , DataWorkingSlotEditR, DataWorkingSlotDeleR
       )
     , AppMessage
       ( MsgBusinesses, MsgThereAreNoDataYet, MsgYouMightWantToAddAFew
@@ -57,12 +70,13 @@ import Foundation
       , MsgBack, MsgDele, MsgEdit, MsgDeleteAreYouSure, MsgConfirmPlease
       , MsgRecordDeleted, MsgInvalidFormData, MsgRecordEdited, MsgRecordAdded
       , MsgDetails, MsgWorkspaces, MsgAddress, MsgWorkspace, MsgAlreadyExists
-      , MsgCurrency, MsgTimeZone, MsgWorkingHours
+      , MsgCurrency, MsgTimeZone, MsgWorkingHours, MsgStartTime, MsgEndTime
       , MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
+      , MsgDay, MsgSymbolHour, MsgSymbolMinute
       )
     )
 
-import Material3 (md3selectField, md3mreq, md3textField, md3textareaField)
+import Material3 (md3selectField, md3mreq, md3textField, md3textareaField, md3timeField)
 
 import Model
     ( statusError, statusSuccess
@@ -72,15 +86,18 @@ import Model
     , Workspace
       ( Workspace, workspaceName, workspaceAddress, workspaceCurrency, workspaceTzo
       )
+    , WorkingHoursId, WorkingHours (WorkingHours, workingHoursStart, workingHoursEnd)
     , EntityField
       ( UserName, UserId, BusinessId, BusinessOwner, WorkspaceId
-      , WorkspaceBusiness, BusinessName, WorkspaceName, WorkingHoursWorkspace, WorkingHoursDay
-      ), WorkingHours (WorkingHours)
+      , WorkspaceBusiness, BusinessName, WorkspaceName, WorkingHoursWorkspace
+      , WorkingHoursDay, WorkingHoursId
+      )
     )
 
 import Settings (widgetFile)
 
 import Text.Hamlet (Html)
+import Text.Printf (printf)
 import Text.Shakespeare.I18N (SomeMessage (SomeMessage))
 
 import Widgets (widgetBanner, widgetSnackbar, widgetAccount, widgetMenu)
@@ -96,11 +113,135 @@ import Yesod.Form
     ( Field, FieldSettings (FieldSettings, fsName, fsLabel, fsTooltip, fsId, fsAttrs)
     , FieldView (fvInput), FormResult (FormSuccess)
     )
-import Yesod.Form.Input (runInputGet, iopt) 
 import Yesod.Form.Functions (generateFormPost, runFormPost, checkM)
-import Yesod.Form.Fields (optionsPairs, datetimeLocalField)
+import Yesod.Form.Fields (optionsPairs)
 import Yesod.Persist.Core (runDB)
-import Data.Time (UTCTime(utctDay), getCurrentTime)
+
+
+postDataWorkingSlotDeleR :: BusinessId -> WorkspaceId -> Day -> WorkingHoursId -> Handler Html
+postDataWorkingSlotDeleR bid wid day sid = do
+    
+    ((fr,_),_) <- runFormPost formWorkingSlotDelete
+    case fr of
+      FormSuccess () -> do
+          runDB $ delete bid
+          addMessageI statusSuccess MsgRecordDeleted
+          redirect $ DataR $ DataWorkingSlotsR bid wid day
+      _otherwise -> do
+          addMessageI statusError MsgInvalidFormData
+          redirect $ DataR $ DataWorkingSlotR bid wid day sid
+
+
+postDataWorkingSlotR :: BusinessId -> WorkspaceId -> Day -> WorkingHoursId -> Handler Html
+postDataWorkingSlotR bid wid day sid = do
+    
+    slot <- runDB $ selectOne $ do
+        x <- from $ table @WorkingHours
+        where_ $ x ^. WorkingHoursId ==. val sid
+        return x
+
+    ((fr,fw),et) <- runFormPost $ formWorkSlot wid day slot
+
+    case fr of
+      FormSuccess r -> do
+          runDB $ replace sid r
+          addMessageI statusSuccess MsgRecordEdited
+          redirect $ DataR $ DataWorkingSlotsR bid wid day
+      _otherwise -> do    
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgWorkingHours
+              idFormWorkSlot <- newIdent
+              $(widgetFile "data/business/workspaces/hours/slots/edit")
+
+
+getDataWorkingSlotEditR :: BusinessId -> WorkspaceId -> Day -> WorkingHoursId -> Handler Html
+getDataWorkingSlotEditR bid wid day sid = do
+    
+    slot <- runDB $ selectOne $ do
+        x <- from $ table @WorkingHours
+        where_ $ x ^. WorkingHoursId ==. val sid
+        return x
+    
+    (fw,et) <- generateFormPost $ formWorkSlot wid day slot
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgWorkingHours
+        idFormWorkSlot <- newIdent
+        $(widgetFile "data/business/workspaces/hours/slots/edit")
+
+
+postDataWorkingSlotsR :: BusinessId -> WorkspaceId -> Day -> Handler Html
+postDataWorkingSlotsR bid wid day = do
+
+    ((fr,fw),et) <- runFormPost $ formWorkSlot wid day Nothing
+
+    case fr of
+      FormSuccess r -> do
+          runDB $ insert_ r
+          addMessageI statusSuccess MsgRecordAdded
+          redirect $ DataR $ DataWorkingSlotsR bid wid day
+      _otherwise -> do    
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgWorkingHours
+              idFormWorkSlot <- newIdent
+              $(widgetFile "data/business/workspaces/hours/slots/new")
+
+
+getDataWorkingSlotNewR :: BusinessId -> WorkspaceId -> Day -> Handler Html
+getDataWorkingSlotNewR bid wid day = do
+
+    (fw,et) <- generateFormPost $ formWorkSlot wid day Nothing
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgWorkingHours
+        idFormWorkSlot <- newIdent
+        $(widgetFile "data/business/workspaces/hours/slots/new")
+
+
+formWorkSlot :: WorkspaceId -> Day -> Maybe (Entity WorkingHours) -> Form WorkingHours
+formWorkSlot wid day slot extra = do
+
+    msgr <- getMessageRender
+    
+    (startR,startV) <- md3mreq md3timeField FieldSettings
+        { fsLabel = SomeMessage MsgStartTime
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgStartTime)]
+        } (workingHoursStart . entityVal <$> slot)
+        
+    (endR,endV) <- md3mreq md3timeField FieldSettings
+        { fsLabel = SomeMessage MsgEndTime
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgEndTime)]
+        } (workingHoursEnd . entityVal <$> slot)
+
+    let r = WorkingHours wid day <$> startR <*> endR
+    let w = [whamlet|#{extra} ^{fvInput startV} ^{fvInput endV}|]
+    return (r,w)
+
+
+getDataWorkingSlotR :: BusinessId -> WorkspaceId -> Day -> WorkingHoursId -> Handler Html
+getDataWorkingSlotR bid wid day sid = do
+    
+    slot <- runDB $ selectOne $ do
+        x <- from $ table @WorkingHours
+        where_ $ x ^. WorkingHoursId ==. val sid
+        return x
+
+    (fw2,et2) <- generateFormPost formWorkingSlotDelete
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgWorkingHours
+        $(widgetFile "data/business/workspaces/hours/slots/slot")
+
+
+formWorkingSlotDelete :: Form ()
+formWorkingSlotDelete extra = return (pure (), [whamlet|#{extra}|]) 
 
 
 getDataWorkingSlotsR :: BusinessId -> WorkspaceId -> Day -> Handler Html
@@ -127,27 +268,36 @@ getDataWorkingHoursR :: BusinessId -> WorkspaceId -> Month -> Handler Html
 getDataWorkingHoursR bid wid month = do
 
     stati <- reqGetParams <$> getRequest
-    tid <- runInputGet ( iopt datetimeLocalField "tid" )
+
+    let mapper (Entity _ (WorkingHours _ day start end)) = (day,diffLocalTime (LocalTime day end) (LocalTime day start))
     
-    hours <- runDB $ select $ do
+    hours <- groupByKey mapper <$> runDB ( select $ do
         x <- from $ table @WorkingHours
         where_ $ x ^. WorkingHoursWorkspace ==. val wid
-        return x
+        where_ $ x ^. WorkingHoursDay `between` (val $ periodFirstDay month, val $ periodLastDay month)
+        return x ) :: Handler (M.Map Day NominalDiffTime)
 
     let start = weekFirstDay Monday (periodFirstDay month)
     let end = addDays 41 start
     let page = [start .. end]
     let next = addMonths 1 month
     let prev = addMonths (-1) month
-    
+
+    msgr <- getMessageRender
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkingHours
         idTabWorkingHours <- newIdent
         idPanelWorkingHours <- newIdent
         idCalendarPage <- newIdent
-        idFabAdd <- newIdent
+        idFabAdd <- newIdent 
         $(widgetFile "data/business/workspaces/hours/hours")
+  where
+      
+      groupByKey :: (Ord k, Num a) => (v -> (k,a)) -> [v] -> M.Map k a
+      groupByKey key = M.fromListWith (+) . fmap key
+
+      rest diff = mod (div (truncate @_ @Integer $ nominalDiffTimeToSeconds diff) 60) 60
 
 
 postDataWorkspaceDeleR :: BusinessId -> WorkspaceId -> Handler Html

@@ -1,6 +1,6 @@
 
 <header>
-  <md-icon-button href=@{DataR $ DataWorkspaceR bid wid} aria-label=_{MsgBack}>
+  <md-icon-button href=@{DataR $ StaffAssignmentsR eid} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
   <span.md-typescale-title-large>
@@ -13,14 +13,14 @@
     <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails
       onclick="this.querySelector('a[href]').click()">
       
-      <a href=@{DataR $ DataWorkspaceR bid wid}>
+      <a href=@{DataR $ StaffAssignmentR eid aid}>
       _{MsgDetails}
       
     <md-primary-tab ##{idTabWorkingHours} aria-cotrols=#{idPanelWorkingHours} active
       onclick="this.querySelector('a[href]').click()">
       
-      <a href=@{DataR $ DataWorkingHoursR bid wid month}>
-      _{MsgWorkingHours}
+      <a href=@{DataR $ StaffScheduleR eid aid month}>
+      _{MsgWorkSchedule}
       
 
   <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
@@ -31,12 +31,12 @@
 
     <div.calendar ##{idCalendarPage}>
       <div.header>
-        <md-icon-button type=link href=@?{(DataR $ DataWorkingHoursR bid wid prev,stati)} rel=nofollow>
+        <md-icon-button type=link href=@{DataR $ StaffScheduleR eid aid prev} rel=nofollow>
           <md-icon>arrow_back
         $with m <- show month
           <time.month-of-year datetime=#{m}>
             #{m}
-        <md-icon-button type=link href=@?{(DataR $ DataWorkingHoursR bid wid next,stati)} rel=nofollow>
+        <md-icon-button type=link href=@{DataR $ StaffScheduleR eid aid next} rel=nofollow>
           <md-icon>arrow_forward
 
       $forall wd <- [MsgMon,MsgTue,MsgWed,MsgThu,MsgFri,MsgSat,MsgSun]
@@ -46,7 +46,7 @@
         $forall day <- take 7 (drop (i * 7) page)
           $with (y,m,d) <- toGregorian day
             $if (==) month (YearMonth y m)
-              <a.cell href=@?{(DataR $ DataWorkingSlotsR bid wid day,stati)} 
+              <a.cell href=@{DataR $ StaffScheduleSlotsR eid aid day} 
                 :M.member day hours:.primary :M.notMember day hours:.primary-negative>
                 
                 <time.day-of-month datetime=#{show day}>

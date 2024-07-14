@@ -2,6 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 module Handler.Data.Staff
   ( getStaffR
@@ -18,17 +19,37 @@ module Handler.Data.Staff
   , getStaffAssignmentNewR
   , getStaffAssignmentEditR
   , postStaffAssignmentDeleR
+  , getStaffScheduleR
+  , getStaffScheduleSlotsR
+  , postStaffScheduleSlotsR
+  , getStaffScheduleSlotR
+  , postStaffScheduleSlotR
+  , getStaffScheduleSlotNewR
+  , getStaffScheduleSlotEditR
+  , postStaffScheduleSlotDeleR
   ) where
 
 import Control.Monad (void)
 
+import qualified Data.Map as M (Map, fromListWith, member, notMember, lookup)
 import Data.Maybe (fromMaybe)
+import Data.Time
+    ( nominalDiffTimeToSeconds, secondsToNominalDiffTime
+    , DayPeriod (periodFirstDay, periodLastDay), weekFirstDay
+    , DayOfWeek (Monday), addDays, defaultTimeLocale, getCurrentTime, UTCTime (utctDay)
+    )
+import Data.Time.LocalTime
+    ( utc, utcToLocalTime, localTimeToUTC, diffLocalTime, LocalTime (LocalTime) )
+import Data.Time.Calendar (Day, toGregorian)
+import Data.Time.Calendar.Month (Month, addMonths, pattern YearMonth)
+import Data.Time.Clock (NominalDiffTime)
+import Data.Time.Format (formatTime) 
 import Data.Time.Format.ISO8601 (iso8601Show)
 
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, desc, asc, selectOne, where_, val
     , (^.), (==.), (:&)((:&))
-    , innerJoin, on
+    , innerJoin, on, between
     )
 import Database.Persist
     ( Entity (Entity), entityVal, entityKey, insert_)
@@ -40,7 +61,9 @@ import Foundation
     , DataR
       ( EmployeeR, EmployeeNewR, StaffR, EmployeeEditR, EmployeeDeleR
       , StaffAssignmentsR, StaffAssignmentR, StaffAssignmentNewR
-      , StaffAssignmentEditR, StaffAssignmentDeleR
+      , StaffAssignmentEditR, StaffAssignmentDeleR, StaffScheduleR
+      , StaffScheduleSlotsR, StaffScheduleSlotR, StaffScheduleSlotNewR
+      , StaffScheduleSlotEditR, StaffScheduleSlotDeleR
       )
     , AppMessage
       ( MsgStaff, MsgAdd, MsgYouMightWantToAddAFew, MsgThereAreNoDataYet
@@ -49,39 +72,46 @@ import Foundation
       , MsgDetails, MsgDeleteAreYouSure, MsgEdit, MsgDele, MsgConfirmPlease
       , MsgInvalidFormData, MsgRecordDeleted, MsgRecordEdited, MsgWorkspace
       , MsgService, MsgAssignmentDate, MsgServiceAssignment, MsgTheStart
-      , MsgBusiness, MsgSchedulingInterval, MsgUnitMinutes
+      , MsgBusiness, MsgSchedulingInterval, MsgUnitMinutes, MsgWorkSchedule
+      , MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
+      , MsgSymbolHour, MsgSymbolMinute, MsgWorkingHours, MsgStartTime
+      , MsgEndTime, MsgDay
       )
     )
     
 import Material3
     ( md3mreq, md3telField, md3textField, md3mopt, md3selectField
-    , md3datetimeLocalField, md3intField
+    , md3datetimeLocalField, md3intField, md3timeField
     )
 
 import Model
     ( statusError, statusSuccess
     , StaffId, Staff (Staff, staffName, staffMobile, staffPhone, staffAccount)
     , User (userName, userEmail)
-    , AssignmentId, Assignment (Assignment, assignmentService, assignmentStart, assignmentSlotInterval)
+    , AssignmentId
+    , Assignment (Assignment, assignmentService, assignmentStart, assignmentSlotInterval)
     , Service (Service, serviceName)
     , Workspace (Workspace)
     , Business (Business)
+    , Schedule (Schedule, scheduleStart, scheduleEnd), ScheduleId
     , EntityField
       ( StaffId, UserName, UserId, AssignmentService, ServiceId
       , ServiceWorkspace, WorkspaceId, WorkspaceBusiness, BusinessId
-      , AssignmentStaff, AssignmentId, ServiceName
+      , AssignmentStaff, AssignmentId, ServiceName, ScheduleAssignment
+      , ScheduleDay, ScheduleId
       )
     )
 
 import Settings (widgetFile)
 
 import Text.Hamlet (Html)
+import Text.Printf (printf)
 
 import Widgets (widgetMenu, widgetAccount, widgetBanner, widgetSnackbar)
 
 import Yesod.Core
     ( Yesod(defaultLayout), newIdent, getMessages, whamlet, addMessageI, redirect
-    , MonadHandler (liftHandler), SomeMessage (SomeMessage)
+    , MonadHandler (liftHandler), SomeMessage (SomeMessage), MonadIO (liftIO)
     )
 import Yesod.Core.Handler (getMessageRender)
 import Yesod.Core.Widget (setTitleI)
@@ -93,8 +123,184 @@ import Yesod.Form
     )
 import Yesod.Form.Functions (generateFormPost)
 import Yesod.Persist (YesodPersist(runDB))
-import Data.Time.LocalTime (utc, utcToLocalTime, localTimeToUTC)
-import Data.Time (nominalDiffTimeToSeconds, secondsToNominalDiffTime)
+
+
+postStaffScheduleSlotDeleR :: StaffId -> AssignmentId -> Day -> ScheduleId -> Handler Html
+postStaffScheduleSlotDeleR eid aid day sid = do
+    
+    ((fr,_),_) <- runFormPost formWorkingSlotDelete
+    case fr of
+      FormSuccess () -> do
+          runDB $ P.delete eid
+          addMessageI statusSuccess MsgRecordDeleted
+          redirect $ DataR $ StaffScheduleSlotsR eid aid day
+      _otherwise -> do
+          addMessageI statusError MsgInvalidFormData
+          redirect $ DataR $ StaffScheduleSlotR eid aid day sid
+
+
+getStaffScheduleSlotEditR :: StaffId -> AssignmentId -> Day -> ScheduleId -> Handler Html
+getStaffScheduleSlotEditR eid aid day sid = do
+    
+    slot <- runDB $ selectOne $ do
+        x <- from $ table @Schedule
+        where_ $ x ^. ScheduleId ==. val sid
+        return x
+    
+    (fw,et) <- generateFormPost $ formWorkSlot aid day slot
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgWorkingHours
+        idFormWorkSlot <- newIdent
+        $(widgetFile "data/staff/assignments/schedule/slots/edit")
+
+
+getStaffScheduleSlotNewR :: StaffId -> AssignmentId -> Day -> Handler Html
+getStaffScheduleSlotNewR eid aid day = do
+
+    (fw,et) <- generateFormPost $ formWorkSlot aid day Nothing
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgWorkingHours
+        idFormWorkSlot <- newIdent
+        $(widgetFile "data/staff/assignments/schedule/slots/new")
+
+
+formWorkSlot :: AssignmentId -> Day -> Maybe (Entity Schedule) -> Form Schedule
+formWorkSlot wid day slot extra = do
+
+    msgr <- getMessageRender
+    
+    (startR,startV) <- md3mreq md3timeField FieldSettings
+        { fsLabel = SomeMessage MsgStartTime
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgStartTime)]
+        } (scheduleStart . entityVal <$> slot)
+        
+    (endR,endV) <- md3mreq md3timeField FieldSettings
+        { fsLabel = SomeMessage MsgEndTime
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgEndTime)]
+        } (scheduleEnd . entityVal <$> slot)
+
+    let r = Schedule wid day <$> startR <*> endR
+    let w = [whamlet|#{extra} ^{fvInput startV} ^{fvInput endV}|]
+    return (r,w)
+
+
+postStaffScheduleSlotR :: StaffId -> AssignmentId -> Day -> ScheduleId -> Handler Html
+postStaffScheduleSlotR eid aid day sid = do
+    
+    slot <- runDB $ selectOne $ do
+        x <- from $ table @Schedule
+        where_ $ x ^. ScheduleId ==. val sid
+        return x
+
+    ((fr,fw),et) <- runFormPost $ formWorkSlot aid day slot
+
+    case fr of
+      FormSuccess r -> do
+          runDB $ P.replace sid r
+          addMessageI statusSuccess MsgRecordEdited
+          redirect $ DataR $ StaffScheduleSlotsR eid aid day
+      _otherwise -> do    
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgWorkingHours
+              idFormWorkSlot <- newIdent
+              $(widgetFile "data/staff/assignments/schedule/slots/edit")
+
+
+getStaffScheduleSlotR :: StaffId -> AssignmentId -> Day -> ScheduleId -> Handler Html
+getStaffScheduleSlotR eid aid day sid = do
+    
+    slot <- runDB $ selectOne $ do
+        x <- from $ table @Schedule
+        where_ $ x ^. ScheduleId ==. val sid
+        return x
+
+    (fw2,et2) <- generateFormPost formWorkingSlotDelete
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgWorkingHours 
+        $(widgetFile "data/staff/assignments/schedule/slots/slot")
+
+
+formWorkingSlotDelete :: Form ()
+formWorkingSlotDelete extra = return (pure (), [whamlet|#{extra}|]) 
+
+
+postStaffScheduleSlotsR :: StaffId -> AssignmentId -> Day -> Handler Html
+postStaffScheduleSlotsR eid aid day = do
+
+    ((fr,fw),et) <- runFormPost $ formWorkSlot aid day Nothing
+
+    case fr of
+      FormSuccess r -> do
+          runDB $ insert_ r
+          addMessageI statusSuccess MsgRecordAdded
+          redirect $ DataR $ StaffScheduleSlotsR eid aid day
+      _otherwise -> do    
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgWorkingHours
+              idFormWorkSlot <- newIdent
+              $(widgetFile "data/staff/assignments/schedule/slots/new") 
+
+
+getStaffScheduleSlotsR :: StaffId -> AssignmentId -> Day -> Handler Html
+getStaffScheduleSlotsR eid aid day = do
+    
+    slots <- runDB $ select $ do
+        x <- from $ table @Schedule
+        where_ $ x ^. ScheduleAssignment ==. val aid
+        where_ $ x ^. ScheduleDay ==. val day
+        return x
+
+    let month = (\(y,m,_) -> YearMonth y m) . toGregorian $ day
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgWorkingHours
+        idFabAdd <- newIdent
+        $(widgetFile "data/staff/assignments/schedule/slots/slots")
+
+
+getStaffScheduleR :: StaffId -> AssignmentId -> Month -> Handler Html
+getStaffScheduleR eid aid month = do
+
+    let mapper (Entity _ (Schedule _ day start end)) = (day,diffLocalTime (LocalTime day end) (LocalTime day start))
+    
+    hours <- groupByKey mapper <$> runDB ( select $ do
+        x <- from $ table @Schedule
+        where_ $ x ^. ScheduleAssignment ==. val aid
+        where_ $ x ^. ScheduleDay `between` (val $ periodFirstDay month, val $ periodLastDay month)
+        return x ) :: Handler (M.Map Day NominalDiffTime)
+
+    let start = weekFirstDay Monday (periodFirstDay month)
+    let end = addDays 41 start
+    let page = [start .. end]
+    let next = addMonths 1 month
+    let prev = addMonths (-1) month
+
+    msgr <- getMessageRender
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgWorkSchedule
+        idTabWorkingHours <- newIdent
+        idPanelWorkingHours <- newIdent
+        idCalendarPage <- newIdent
+        idFabAdd <- newIdent 
+        $(widgetFile "data/staff/assignments/schedule/hours")
+  where
+      
+      groupByKey :: (Ord k, Num a) => (v -> (k,a)) -> [v] -> M.Map k a
+      groupByKey key = M.fromListWith (+) . fmap key
+
+      rest diff = mod (div (truncate @_ @Integer $ nominalDiffTimeToSeconds diff) 60) 60
 
 
 postStaffAssignmentDeleR :: StaffId -> AssignmentId -> Handler Html
@@ -174,11 +380,15 @@ getStaffAssignmentR eid aid = do
         where_ $ x ^. AssignmentId ==. val aid
         return (x,(e,(s,(w,b))))
 
+    month <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
+
     (fw2,et2) <- generateFormPost formServiceAssignmentDelete
         
     msgs <- getMessages
     defaultLayout $ do
-        setTitleI MsgServiceAssignment 
+        setTitleI MsgServiceAssignment
+        idTabDetails <- newIdent
+        idPanelDetails <- newIdent
         $(widgetFile "data/staff/assignments/assignment")
 
 

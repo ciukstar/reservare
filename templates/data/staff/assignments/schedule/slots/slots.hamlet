@@ -1,6 +1,6 @@
 
 <header.background>
-  <md-icon-button href=@?{(DataR $ DataWorkingHoursR bid wid month,stati)} aria-label=_{MsgBack}>
+  <md-icon-button href=@{DataR $ StaffScheduleR eid aid month} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
   <span.md-typescale-title-large>
@@ -24,8 +24,8 @@
           _{MsgYouMightWantToAddAFew}
   $else
     <md-list>
-      $forall Entity sid (WorkingHours _ _ start end) <- slots
-        <md-list-item type=link href=@?{(DataR $ DataWorkingSlotR bid wid day sid,stati)}>
+      $forall Entity sid (Schedule _ _ start end) <- slots
+        <md-list-item type=link href=@{DataR $ StaffScheduleSlotR eid aid day sid}>
           <div slot=headline>
             <time.time-of-day datetime=#{show $ LocalTime day start}>#{show start}
             \ &mdash; #
@@ -34,7 +34,7 @@
         <md-divider>
 
   <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-    <a href=@?{(DataR $ DataWorkingSlotNewR bid wid day,stati)}>
+    <a href=@{DataR $ StaffScheduleSlotNewR eid aid day}>
     <md-icon slot=icon>add
 
   ^{widgetSnackbar msgs}
