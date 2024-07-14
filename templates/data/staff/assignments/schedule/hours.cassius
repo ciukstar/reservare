@@ -2,13 +2,16 @@
 header
     position: sticky
     top: 0
-    z-index: 1
+    z-index: 2
     height: var(--app-top-appbar-height,64px)
     padding: 0 0.5rem
     display: flex
     justify-content: flex-start
     align-items: center
     column-gap: 0.5rem
+
+    #headerEnd
+        margin-left: auto
     
 main
     display: flex
@@ -45,8 +48,3 @@ main
                 font-size: 0.7rem
                 line-height: 1
                 text-decoration: none
-
-    ##{idFabAdd}
-        position: fixed
-        right: 1rem
-        bottom: 1rem

@@ -27,16 +27,19 @@ module Handler.Data.Staff
   , getStaffScheduleSlotNewR
   , getStaffScheduleSlotEditR
   , postStaffScheduleSlotDeleR
+  , postStaffScheduleFillFromWorkingHoursR
+  , postStaffScheduleFillFromPreviousMonthR
   ) where
 
-import Control.Monad (void)
+import Control.Monad (void, forM_)
 
 import qualified Data.Map as M (Map, fromListWith, member, notMember, lookup)
 import Data.Maybe (fromMaybe)
 import Data.Time
     ( nominalDiffTimeToSeconds, secondsToNominalDiffTime
     , DayPeriod (periodFirstDay, periodLastDay), weekFirstDay
-    , DayOfWeek (Monday), addDays, defaultTimeLocale, getCurrentTime, UTCTime (utctDay)
+    , DayOfWeek (Monday), addDays, defaultTimeLocale, getCurrentTime
+    , UTCTime (utctDay), fromGregorian
     )
 import Data.Time.LocalTime
     ( utc, utcToLocalTime, localTimeToUTC, diffLocalTime, LocalTime (LocalTime) )
@@ -49,7 +52,7 @@ import Data.Time.Format.ISO8601 (iso8601Show)
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, desc, asc, selectOne, where_, val
     , (^.), (==.), (:&)((:&))
-    , innerJoin, on, between
+    , innerJoin, on, between, subSelect, just
     )
 import Database.Persist
     ( Entity (Entity), entityVal, entityKey, insert_)
@@ -64,6 +67,7 @@ import Foundation
       , StaffAssignmentEditR, StaffAssignmentDeleR, StaffScheduleR
       , StaffScheduleSlotsR, StaffScheduleSlotR, StaffScheduleSlotNewR
       , StaffScheduleSlotEditR, StaffScheduleSlotDeleR
+      , StaffScheduleFillFromWorkingHoursR, StaffScheduleFillFromPreviousMonthR
       )
     , AppMessage
       ( MsgStaff, MsgAdd, MsgYouMightWantToAddAFew, MsgThereAreNoDataYet
@@ -75,7 +79,7 @@ import Foundation
       , MsgBusiness, MsgSchedulingInterval, MsgUnitMinutes, MsgWorkSchedule
       , MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
       , MsgSymbolHour, MsgSymbolMinute, MsgWorkingHours, MsgStartTime
-      , MsgEndTime, MsgDay
+      , MsgEndTime, MsgDay, MsgFillFromPreviousMonth, MsgFillFromWorkingSchedule
       )
     )
     
@@ -98,8 +102,8 @@ import Model
       ( StaffId, UserName, UserId, AssignmentService, ServiceId
       , ServiceWorkspace, WorkspaceId, WorkspaceBusiness, BusinessId
       , AssignmentStaff, AssignmentId, ServiceName, ScheduleAssignment
-      , ScheduleDay, ScheduleId
-      )
+      , ScheduleDay, ScheduleId, WorkingHoursDay, WorkingHoursWorkspace
+      ), WorkingHours (WorkingHours)
     )
 
 import Settings (widgetFile)
@@ -125,13 +129,64 @@ import Yesod.Form.Functions (generateFormPost)
 import Yesod.Persist (YesodPersist(runDB))
 
 
+postStaffScheduleFillFromPreviousMonthR :: StaffId -> AssignmentId -> Month -> Handler Html
+postStaffScheduleFillFromPreviousMonthR eid aid month = do
+    ((fr,_),_) <- runFormPost formFillFromPreviousMonth
+    case fr of
+      FormSuccess () -> do
+          slots <- runDB $ select $ do
+
+              let prev = addMonths (-1) month
+              
+              x <- from $ table @Schedule
+              where_ $ x ^. ScheduleAssignment ==. val aid
+              where_ $ x ^. ScheduleDay `between` (val $ periodFirstDay prev, val $ periodLastDay prev)
+              return x
+
+          forM_ slots $ \(Entity _ (Schedule _ day start end)) -> do
+              let (y,m,d) = toGregorian day
+              let curr = fromGregorian y (m + 1) d
+              runDB $ insert_ $ Schedule aid curr start end 
+              
+          redirect $ DataR $ StaffScheduleR eid aid month
+      _otherwise -> do
+          addMessageI statusError MsgInvalidFormData
+          redirect $ DataR $ StaffScheduleR eid aid month
+
+
+postStaffScheduleFillFromWorkingHoursR :: StaffId -> AssignmentId -> Month -> Handler Html
+postStaffScheduleFillFromWorkingHoursR eid aid month = do
+    ((fr,_),_) <- runFormPost formFillFromWorkingHours
+    case fr of
+      FormSuccess () -> do
+          slots <- runDB $ select $ do
+              x <- from $ table @WorkingHours
+              where_ $ just ( x ^. WorkingHoursWorkspace ) ==. subSelect
+                  ( do
+                        a :& s <- from $ table @Assignment
+                            `innerJoin` table @Service `on` (\(a :& s) -> a ^. AssignmentService ==. s ^. ServiceId)
+                        where_ $ a ^. AssignmentId ==. val aid
+                        return $ s ^. ServiceWorkspace
+                  )
+              where_ $ x ^. WorkingHoursDay `between` (val $ periodFirstDay month, val $ periodLastDay month)
+              return x
+
+          forM_ slots $ \(Entity _ (WorkingHours _ day start end)) -> do
+              runDB $ insert_ $ Schedule aid day start end 
+              
+          redirect $ DataR $ StaffScheduleR eid aid month
+      _otherwise -> do
+          addMessageI statusError MsgInvalidFormData
+          redirect $ DataR $ StaffScheduleR eid aid month
+
+
 postStaffScheduleSlotDeleR :: StaffId -> AssignmentId -> Day -> ScheduleId -> Handler Html
 postStaffScheduleSlotDeleR eid aid day sid = do
     
     ((fr,_),_) <- runFormPost formWorkingSlotDelete
     case fr of
       FormSuccess () -> do
-          runDB $ P.delete eid
+          runDB $ P.delete sid
           addMessageI statusSuccess MsgRecordDeleted
           redirect $ DataR $ StaffScheduleSlotsR eid aid day
       _otherwise -> do
@@ -286,14 +341,20 @@ getStaffScheduleR eid aid month = do
     let next = addMonths 1 month
     let prev = addMonths (-1) month
 
+    (fw1,et1) <- generateFormPost formFillFromWorkingHours
+    (fw2,et2) <- generateFormPost formFillFromPreviousMonth
+    
     msgr <- getMessageRender
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkSchedule
+        idButtonMenuAnchor <- newIdent
+        idMenuActions <- newIdent
+        idFormFillFromWorkingHours <- newIdent
+        idFormFillFromPreviousMonth <- newIdent
         idTabWorkingHours <- newIdent
         idPanelWorkingHours <- newIdent
         idCalendarPage <- newIdent
-        idFabAdd <- newIdent 
         $(widgetFile "data/staff/assignments/schedule/hours")
   where
       
@@ -301,6 +362,14 @@ getStaffScheduleR eid aid month = do
       groupByKey key = M.fromListWith (+) . fmap key
 
       rest diff = mod (div (truncate @_ @Integer $ nominalDiffTimeToSeconds diff) 60) 60
+
+
+formFillFromPreviousMonth :: Form ()
+formFillFromPreviousMonth extra = return (pure (), [whamlet|#{extra}|])
+
+
+formFillFromWorkingHours :: Form ()
+formFillFromWorkingHours extra = return (pure (), [whamlet|#{extra}|])
 
 
 postStaffAssignmentDeleR :: StaffId -> AssignmentId -> Handler Html
@@ -390,6 +459,9 @@ getStaffAssignmentR eid aid = do
         idTabDetails <- newIdent
         idPanelDetails <- newIdent
         $(widgetFile "data/staff/assignments/assignment")
+
+  where
+      toMinutes interval = truncate @_ @Integer (nominalDiffTimeToSeconds interval / 60)
 
 
 formServiceAssignmentDelete :: Form ()

@@ -61,6 +61,10 @@
     /services/#ServiceId             ServiceR            GET POST
     /services                        ServicesR           GET POST
 
+
+    
+    /staff/#StaffId/assignments/#AssignmentId/#Month/fill/prev  StaffScheduleFillFromPreviousMonthR POST
+    /staff/#StaffId/assignments/#AssignmentId/#Month/fill/hours StaffScheduleFillFromWorkingHoursR  POST
     
     /staff/#StaffId/assignments/#AssignmentId/#Day/slots/#ScheduleId/form/dele StaffScheduleSlotDeleR POST
     /staff/#StaffId/assignments/#AssignmentId/#Day/slots/#ScheduleId/form/edit StaffScheduleSlotEditR GET

@@ -1,3 +1,5 @@
+FillFromPreviousMonth: Заполнить с предыдущего месяца
+FillFromWorkingSchedule: Заполнить из графика работы
 WorkSchedule: График работы
 SymbolMinute: мин
 SymbolHour: ч

@@ -99,7 +99,8 @@ import Handler.Data.Staff
     , getStaffScheduleR, getStaffScheduleSlotsR, postStaffScheduleSlotsR
     , getStaffScheduleSlotR, postStaffScheduleSlotR
     , getStaffScheduleSlotNewR, getStaffScheduleSlotEditR
-    , postStaffScheduleSlotDeleR
+    , postStaffScheduleSlotDeleR, postStaffScheduleFillFromWorkingHoursR
+    , postStaffScheduleFillFromPreviousMonthR
     )
 
 import Handler.Data.Business

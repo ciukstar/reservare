@@ -1,3 +1,5 @@
+FillFromPreviousMonth: Fill in from previous month
+FillFromWorkingSchedule: Fill in from the working schedule
 WorkSchedule: Schedule
 SymbolMinute: min
 SymbolHour: h

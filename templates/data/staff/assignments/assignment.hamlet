@@ -61,7 +61,7 @@
 
         <dt.md-typescale-label-large>_{MsgSchedulingInterval}
         <dd.md-typescale-body-medium>
-          #{show $ truncate ((nominalDiffTimeToSeconds interval) / 60)} _{MsgUnitMinutes}
+          #{show $ toMinutes interval} _{MsgUnitMinutes}
 
         <dt.md-typescale-label-large>_{MsgService}
         <dd.md-typescale-body-medium>

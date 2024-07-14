@@ -4,7 +4,30 @@
     <md-icon>arrow_back
 
   <span.md-typescale-title-large>
-    _{MsgWorkspace}
+    _{MsgServiceAssignment}
+
+  
+  <span #headerEnd>
+    <md-icon-button type=button ##{idButtonMenuAnchor}
+      onclick="document.getElementById('#{idMenuActions}').open = !document.getElementById('#{idMenuActions}').open">
+      <md-icon>more_vert
+    <md-menu anchor=#{idButtonMenuAnchor} x-offset=16 y-offset=16 ##{idMenuActions}>
+
+      <md-menu-item onclick="document.getElementById('#{idFormFillFromWorkingHours}').submit()">
+        <div slot=headline>
+          _{MsgFillFromWorkingSchedule}
+
+      <md-menu-item onclick="document.getElementById('#{idFormFillFromPreviousMonth}').submit()">
+        <div slot=headline>
+          _{MsgFillFromPreviousMonth}
+
+<form method=post action=@{DataR $ StaffScheduleFillFromWorkingHoursR eid aid month} enctype=#{et1} 
+  ##{idFormFillFromWorkingHours}>
+  ^{fw1}
+
+<form method=post action=@{DataR $ StaffScheduleFillFromPreviousMonthR eid aid month} enctype=#{et2} 
+  ##{idFormFillFromPreviousMonth}>
+  ^{fw2}
 
 <main>
 
