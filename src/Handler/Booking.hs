@@ -78,15 +78,15 @@ import Model
     , ServiceId, Service(Service)
     , Workspace (Workspace)
     , Business (Business)
-    , Assignment
+    , Assignment (Assignment)
     , StaffId, Staff (Staff)
     , User (User), PayMethod (PayNow, PayAtVenue)
     , EntityField
       ( ServiceWorkspace, WorkspaceId, WorkspaceBusiness
       , BusinessId, ServiceName, AssignmentStaff, StaffId, StaffName
       , BusinessName, WorkspaceName, ServiceId, AssignmentService
-      , AssignmentSlotInterval
-      )
+      , AssignmentSlotInterval, ScheduleAssignment, AssignmentId, ScheduleDay
+      ), Schedule (Schedule)
     )
     
 import Network.Wreq
@@ -133,7 +133,7 @@ import Yesod.Form.Fields
 import Yesod.Form.Functions (generateFormPost, mreq, runFormPost)
 import Yesod.Persist.Core (YesodPersist(runDB))
 import Data.Maybe (fromMaybe)
-
+        
 
 getBookPayAtVenueCompletionR :: Handler Html
 getBookPayAtVenueCompletionR = do
@@ -461,16 +461,24 @@ formTimeSlot day sid eid tid extra = do
           Nothing -> where_ $ val False
         return (x ^. AssignmentSlotInterval) )
 
-    let outset = LocalTime day (TimeOfDay 9 0 0)
+    schedule <- liftHandler $ runDB $ select $ do
+        x :& a <- from $ table @Schedule
+            `innerJoin` table @Assignment `on` (\(x :& a) -> x ^. ScheduleAssignment ==. a ^. AssignmentId)
+        case eid of
+          Just y -> where_ $ a ^. AssignmentStaff ==. val y
+          Nothing -> where_ $ val False
+        case sid of
+          Just y -> where_ $ a ^. AssignmentService ==. val y
+          Nothing -> where_ $ val False
+        where_ $ x ^. ScheduleDay ==. val day
+        return x
     
-    let slots = [ addLocalTime (0 * interval) outset
-                , addLocalTime (1 * interval) outset
-                , addLocalTime (2 * interval) outset
-                , addLocalTime (3 * interval) outset
-                , addLocalTime (4 * interval) outset
-                , addLocalTime (5 * interval) outset
-                , addLocalTime (6 * interval) outset
-                ]
+    let slots = concatMap
+            (\(Entity _ (Schedule _ d s e)) ->
+               [ addLocalTime (fromInteger i * interval) (LocalTime d s) | i <- [0..6] ]
+            )
+            schedule
+                        
         
     (slotsR,slotsV) <- mreq (md3radioFieldList slots) "" tid
 
@@ -480,10 +488,9 @@ formTimeSlot day sid eid tid extra = do
     return (r,w)
 
   where
-      pairs services = (\x -> (pack $ show x, x)) <$> services
+      pairs slots = (\x -> (pack $ show x, x)) <$> slots
 
-      md3radioFieldList :: [LocalTime]
-                        -> Field (HandlerFor App) LocalTime
+      md3radioFieldList :: [LocalTime] -> Field (HandlerFor App) LocalTime
       md3radioFieldList slots = (radioField (optionsPairs (pairs slots)))
           { fieldView = \theId name attrs x isReq -> do
 

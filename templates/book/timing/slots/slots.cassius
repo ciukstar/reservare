@@ -11,10 +11,12 @@ header
     column-gap: 0.5rem
 
 main
-    margin: 0 1rem
     display: flex
     flex-direction: column
     
+    #idDayLabel
+       padding: 0 2rem
+       
     ##{idFormSlots}
     
         div.list-frame

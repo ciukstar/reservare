@@ -224,7 +224,7 @@ instance Yesod App where
     isAuthorized (DataR (ServiceR _)) _ = isAdmin
     isAuthorized r@(DataR ServicesR) _ = setUltDest r >> isAdmin
     
-    
+            
     isAuthorized (DataR (StaffScheduleFillFromPreviousMonthR _ _ _)) _ = isAdmin
     isAuthorized (DataR (StaffScheduleFillFromWorkingHoursR _ _ _)) _ = isAdmin
     isAuthorized (DataR (StaffScheduleSlotDeleR _ _ _ _)) _ = isAdmin

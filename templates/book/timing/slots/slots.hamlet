@@ -10,7 +10,7 @@
 
   ^{widgetBanner msgs}
   
-  <p>
+  <p #idDayLabel>
     $with d <- show day
       <time.day.md-typescale-label-large datetime=#{d}>
         #{d}
