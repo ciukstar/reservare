@@ -42,9 +42,7 @@ main
             text-align: center
             vertical-align: text-top
             text-decoration: none
-            border: 1px solid var(--md-sys-color-surface-dim,black)
             border-radius: 8px
-            box-shadow: 1px 1px 1px var(--md-sys-color-surface-dim)
             time.day-of-month
                 font-size: 1.2rem
                 line-height: 1.4rem
@@ -53,6 +51,13 @@ main
                 font-size: 0.7rem
                 line-height: 1
                 text-decoration: none
+        a.cell
+            border: 1px solid var(--md-sys-color-primary-container,black)
+            box-shadow: 1px 1px 1px var(--md-sys-color-surface-dim)
+            
+        div.cell.disabled
+            border: 1px solid var(--md-sys-color-surface-dim,black)
+            color: rgba(0,0,0,0.6)
 
     section.prompt
         text-align: center        

@@ -13,12 +13,12 @@
   
   <div.calendar ##{idCalendarPage}>
     <div.header>
-      <md-icon-button type=link href=@?{(BookTimingR prev,stati)} rel=nofollow>
+      <md-icon-button type=link href=@?{(BookTimingR prev,stati)} rel=nofollow aria-label=_{MsgPrevious}>
         <md-icon>arrow_back
       $with m <- show month
         <time.month-of-year datetime=#{m}>
           #{m}
-      <md-icon-button type=link href=@?{(BookTimingR next,stati)} rel=nofollow>
+      <md-icon-button type=link href=@?{(BookTimingR next,stati)} rel=nofollow aria-label=_{MsgNext}>
         <md-icon>arrow_forward
 
     $forall wd <- [MsgMon,MsgTue,MsgWed,MsgThu,MsgFri,MsgSat,MsgSun]
@@ -27,10 +27,19 @@
     $forall i <- [0,1,2,3,4,5]
       $forall day <- take 7 (drop (i * 7) page)
         $with (y,m,d) <- toGregorian day
-          $if (==) month (YearMonth y m)
+          $if (&&) ((==) month (YearMonth y m)) (M.member day slots)
             <a.cell href=@?{(BookTimeSlotsR day,stati)} 
               :(Just day) == (localDay <$> tid):.primary
               :(Just day) /= (localDay <$> tid):.primary-negative>
+              <time.day-of-month datetime=#{show day}>
+                <small>#{d}
+              $maybe slot <- tid
+                $if (==) day (localDay slot)
+                  $with dt <- show slot
+                    <time.time-of-day datetime=#{dt}>
+                      #{dt}
+          $elseif (&&) ((==) month (YearMonth y m)) (not $ M.member day slots)
+            <div.cell.disabled>
               <time.day-of-month datetime=#{show day}>
                 <small>#{d}
               $maybe slot <- tid

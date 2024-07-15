@@ -15,15 +15,23 @@
       <time.day.md-typescale-label-large datetime=#{d}>
         #{d}
 
+  $if null slots
+    <figure style="text-align:center">
+      <span.on-secondary style="font-size:4rem">&varnothing;
+      <figcaption.md-typescale-body-large>
+        _{MsgThereAreNoDataYet}
+        <p.md-typescale-body-small>
+          _{MsgEmployeeScheduleotGeneratedYet}
+        
+  $else
+    <form method=post action=@?{(BookTimeSlotsR day,stati)} enctype=#{et} novalidate ##{idFormSlots}>
+      <div.list-frame>
+        ^{fw}
 
-  <form method=post action=@?{(BookTimeSlotsR day,stati)} enctype=#{et} novalidate ##{idFormSlots}>
-    <div.list-frame>
-      ^{fw}
-
-    <div.actions>
-      <md-text-button type=button href=@?{(BookTimingR month,stati)}>
-        _{MsgCancel}
-      <md-filled-button type=submit>
-        _{MsgSelect}
+      <div.actions>
+        <md-text-button type=button href=@?{(BookTimingR month,stati)}>
+          _{MsgCancel}
+        <md-filled-button type=submit>
+          _{MsgSelect}
 
   ^{widgetSnackbar msgs}

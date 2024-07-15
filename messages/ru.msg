@@ -1,3 +1,5 @@
+Previous: Предыдущий
+EmployeeScheduleotGeneratedYet: График работы сотрудников еще не сформирован
 FillFromPreviousMonth: Заполнить с предыдущего месяца
 FillFromWorkingSchedule: Заполнить из графика работы
 WorkSchedule: График работы

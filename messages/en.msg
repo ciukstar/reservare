@@ -1,3 +1,5 @@
+Previous: Previous
+EmployeeScheduleotGeneratedYet: Employee schedule is not yet generated
 FillFromPreviousMonth: Fill in from previous month
 FillFromWorkingSchedule: Fill in from the working schedule
 WorkSchedule: Schedule

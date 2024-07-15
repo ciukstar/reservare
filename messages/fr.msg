@@ -1,3 +1,5 @@
+Previous: Précédent
+EmployeeScheduleotGeneratedYet: L'horaire des employés n'est pas encore généré
 FillFromPreviousMonth: Remplissez du mois précédent
 FillFromWorkingSchedule: Remplissez à partir de l'horaire de travail
 WorkSchedule: Horaire de travail

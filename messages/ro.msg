@@ -1,3 +1,5 @@
+Previous: Precedent
+EmployeeScheduleotGeneratedYet: Programul angajatului nu a fost încă generat
 FillFromPreviousMonth: Completați din luna precedentă
 FillFromWorkingSchedule: Completați din programul de lucru
 WorkSchedule: Orarul de lucru

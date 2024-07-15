@@ -29,13 +29,15 @@ import Data.Bifunctor (Bifunctor(first))
 import qualified Data.ByteString as BS (empty)
 import Data.Foldable (find)
 import Data.Function ((&))
+import qualified Data.Map as M (member, Map, fromListWith)
+import Data.Maybe (fromMaybe)
 import Data.Monoid (Sum(Sum, getSum))
 import Data.Text (pack, Text, unpack)
 import Data.Text.Encoding (encodeUtf8)
 import Data.Time
     ( UTCTime (utctDay), weekFirstDay, DayOfWeek (Monday)
-    , DayPeriod (periodFirstDay), addDays, toGregorian, getCurrentTime
-    , Day, LocalTime (LocalTime, localDay), TimeOfDay (TimeOfDay)
+    , DayPeriod (periodFirstDay, periodLastDay), addDays, toGregorian, getCurrentTime
+    , Day, LocalTime (LocalTime, localDay)
     , addLocalTime, secondsToNominalDiffTime
     )
 import Data.Time.Calendar.Month (addMonths, pattern YearMonth, Month)
@@ -44,7 +46,7 @@ import Data.Time.LocalTime (utcToLocalTime, utc, localTimeToUTC)
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, asc, innerJoin, on
     , (^.), (==.), (:&)((:&))
-    , toSqlKey, val, where_, selectOne, Value (unValue)
+    , toSqlKey, val, where_, selectOne, Value (unValue), between
     )
 import Database.Persist (Entity (Entity))
 import qualified Database.Persist as P (exists, Filter)
@@ -67,6 +69,7 @@ import Foundation
       , MsgFinish, MsgService, MsgEmployee, MsgSelect, MsgSelectTime
       , MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
       , MsgAppointmentSetFor, MsgSelectAvailableDayAndTimePlease
+      , MsgEmployeeScheduleotGeneratedYet, MsgPrevious
       )
     )
     
@@ -78,15 +81,17 @@ import Model
     , ServiceId, Service(Service)
     , Workspace (Workspace)
     , Business (Business)
-    , Assignment (Assignment)
+    , Assignment
     , StaffId, Staff (Staff)
     , User (User), PayMethod (PayNow, PayAtVenue)
+    , Schedule (Schedule)
     , EntityField
       ( ServiceWorkspace, WorkspaceId, WorkspaceBusiness
       , BusinessId, ServiceName, AssignmentStaff, StaffId, StaffName
       , BusinessName, WorkspaceName, ServiceId, AssignmentService
-      , AssignmentSlotInterval, ScheduleAssignment, AssignmentId, ScheduleDay
-      ), Schedule (Schedule)
+      , AssignmentSlotInterval, ScheduleAssignment, AssignmentId
+      , ScheduleDay
+      )
     )
     
 import Network.Wreq
@@ -132,7 +137,6 @@ import Yesod.Form.Fields
     )
 import Yesod.Form.Functions (generateFormPost, mreq, runFormPost)
 import Yesod.Persist.Core (YesodPersist(runDB))
-import Data.Maybe (fromMaybe)
         
 
 getBookPayAtVenueCompletionR :: Handler Html
@@ -397,8 +401,10 @@ postBookTimeSlotsR day = do
     tid <- runInputGet ( iopt datetimeLocalField "tid" )
 
     let month = (\(y,m,_) -> YearMonth y m) . toGregorian $ day
+    
+    slots <- querySlots day sid eid
 
-    ((fr,fw),et) <- runFormPost $ formTimeSlot day sid eid tid
+    ((fr,fw),et) <- runFormPost $ formTimeSlot slots sid eid tid
     case fr of
       FormSuccess (sid',eid',tid') -> redirect
         ( BookTimingR month
@@ -423,34 +429,21 @@ getBookTimeSlotsR day = do
     tid <- runInputGet ( iopt datetimeLocalField "tid" )
 
     let month = (\(y,m,_) -> YearMonth y m) . toGregorian $ day
+    
+    slots <- querySlots day sid eid
 
-    (fw,et) <- generateFormPost $ formTimeSlot day sid eid tid
+    (fw,et) <- generateFormPost $ formTimeSlot slots sid eid tid
     
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgAppointmentTime
         idFormSlots <- newIdent
         $(widgetFile "book/timing/slots/slots")
-        
 
-formTimeSlot :: Day -> Maybe ServiceId -> Maybe StaffId -> Maybe LocalTime
-             -> Form (ServiceId,StaffId,LocalTime)
-formTimeSlot day sid eid tid extra = do
-   
-    msgr <- getMessageRender
+
+querySlots :: Day -> Maybe ServiceId -> Maybe StaffId -> Handler [LocalTime]
+querySlots day sid eid = do 
     
-    (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
-        { fsLabel = SomeMessage MsgService
-        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgService),("hidden","hidden")]
-        } (fromIntegral . fromSqlKey <$> sid)
-        
-    (staffR,staffV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
-        { fsLabel = SomeMessage MsgEmployee
-        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgEmployee),("hidden","hidden")]
-        } (fromIntegral . fromSqlKey <$> eid)
-
     interval <- maybe (secondsToNominalDiffTime (15 * 60)) unValue <$> liftHandler ( runDB $ selectOne $ do
         x <- from $ table @Assignment
         case sid of
@@ -473,11 +466,30 @@ formTimeSlot day sid eid tid extra = do
         where_ $ x ^. ScheduleDay ==. val day
         return x
     
-    let slots = concatMap
-            (\(Entity _ (Schedule _ d s e)) ->
-               [ addLocalTime (fromInteger i * interval) (LocalTime d s) | i <- [0..6] ]
+    return $ concatMap
+            (\(Entity _ (Schedule _ d s e)) -> let end = LocalTime d e in
+                takeWhile (< end) [ addLocalTime (fromInteger i * interval) (LocalTime d s) | i <- [0..] ]
             )
             schedule
+        
+
+formTimeSlot :: [LocalTime] -> Maybe ServiceId -> Maybe StaffId -> Maybe LocalTime
+             -> Form (ServiceId,StaffId,LocalTime)
+formTimeSlot slots sid eid tid extra = do
+   
+    msgr <- getMessageRender
+    
+    (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
+        { fsLabel = SomeMessage MsgService
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgService),("hidden","hidden")]
+        } (fromIntegral . fromSqlKey <$> sid)
+        
+    (staffR,staffV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
+        { fsLabel = SomeMessage MsgEmployee
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgEmployee),("hidden","hidden")]
+        } (fromIntegral . fromSqlKey <$> eid)
                         
         
     (slotsR,slotsV) <- mreq (md3radioFieldList slots) "" tid
@@ -488,13 +500,13 @@ formTimeSlot day sid eid tid extra = do
     return (r,w)
 
   where
-      pairs slots = (\x -> (pack $ show x, x)) <$> slots
+      pairs xs = (\x -> (pack $ show x, x)) <$> xs
 
       md3radioFieldList :: [LocalTime] -> Field (HandlerFor App) LocalTime
-      md3radioFieldList slots = (radioField (optionsPairs (pairs slots)))
+      md3radioFieldList items = (radioField (optionsPairs . pairs $ items))
           { fieldView = \theId name attrs x isReq -> do
 
-                opts <- zip [1 :: Int ..] . olOptions <$> handlerToWidget (optionsPairs (pairs slots))
+                opts <- zip [1 :: Int ..] . olOptions <$> handlerToWidget (optionsPairs . pairs $ items)
 
                 let sel (Left _) _ = False
                     sel (Right y) opt = optionInternalValue opt == y
@@ -539,6 +551,18 @@ postBookTimingR month = do
           let page = [start .. end]
           let next = addMonths 1 month
           let prev = addMonths (-1) month
+
+          slots <- groupByKey (\(Entity _ (Schedule _ day _ _)) -> day) <$> runDB ( select $ do
+              x :& a <- from $ table @Schedule
+                  `innerJoin` table @Assignment `on` (\(x :& a) -> x ^. ScheduleAssignment ==. a ^. AssignmentId)
+              case sid of
+                Just service -> where_ $ a ^. AssignmentService ==. val service
+                Nothing -> where_ $ val False
+              case eid of
+                Just employee -> where_ $ a ^. AssignmentStaff ==. val employee
+                Nothing -> where_ $ val False
+              where_ $ x ^. ScheduleDay `between` (val $ periodFirstDay month, val $ periodLastDay month)
+              return x )
           
           msgs <- getMessages
           defaultLayout $ do
@@ -566,6 +590,19 @@ getBookTimingR month = do
     let next = addMonths 1 month
     let prev = addMonths (-1) month
     
+    slots <- groupByKey (\(Entity _ (Schedule _ day _ _)) -> day) <$> runDB ( select $ do
+        x :& a <- from $ table @Schedule
+            `innerJoin` table @Assignment `on` (\(x :& a) -> x ^. ScheduleAssignment ==. a ^. AssignmentId)
+        case sid of
+          Just service -> where_ $ a ^. AssignmentService ==. val service
+          Nothing -> where_ $ val False
+        case eid of
+          Just employee -> where_ $ a ^. AssignmentStaff ==. val employee
+          Nothing -> where_ $ val False
+        where_ $ x ^. ScheduleDay `between` (val $ periodFirstDay month, val $ periodLastDay month)
+        return x )
+          
+    
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgAppointmentTime
@@ -573,6 +610,10 @@ getBookTimingR month = do
         idCalendarPage <- newIdent  
         idFabNext <- newIdent
         $(widgetFile "book/timing/timing")
+
+
+groupByKey :: Ord k => (v -> k) -> [v] -> M.Map k [v]
+groupByKey f = M.fromListWith (<>) . fmap (\x -> (f x,[x]))
 
 
 formTiming :: Maybe ServiceId -> Maybe StaffId -> Maybe LocalTime -> Form (ServiceId,StaffId,LocalTime)
