@@ -19,7 +19,9 @@ module Handler.Booking
   , getBookPayAtVenueCompletionR
   ) where
 
+
 import Control.Lens ((^?), (?~))
+import Control.Monad (when, unless)
 
 import Data.Aeson (object, (.=))
 import Data.Aeson.Lens (key, AsValue (_String))
@@ -36,22 +38,22 @@ import Data.Text (pack, Text, unpack)
 import Data.Text.Encoding (encodeUtf8)
 import Data.Time
     ( UTCTime (utctDay), weekFirstDay, DayOfWeek (Monday)
-    , DayPeriod (periodFirstDay, periodLastDay), addDays, toGregorian, getCurrentTime
+    , DayPeriod (periodFirstDay, periodLastDay), addDays, toGregorian
     , Day, LocalTime (LocalTime, localDay)
-    , addLocalTime, secondsToNominalDiffTime
+    , addLocalTime, secondsToNominalDiffTime, getCurrentTime
     )
 import Data.Time.Calendar.Month (addMonths, pattern YearMonth, Month)
 import Data.Time.LocalTime (utcToLocalTime, utc, localTimeToUTC)
 
 import Database.Esqueleto.Experimental
-    ( select, from, table, orderBy, asc, innerJoin, on
+    ( select, from, table, orderBy, asc, innerJoin, on, in_
     , (^.), (==.), (:&)((:&))
-    , toSqlKey, val, where_, selectOne, Value (unValue), between
+    , toSqlKey, val, where_, selectOne, Value (unValue), between, valList
     )
-import Database.Persist (Entity (Entity))
+import Database.Persist (Entity (Entity), entityKey)
 import qualified Database.Persist as P (exists, Filter)
 import Database.Persist.Sql (fromSqlKey)
-    
+
 import Foundation
     ( Handler, Form, App (appSettings)
     , Route
@@ -72,15 +74,15 @@ import Foundation
       , MsgEmployeeScheduleotGeneratedYet, MsgPrevious
       )
     )
-    
+
 import Material3 (md3mreq)
-    
+
 import Model
     ( statusSuccess, scriptRemoteStripe, endpointStripePaymentIntents
     , endpointStripePaymentIntentCancel
     , ServiceId, Service(Service)
-    , Workspace (Workspace)
-    , Business (Business)
+    , WorkspaceId, Workspace (Workspace)
+    , BusinessId, Business (Business)
     , Assignment
     , StaffId, Staff (Staff)
     , User (User), PayMethod (PayNow, PayAtVenue)
@@ -93,7 +95,7 @@ import Model
       , ScheduleDay
       )
     )
-    
+
 import Network.Wreq
     ( postWith, responseBody, auth, defaults, basicAuth
     , FormParam ((:=)), getWith
@@ -106,9 +108,11 @@ import Settings
     , AppSettings (appStripeConf)
     )
 
+import Text.Cassius (cassius)
 import Text.Hamlet (Html)
 import Text.Julius (rawJS)
 import Text.Read (readMaybe)
+import Text.Shakespeare.I18N (RenderMessage)
 
 import Widgets (widgetSnackbar, widgetBanner)
 
@@ -124,11 +128,11 @@ import Yesod.Core
     , SomeMessage (SomeMessage)
     )
 import Yesod.Core.Types (HandlerFor)
-import Yesod.Core.Widget (setTitleI)
+import Yesod.Core.Widget (setTitleI, toWidget)
 import Yesod.Form
     ( FieldView(fvInput), FormResult (FormSuccess), Field (fieldView)
     , FieldSettings (fsLabel, fsTooltip, fsId, fsName, fsAttrs, FieldSettings)
-    , Option (optionDisplay)
+    , Option (optionDisplay), checkboxesFieldList, runFormGet, mopt
     )
 import Yesod.Form.Input (runInputGet, ireq, iopt)
 import Yesod.Form.Fields
@@ -137,7 +141,7 @@ import Yesod.Form.Fields
     )
 import Yesod.Form.Functions (generateFormPost, mreq, runFormPost)
 import Yesod.Persist.Core (YesodPersist(runDB))
-        
+
 
 getBookPayAtVenueCompletionR :: Handler Html
 getBookPayAtVenueCompletionR = do
@@ -149,7 +153,7 @@ getBookPayAtVenueCompletionR = do
     -- pid <- (readMaybe @PayMethod . unpack =<<) <$> runInputGet ( iopt textField "pid" )
 
     -- record booking
-    
+
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgPaymentStatus
@@ -172,7 +176,7 @@ postBookPayR = do
     defaultLayout $ do
         setTitleI MsgAppointmentTime
         [whamlet| <h1>DONE |]
-    
+
 
 
 postBookPaymentIntentR :: Int -> Text -> Handler A.Value
@@ -198,7 +202,7 @@ getBookPayCompletionR = do
     _ <- runInputGet $ ireq textField "payment_intent_client_secret"
     _ <- runInputGet $ ireq textField "redirect_status"
 
-    
+
     let api = endpointStripePaymentIntents <> "/" <> intent
     sk <- encodeUtf8 . stripeConfSk . appStripeConf . appSettings <$> getYesod
     let opts = defaults & auth ?~ basicAuth sk ""
@@ -207,12 +211,12 @@ getBookPayCompletionR = do
     let status = r ^? responseBody . key "status" . _String
 
     msgr <- getMessageRender
-    
+
     let result = case status of
           Just "succeeded" -> msgr MsgYourBookingHasBeenCreatedSuccessfully
           Just s -> s
           Nothing -> msgr MsgSomethingWentWrong
-    
+
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgPaymentStatus
@@ -234,8 +238,8 @@ getBookCheckoutR = do
           setUltDestCurrent
           redirect $ AuthR LoginR
       Just (Entity _ (User email _ _ _ _ _ _ _)) -> do
-    
-          pk <- stripeConfPk . appStripeConf . appSettings <$> getYesod 
+
+          pk <- stripeConfPk . appStripeConf . appSettings <$> getYesod
 
           services <- runDB ( select $ do
               x :& w <- from $ table @Service
@@ -319,9 +323,9 @@ getBookPaymentR = do
 
     today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
     let month = maybe today ((\(y,m,_) -> YearMonth y m) . toGregorian . utctDay) tid
-    
+
     (fw,et) <- generateFormPost $ formPayment sid eid tid pid
-    
+
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgPaymentMethod
@@ -334,20 +338,20 @@ formPayment :: Maybe ServiceId -> Maybe StaffId -> Maybe UTCTime -> Maybe PayMet
             -> Form (ServiceId,StaffId,UTCTime,PayMethod)
 formPayment sid eid time method extra = do
 
-    msgr <- getMessageRender 
-    
+    msgr <- getMessageRender
+
     (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
         { fsLabel = SomeMessage MsgService
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgService),("hidden","hidden")]
         } (fromIntegral . fromSqlKey <$> sid)
-        
+
     (staffR,staffV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
         { fsLabel = SomeMessage MsgEmployee
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgEmployee),("hidden","hidden")]
         } (fromIntegral . fromSqlKey <$> eid)
-        
+
     (timeR,timeV) <- mreq datetimeLocalField FieldSettings
         { fsLabel = SomeMessage MsgAppointmentTime
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
@@ -355,7 +359,7 @@ formPayment sid eid time method extra = do
         } (utcToLocalTime utc <$> time)
 
     let methods = [((MsgPayNow,PayNow),"credit_card"),((MsgPayAtVenue,PayAtVenue),"point_of_sale")]
-        
+
     (methodR,methodV) <- md3mreq (md3radioFieldList methods) "" method
 
     let r = (,,,) <$> serviceR <*> staffR <*> (localTimeToUTC utc <$> timeR) <*> methodR
@@ -375,7 +379,7 @@ formPayment sid eid time method extra = do
                     sel (Right y) opt = optionInternalValue opt == y
 
                 let findMethod opt = find (\((_,m),_) -> m == optionInternalValue opt)
-                
+
                 [whamlet|
 <md-list ##{theId} *{attrs}>
   $forall (i,opt) <- opts
@@ -401,7 +405,7 @@ postBookTimeSlotsR day = do
     tid <- runInputGet ( iopt datetimeLocalField "tid" )
 
     let month = (\(y,m,_) -> YearMonth y m) . toGregorian $ day
-    
+
     slots <- querySlots day sid eid
 
     ((fr,fw),et) <- runFormPost $ formTimeSlot slots sid eid tid
@@ -413,7 +417,7 @@ postBookTimeSlotsR day = do
           , ( "tid", pack $ show tid')
           ]
         )
-      _otherwise -> do    
+      _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgAppointmentTime
@@ -429,11 +433,11 @@ getBookTimeSlotsR day = do
     tid <- runInputGet ( iopt datetimeLocalField "tid" )
 
     let month = (\(y,m,_) -> YearMonth y m) . toGregorian $ day
-    
+
     slots <- querySlots day sid eid
 
     (fw,et) <- generateFormPost $ formTimeSlot slots sid eid tid
-    
+
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgAppointmentTime
@@ -442,8 +446,8 @@ getBookTimeSlotsR day = do
 
 
 querySlots :: Day -> Maybe ServiceId -> Maybe StaffId -> Handler [LocalTime]
-querySlots day sid eid = do 
-    
+querySlots day sid eid = do
+
     interval <- maybe (secondsToNominalDiffTime (15 * 60)) unValue <$> liftHandler ( runDB $ selectOne $ do
         x <- from $ table @Assignment
         case sid of
@@ -465,38 +469,38 @@ querySlots day sid eid = do
           Nothing -> where_ $ val False
         where_ $ x ^. ScheduleDay ==. val day
         return x
-    
+
     return $ concatMap
             (\(Entity _ (Schedule _ d s e)) -> let end = LocalTime d e in
                 takeWhile (< end) [ addLocalTime (fromInteger i * interval) (LocalTime d s) | i <- [0..] ]
             )
             schedule
-        
+
 
 formTimeSlot :: [LocalTime] -> Maybe ServiceId -> Maybe StaffId -> Maybe LocalTime
              -> Form (ServiceId,StaffId,LocalTime)
 formTimeSlot slots sid eid tid extra = do
-   
+
     msgr <- getMessageRender
-    
+
     (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
         { fsLabel = SomeMessage MsgService
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgService),("hidden","hidden")]
         } (fromIntegral . fromSqlKey <$> sid)
-        
+
     (staffR,staffV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
         { fsLabel = SomeMessage MsgEmployee
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgEmployee),("hidden","hidden")]
         } (fromIntegral . fromSqlKey <$> eid)
-                        
-        
+
+
     (slotsR,slotsV) <- mreq (md3radioFieldList slots) "" tid
 
     let r = (,,) <$> serviceR <*> staffR <*> slotsR
     let w = [whamlet|#{extra} ^{fvInput serviceV} ^{fvInput staffV} ^{fvInput slotsV}|]
-            
+
     return (r,w)
 
   where
@@ -510,7 +514,7 @@ formTimeSlot slots sid eid tid extra = do
 
                 let sel (Left _) _ = False
                     sel (Right y) opt = optionInternalValue opt == y
-                
+
                 [whamlet|
 <md-list ##{theId} *{attrs}>
   $forall (i,opt) <- opts
@@ -563,12 +567,12 @@ postBookTimingR month = do
                 Nothing -> where_ $ val False
               where_ $ x ^. ScheduleDay `between` (val $ periodFirstDay month, val $ periodLastDay month)
               return x )
-          
+
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgAppointmentTime
               idFormTiming <- newIdent
-              idCalendarPage <- newIdent        
+              idCalendarPage <- newIdent
               idFabNext <- newIdent
               $(widgetFile "book/timing/timing")
 
@@ -589,7 +593,7 @@ getBookTimingR month = do
     let page = [start .. end]
     let next = addMonths 1 month
     let prev = addMonths (-1) month
-    
+
     slots <- groupByKey (\(Entity _ (Schedule _ day _ _)) -> day) <$> runDB ( select $ do
         x :& a <- from $ table @Schedule
             `innerJoin` table @Assignment `on` (\(x :& a) -> x ^. ScheduleAssignment ==. a ^. AssignmentId)
@@ -601,13 +605,13 @@ getBookTimingR month = do
           Nothing -> where_ $ val False
         where_ $ x ^. ScheduleDay `between` (val $ periodFirstDay month, val $ periodLastDay month)
         return x )
-          
-    
+
+
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgAppointmentTime
         idFormTiming <- newIdent
-        idCalendarPage <- newIdent  
+        idCalendarPage <- newIdent
         idFabNext <- newIdent
         $(widgetFile "book/timing/timing")
 
@@ -620,19 +624,19 @@ formTiming :: Maybe ServiceId -> Maybe StaffId -> Maybe LocalTime -> Form (Servi
 formTiming sid eid time extra = do
 
     msgr <- getMessageRender
-    
+
     (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
         { fsLabel = SomeMessage MsgService
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgService),("hidden","hidden")]
         } (fromIntegral . fromSqlKey <$> sid)
-        
+
     (staffR,staffV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
         { fsLabel = SomeMessage MsgEmployee
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgEmployee),("hidden","hidden")]
         } (fromIntegral . fromSqlKey <$> eid)
-        
+
     (timeR,timeV) <- mreq datetimeLocalField FieldSettings
         { fsLabel = SomeMessage MsgAppointmentTime
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
@@ -683,7 +687,7 @@ getBookStaffR = do
     existsStaff <- runDB $ P.exists ([] :: [P.Filter Staff])
 
     (fw,et) <- generateFormPost $ formStaff sid eid
-    
+
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgStaff
@@ -705,13 +709,13 @@ formStaff sid eid extra = do
         return (x,e)
 
     msgr <- getMessageRender
-        
+
     (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
         { fsLabel = SomeMessage MsgService
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgService),("hidden","hidden")]
         } (fromIntegral . fromSqlKey <$> sid)
-        
+
     (staffR,staffV) <- mreq (md3radioFieldList staff) "" eid
 
     let r = (,) <$> serviceR <*> staffR
@@ -733,7 +737,7 @@ formStaff sid eid extra = do
                     sel (Right y) opt = optionInternalValue opt == y
 
                 let findStaff opt = find (\(_,Entity eid' _) -> eid' == optionInternalValue opt)
-                
+
                 [whamlet|
 <md-list ##{theId} *{attrs}>
   $forall (i,opt) <- opts
@@ -744,8 +748,8 @@ formStaff sid eid extra = do
         <details slot=supporting-text>
           <summary style="padding:1rem">MsgWorkingHours
           <div>
-            <a href=#>09:00, 
-            <a href=#>09:30, 
+            <a href=#>09:00,
+            <a href=#>09:30,
             <a href=#>10:00,
             <a href=#>10:30
         <div slot=end>
@@ -758,22 +762,23 @@ formStaff sid eid extra = do
 
 postBookServicesR :: Handler Html
 postBookServicesR = do
-    stati <- reqGetParams <$> getRequest
-    
-    ((fr,fw),et) <- runFormPost $ formService Nothing
-    
+    stati <- filter ((/= "bid") . fst) . reqGetParams <$> getRequest
+    -- bids <- mapMaybe ((toSqlKey @Business <$>) . readMaybe . unpack) <$> lookupGetParams "bid"
+    -- wids <- mapMaybe ((toSqlKey @Workspace <$>) . readMaybe . unpack) <$> lookupGetParams "wid"
+
+    idFormSearch <- newIdent
+
+    ((fr0,fw0),et0) <- runFormGet $ formSearchServices idFormSearch
+
+    let (bids,wids) = case fr0 of
+          FormSuccess r -> r
+          _otherwise -> (Just [],Just [])
+
+    ((fr,fw),et) <- runFormPost $ formService bids wids Nothing
+
     case fr of
       FormSuccess sid -> redirect (BookStaffR, [("sid",pack $ show $ fromSqlKey sid)])
       _otherwise -> do
-          businesses <- runDB $ select $ do
-              x <- from $ table @Business
-              orderBy [asc (x ^. BusinessName)]
-              return x
-
-          workspaces <- runDB $ select $ do
-              x <- from $ table @Workspace
-              orderBy [asc (x ^. WorkspaceName)]
-              return x
 
           existsService <- runDB $ P.exists ([] :: [P.Filter Service])
 
@@ -787,23 +792,23 @@ postBookServicesR = do
 
 getBookServicesR :: Handler Html
 getBookServicesR = do
-    stati <- reqGetParams <$> getRequest
+    stati <- filter ((/= "bid") . fst) . reqGetParams <$> getRequest
+    -- bids <- mapMaybe ((toSqlKey @Business <$>) . readMaybe . unpack) <$> lookupGetParams "bid"
+    -- wids <- mapMaybe ((toSqlKey @Workspace <$>) . readMaybe . unpack) <$> lookupGetParams "wid"
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
-    
-    businesses <- runDB $ select $ do
-        x <- from $ table @Business
-        orderBy [asc (x ^. BusinessName)]
-        return x
 
-    workspaces <- runDB $ select $ do
-        x <- from $ table @Workspace
-        orderBy [asc (x ^. WorkspaceName)]
-        return x
-    
+    idFormSearch <- newIdent
+
+    ((fr0,fw0),et0) <- runFormGet $ formSearchServices idFormSearch
+
+    let (bids,wids) = case fr0 of
+          FormSuccess r -> r
+          _otherwise -> (Just [],Just [])
+
     existsService <- runDB $ P.exists ([] :: [P.Filter Service])
 
-    (fw,et) <- generateFormPost $ formService sid
-    
+    (fw,et) <- generateFormPost $ formService bids wids sid
+
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServices
@@ -812,16 +817,132 @@ getBookServicesR = do
         $(widgetFile "book/services")
 
 
-formService :: Maybe ServiceId -> Form ServiceId
-formService sid extra = do
-    
+formSearchServices :: Text -> Form (Maybe [BusinessId],Maybe [WorkspaceId])
+formSearchServices idFormSearch extra = do
+
+    msgr <- getMessageRender
+
+    businesses <- liftHandler $ runDB $ select $ do
+        x <- from $ table @Business
+        orderBy [asc (x ^. BusinessName)]
+        return x
+
+    let businessItem (Entity bid (Business _ name)) = (name,bid)
+
+    (bR,bV) <- mopt (chipsFieldList idFormSearch MsgBusiness (businessItem <$> businesses))
+        FieldSettings { fsLabel = SomeMessage MsgBusiness
+                      , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+                      , fsAttrs = [("label", msgr MsgBusiness),("hidden","hidden")]
+                      } Nothing
+
+    workspaces <- liftHandler $ runDB $ select $ do
+        x <- from $ table @Workspace
+        unless (null businesses) $ where_ $ x ^. WorkspaceBusiness `in_` valList (entityKey <$> businesses)
+        when (null businesses) $ where_ $ val False
+        case bR of
+          FormSuccess (Just bids@(_:_)) -> where_ $ x ^. WorkspaceBusiness `in_` valList bids
+          _otherwise -> where_ $ val False
+        orderBy [asc (x ^. WorkspaceName)]
+        return x
+
+    let workspaceItem (Entity wid (Workspace _ name _ _ _)) = (name,wid)
+
+    (wR,wV) <- mopt (chipsFieldList idFormSearch MsgWorkspace (workspaceItem <$> workspaces))
+        FieldSettings { fsLabel = SomeMessage MsgWorkspace
+                      , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+                      , fsAttrs = [("label", msgr MsgWorkspace),("hidden","hidden")]
+                      } Nothing
+
+    let r = (,) <$> bR <*> wR
+    let w = do
+            idFilterChips <- newIdent
+            toWidget [cassius|
+                             ##{idFilterChips}
+                                 display: flex
+                                 flex-direction: column
+
+                                 details
+                                     summary
+                                         position: relative
+                                         padding: 1rem
+                                         display: flex
+                                         align-items: center
+                                         justify-content: flex-start
+
+                                     summary::before
+                                         margin-right: 0.5rem
+                                         content: 'filter_alt'
+                                         font-family: 'Material Symbols Outlined'
+                                         font-size: 24px
+
+                                     summary::after
+                                         margin-left: auto
+                                         content: 'arrow_drop_down'
+                                         font-family: 'Material Symbols Outlined'
+                                         font-size: 32px
+                                         transition: 0.2s
+                                       
+                                     p
+                                         padding: 0 1rem
+
+                                 details[open] > summary::after
+                                     transform: rotate(180deg)
+                                   
+            |]
+            [whamlet|
+                    <div ##{idFilterChips}>
+                      #{extra}
+                      ^{fvInput bV}
+                      $case bR
+                        $of FormSuccess (Just ((:) _ _))
+                          <md-divider>
+                          ^{fvInput wV}
+                        $of _
+            |]
+
+    return (r,w)
+  where
+      chipsFieldList :: (Eq a, RenderMessage App msg) => Text -> AppMessage -> [(msg,a)] -> Field Handler [a]
+      chipsFieldList idForm label items = (checkboxesFieldList items)
+          { fieldView = \theId name attrs x _isReq -> do
+                opts <- olOptions <$> handlerToWidget (optionsPairs items)
+                let sele (Left _) _ = False
+                    sele (Right vals) opt = optionInternalValue opt `elem` vals
+                [whamlet|
+                  <details :any (sele x) opts:open>
+                    <summary.md-typescale-label-large #summary#{theId}>
+                      <md-ripple for=summary#{theId}>
+                      _{label}
+                    <p>
+                      <md-chip-set ##{theId}>
+                        $forall opt <- opts
+                          <md-filter-chip label=#{optionDisplay opt} :sele x opt:selected
+                            onclick="this.querySelector('input').click();document.getElementById('#{idForm}').submit()">
+                            <input type=checkbox name=#{name} value=#{optionExternalValue opt} *{attrs} :sele x opt:checked>
+                |]
+          }
+
+
+
+formService :: Maybe [BusinessId] -> Maybe [WorkspaceId] -> Maybe ServiceId -> Form ServiceId
+formService bids wids sid extra = do
+
     services <- liftHandler $ runDB $ select $ do
         x :& w :& b <- from $ table @Service
             `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
             `innerJoin` table @Business `on` (\(_ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)
+
+        case wids of
+          Just xs@(_:_) -> where_ $ w ^. WorkspaceId `in_` valList xs
+          _otherwise -> where_ $ val True
+          
+        case bids of
+          Just xs@(_:_) -> where_ $ b ^. BusinessId `in_` valList xs
+          _otherwise -> where_ $ val True
+          
         orderBy [asc (x ^. ServiceName), asc (x ^. ServiceId)]
         return (x,(w,b))
-        
+
     (serviceR,serviceV) <- mreq (md3radioFieldList services) "" sid
 
     return (serviceR,[whamlet|#{extra} ^{fvInput serviceV}|])
@@ -840,7 +961,7 @@ formService sid extra = do
                     sel (Right y) opt = optionInternalValue opt == y
 
                 let findService opt = find (\(Entity sid' _,_) -> sid' == optionInternalValue opt)
-                
+
                 [whamlet|
 <md-list ##{theId} *{attrs}>
   $forall (i,opt) <- opts

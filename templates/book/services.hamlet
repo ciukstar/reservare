@@ -1,5 +1,5 @@
 
-<header>
+<header.background>
   <md-icon-button href=@{HomeR} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
@@ -11,17 +11,8 @@
 
   ^{widgetBanner msgs}
 
-  <details>
-    <summary.md-typescale-label-large>_{MsgBusiness}
-    <md-chip-set>
-      $forall Entity _ (Business _ name) <- businesses
-        <md-filter-chip label=#{name}>
-
-  <details>
-    <summary.md-typescale-label-large>_{MsgWorkspace}
-    <md-chip-set>
-      $forall Entity _ (Workspace _ name _ _ _) <- workspaces
-        <md-filter-chip label=#{name}>
+  <form method=get action=@{BookServicesR} enctype=#{et0} ##{idFormSearch}>
+    ^{fw0}
 
   $if not existsService
     <figure style="text-align:center">

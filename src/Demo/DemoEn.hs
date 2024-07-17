@@ -18,8 +18,9 @@ import Import.NoFoundation
 import Data.FileEmbed (embedFile)
 import Data.Maybe (fromMaybe)
 import Data.Time
-    ( getCurrentTime, utc, nominalDay, LocalTime (LocalTime)
-    , utctDay, TimeOfDay (TimeOfDay), DayPeriod (periodFirstDay, periodLastDay), DayOfWeek (Saturday, Sunday, Friday), dayOfWeek
+    ( getCurrentTime, utc, nominalDay, dayOfWeek, utctDay
+    , TimeOfDay (TimeOfDay), DayOfWeek (Saturday, Sunday, Friday)
+    , DayPeriod (periodFirstDay, periodLastDay)
     )
 import Data.Time.Calendar (toGregorian)
 import Data.Time.Calendar.Month (pattern YearMonth)
@@ -28,7 +29,7 @@ import Database.Persist (PersistStoreWrite (insert, insert_))
 import Database.Persist.SqlBackend (SqlBackend)
 
 import Model
-    ( apiInfoGoogle, AuthenticationType (UserAuthTypeEmail)
+    ( AuthenticationType (UserAuthTypeEmail)
     , User
       ( User, userEmail, userAuthType, userPassword, userVerkey, userVerified
       , userName, userSuperuser, userAdmin
@@ -37,9 +38,6 @@ import Model
       ( UserPhoto, userPhotoMime, userPhotoPhoto, userPhotoUser
       , userPhotoAttribution
       )
-    , Token (Token, tokenApi, tokenStore)
-    , Store (Store, storeToken, storeKey, storeVal)
-    , StoreType (StoreTypeDatabase, StoreTypeGoogleSecretManager)
     , Business (Business, businessOwner, businessName)
     , Workspace (Workspace, workspaceBusiness, workspaceName, workspaceAddress)
     , Service (Service, serviceWorkspace, serviceName, serviceDescr)
@@ -154,13 +152,13 @@ fillDemoEn appSettings = do
                       }
 
     let business1 = Business { businessOwner = usr1
-                             , businessName = "JJ & Co"
+                             , businessName = "ML & Co"
                              }
 
     b1 <- insert business1
 
     let workspace1 = Workspace { workspaceBusiness = b1
-                               , workspaceName = "JJ & Co Central"
+                               , workspaceName = "ML & Co Central"
                                , workspaceAddress = "9796 Cherry Court Taylors, SC 29687"
                                , workspaceTzo = utc
                                , workspaceCurrency = "GBP"
@@ -217,6 +215,102 @@ fillDemoEn appSettings = do
                            }
 
     s3 <- insert service3
+
+    let business2 = Business { businessOwner = usr2
+                             , businessName = "JJ & Co"
+                             }
+
+    b21 <- insert business2
+
+    let workspace21 = Workspace { workspaceBusiness = b21
+                                , workspaceName = "JJ & Co Office #1"
+                                , workspaceAddress = "9 Queensway SOUTHALL UB72 2KS"
+                                , workspaceTzo = utc
+                                , workspaceCurrency = "GBP"
+                                }
+
+    w21 <- insert workspace21
+
+    forM_ [periodFirstDay (YearMonth y m) .. periodLastDay (YearMonth y m)] $ \day -> do
+        unless (Friday == dayOfWeek day || Saturday == dayOfWeek day || Sunday == dayOfWeek day) $ do
+            insert_ WorkingHours { workingHoursWorkspace = w21
+                                 , workingHoursDay = day
+                                 , workingHoursStart = TimeOfDay 9 0 0
+                                 , workingHoursEnd = TimeOfDay 13 0 0
+                                 }
+            insert_ WorkingHours { workingHoursWorkspace = w21
+                                 , workingHoursDay = day
+                                 , workingHoursStart = TimeOfDay 14 0 0
+                                 , workingHoursEnd = TimeOfDay 18 0 0
+                                 }
+        when (Friday == dayOfWeek day) $ do
+            insert_ WorkingHours { workingHoursWorkspace = w21
+                                 , workingHoursDay = day
+                                 , workingHoursStart = TimeOfDay 10 30 0
+                                 , workingHoursEnd = TimeOfDay 13 0 0
+                                 }
+            insert_ WorkingHours { workingHoursWorkspace = w21
+                                 , workingHoursDay = day
+                                 , workingHoursStart = TimeOfDay 14 0 0
+                                 , workingHoursEnd = TimeOfDay 17 45 0
+                                 }
+
+    let service211 = Service { serviceWorkspace = w21
+                             , serviceName = "Leisure travel"
+                             , serviceDescr = Just "Travel as you like"
+                             , servicePrice = 10000
+                             }
+
+    s211 <- insert service211
+
+    let service212 = Service { serviceWorkspace = w21
+                             , serviceName = "Italia travel"
+                             , serviceDescr = Just "Italian joy"
+                             , servicePrice = 20000
+                             }
+
+    s212 <- insert service212
+
+    let service213 = Service { serviceWorkspace = w21
+                             , serviceName = "Hello Paris"
+                             , serviceDescr = Just "France awaits"
+                             , servicePrice = 25000
+                             }
+
+    s213 <- insert service213
+
+    let workspace22 = Workspace { workspaceBusiness = b21
+                                , workspaceName = "JJ & Co Office #2"
+                                , workspaceAddress = "9811 Grove Road NORTHAMPTON NN81 7MQ"
+                                , workspaceTzo = utc
+                                , workspaceCurrency = "GBP"
+                                }
+
+    w22 <- insert workspace22
+
+    let service221 = Service { serviceWorkspace = w22
+                             , serviceName = "Leisure travel"
+                             , serviceDescr = Just "Travel as you like"
+                             , servicePrice = 10000
+                             }
+
+    s221 <- insert service221
+
+    let service222 = Service { serviceWorkspace = w22
+                             , serviceName = "Italia travel"
+                             , serviceDescr = Just "Italian joy"
+                             , servicePrice = 20000
+                             }
+
+    s222 <- insert service222
+
+    let service223 = Service { serviceWorkspace = w22
+                             , serviceName = "Hello Paris"
+                             , serviceDescr = Just "France awaits"
+                             , servicePrice = 25000
+                             }
+
+    s223 <- insert service223
 
     let employee1 = Staff { staffName = fromMaybe (userEmail user1) (userName user1)
                           , staffAccount = Just usr1

@@ -19,11 +19,6 @@ main
     flex-direction: column
     row-gap: 1rem
 
-    details
-      margin: 0 1rem
-      md-chip-set
-          padding: 1rem
-
     ##{idFabNext}
         position: fixed
         right: 1rem
