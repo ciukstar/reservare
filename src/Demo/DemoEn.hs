@@ -8,7 +8,7 @@ module Demo.DemoEn (fillDemoEn) where
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Import.NoFoundation
     ( forM_, ReaderT, Workspace (workspaceTzo, workspaceCurrency)
-    , Service (servicePrice), Assignment (assignmentSlotInterval)
+    , Service (servicePrice), Assignment (assignmentSlotInterval, assignmentPriority, assignmentRole)
     , WorkingHours
       ( WorkingHours, workingHoursWorkspace, workingHoursDay
       , workingHoursStart, workingHoursEnd
@@ -42,7 +42,7 @@ import Model
     , Workspace (Workspace, workspaceBusiness, workspaceName, workspaceAddress)
     , Service (Service, serviceWorkspace, serviceName, serviceDescr)
     , Staff (Staff, staffName, staffAccount, staffMobile, staffPhone)
-    , Assignment (Assignment, assignmentService, assignmentStaff, assignmentStart)
+    , Assignment (Assignment, assignmentService, assignmentStaff, assignmentTime)
     )
 
 import Settings (AppSettings)
@@ -312,6 +312,12 @@ fillDemoEn appSettings = do
 
     s223 <- insert service223
 
+    let business3 = Business { businessOwner = usr3
+                             , businessName = "JM & Co"
+                             }
+
+    b31 <- insert business3
+
     let employee1 = Staff { staffName = fromMaybe (userEmail user1) (userName user1)
                           , staffAccount = Just usr1
                           , staffMobile = Just "(206) 342-8631"
@@ -325,24 +331,30 @@ fillDemoEn appSettings = do
 
     let assignment1 = Assignment { assignmentStaff = empl1
                                  , assignmentService = s1
-                                 , assignmentStart = now
+                                 , assignmentTime = now
                                  , assignmentSlotInterval = quarterHour
+                                 , assignmentPriority = 1
+                                 , assignmentRole = Just "Tourism agent"
                                  }
 
     assig1 <- insert assignment1
 
     let assignment2 = Assignment { assignmentStaff = empl1
                                  , assignmentService = s2
-                                 , assignmentStart = now
+                                 , assignmentTime = now
                                  , assignmentSlotInterval = halfHour
+                                 , assignmentPriority = 1
+                                 , assignmentRole = Just "Tourism agent"
                                  }
 
     assig2 <- insert assignment2
 
     let assignment3 = Assignment { assignmentStaff = empl1
                                  , assignmentService = s3
-                                 , assignmentStart = now
+                                 , assignmentTime = now
                                  , assignmentSlotInterval = oneHour
+                                 , assignmentPriority = 1
+                                 , assignmentRole = Just "Tourism agent"
                                  }
 
     assig3 <- insert assignment3

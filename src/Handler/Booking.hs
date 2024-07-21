@@ -17,11 +17,12 @@ module Handler.Booking
   , postBookPayR
   , postBookPaymentIntentCancelR
   , getBookPayAtVenueCompletionR
+  , getBookDetailsR
   ) where
 
 
 import Control.Lens ((^?), (?~))
-import Control.Monad (when, unless)
+import Control.Monad (when, unless, forM_)
 
 import Data.Aeson (object, (.=))
 import Data.Aeson.Lens (key, AsValue (_String))
@@ -50,8 +51,7 @@ import Database.Esqueleto.Experimental
     , (^.), (==.), (:&)((:&))
     , toSqlKey, val, where_, selectOne, Value (unValue), between, valList
     )
-import Database.Persist (Entity (Entity), entityKey)
-import qualified Database.Persist as P (exists, Filter)
+import Database.Persist (Entity (Entity), entityKey, insert)
 import Database.Persist.Sql (fromSqlKey)
 
 import Foundation
@@ -60,6 +60,7 @@ import Foundation
       ( HomeR, BookServicesR, BookStaffR, BookTimingR, BookTimeSlotsR
       , BookPaymentR, BookCheckoutR, BookPayCompletionR, BookPaymentIntentR
       , BookPaymentIntentCancelR, AuthR, BookPayAtVenueCompletionR
+      , BookDetailsR
       )
     , AppMessage
       ( MsgServices, MsgNext, MsgServices, MsgThereAreNoDataYet
@@ -71,15 +72,19 @@ import Foundation
       , MsgFinish, MsgService, MsgEmployee, MsgSelect, MsgSelectTime
       , MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
       , MsgAppointmentSetFor, MsgSelectAvailableDayAndTimePlease
-      , MsgEmployeeScheduleotGeneratedYet, MsgPrevious
+      , MsgEmployeeScheduleNotGeneratedYet, MsgNoEmployeesAvailableNow
+      , MsgPrevious, MsgNoServicesWereFoundForSearchTerms, MsgInvalidFormData
+      , MsgEmployeeWorkScheduleForThisMonthNotSetYet, MsgBookingDetails
+      , MsgPrice, MsgMobile, MsgPhone, MsgLocation, MsgAddress, MsgFullName
+      , MsgTheAppointment, MsgTheName
       )
     )
 
 import Material3 (md3mreq)
 
 import Model
-    ( statusSuccess, scriptRemoteStripe, endpointStripePaymentIntents
-    , endpointStripePaymentIntentCancel
+    ( statusSuccess, statusError, scriptRemoteStripe
+    , endpointStripePaymentIntents, endpointStripePaymentIntentCancel
     , ServiceId, Service(Service)
     , WorkspaceId, Workspace (Workspace)
     , BusinessId, Business (Business)
@@ -87,18 +92,19 @@ import Model
     , StaffId, Staff (Staff)
     , User (User), PayMethod (PayNow, PayAtVenue)
     , Schedule (Schedule)
+    , BookId, Book (Book, bookService, bookStaff, bookAppointment, bookPayMethod)
     , EntityField
       ( ServiceWorkspace, WorkspaceId, WorkspaceBusiness
       , BusinessId, ServiceName, AssignmentStaff, StaffId, StaffName
       , BusinessName, WorkspaceName, ServiceId, AssignmentService
       , AssignmentSlotInterval, ScheduleAssignment, AssignmentId
-      , ScheduleDay
+      , ScheduleDay, BookId, BookService, BookStaff
       )
     )
 
 import Network.Wreq
-    ( postWith, responseBody, auth, defaults, basicAuth
-    , FormParam ((:=)), getWith
+    ( postWith, responseBody, auth, defaults, basicAuth, getWith
+    , FormParam ((:=))
     )
 
 import Safe (headMay)
@@ -130,7 +136,8 @@ import Yesod.Core
 import Yesod.Core.Types (HandlerFor)
 import Yesod.Core.Widget (setTitleI, toWidget)
 import Yesod.Form
-    ( FieldView(fvInput), FormResult (FormSuccess), Field (fieldView)
+    ( FieldView(fvInput), Field (fieldView)
+    , FormResult (FormSuccess, FormFailure, FormMissing)    
     , FieldSettings (fsLabel, fsTooltip, fsId, fsName, fsAttrs, FieldSettings)
     , Option (optionDisplay), checkboxesFieldList, runFormGet, mopt
     )
@@ -143,16 +150,25 @@ import Yesod.Form.Functions (generateFormPost, mreq, runFormPost)
 import Yesod.Persist.Core (YesodPersist(runDB))
 
 
-getBookPayAtVenueCompletionR :: Handler Html
-getBookPayAtVenueCompletionR = do
+getBookDetailsR :: BookId -> Handler Html
+getBookDetailsR bid = do
 
-    -- stati <- reqGetParams <$> getRequest
-    -- sid <- (toSqlKey @Service <$>) <$> runInputGet ( iopt intField "sid" )
-    -- eid <- (toSqlKey @Staff <$>) <$> runInputGet ( iopt intField "eid" )
-    -- tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
-    -- pid <- (readMaybe @PayMethod . unpack =<<) <$> runInputGet ( iopt textField "pid" )
+    book <- runDB $ selectOne $ do
+        x :& s :& w :& e <- from $ table @Book
+            `innerJoin` table @Service `on` (\(x :& s) -> x ^. BookService ==. s ^. ServiceId)
+            `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
+            `innerJoin` table @Staff `on` (\(x :& _ :& _ :& e) -> x ^. BookStaff ==. e ^. StaffId)
+        where_ $ x ^. BookId ==. val bid
+        return (x,(s,(w,e)))
 
-    -- record booking
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgPaymentStatus
+        $(widgetFile "book/details/details")
+
+
+getBookPayAtVenueCompletionR :: BookId -> Handler Html
+getBookPayAtVenueCompletionR bid = do
 
     msgs <- getMessages
     defaultLayout $ do
@@ -289,22 +305,30 @@ postBookPaymentR = do
 
     case fr of
       FormSuccess (sid',eid',tid',pid'@PayNow) -> redirect
-        ( BookCheckoutR
-        , [ ( "sid", pack $ show $ fromSqlKey sid')
-          , ( "eid", pack $ show $ fromSqlKey eid')
-          , ( "tid", pack $ show $ utcToLocalTime utc tid')
-          , ( "pid", pack $ show pid')
-          ]
-        )
-      FormSuccess (sid',eid',tid',pid'@PayAtVenue) -> redirect
-        ( BookPayAtVenueCompletionR
-        , [ ( "sid", pack $ show $ fromSqlKey sid')
-          , ( "eid", pack $ show $ fromSqlKey eid')
-          , ( "tid", pack $ show $ utcToLocalTime utc tid')
-          , ( "pid", pack $ show pid')
-          ]
-        )
-      _otherwise -> do
+          ( BookCheckoutR
+          , [ ( "sid", pack $ show $ fromSqlKey sid')
+            , ( "eid", pack $ show $ fromSqlKey eid')
+            , ( "tid", pack $ show $ utcToLocalTime utc tid')
+            , ( "pid", pack $ show pid')
+            ]
+          )
+      FormSuccess (sid',eid',tid',pid'@PayAtVenue) -> do
+          bid <- runDB $ insert $ Book { bookService = sid'
+                                       , bookStaff = eid'
+                                       , bookAppointment = tid'
+                                       , bookPayMethod = pid'
+                                       }
+          redirect $ BookPayAtVenueCompletionR bid
+      FormFailure errs -> do
+          forM_ errs $ \err -> addMessageI statusError err
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgPaymentMethod
+              idFormPayment <- newIdent
+              idFabNext <- newIdent
+              $(widgetFile "book/payment/payment")
+      FormMissing -> do
+          addMessageI statusError MsgInvalidFormData
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgPaymentMethod
@@ -411,13 +435,21 @@ postBookTimeSlotsR day = do
     ((fr,fw),et) <- runFormPost $ formTimeSlot slots sid eid tid
     case fr of
       FormSuccess (sid',eid',tid') -> redirect
-        ( BookTimingR month
-        , [ ( "sid", pack $ show $ fromSqlKey sid')
-          , ( "eid", pack $ show $ fromSqlKey eid')
-          , ( "tid", pack $ show tid')
-          ]
-        )
-      _otherwise -> do
+          ( BookTimingR month
+          , [ ( "sid", pack $ show $ fromSqlKey sid')
+            , ( "eid", pack $ show $ fromSqlKey eid')
+            , ( "tid", pack $ show tid')
+            ]
+          )
+      FormFailure errs -> do
+          forM_ errs $ \err -> addMessageI statusError err
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgAppointmentTime
+              idFormSlots <- newIdent
+              $(widgetFile "book/timing/slots/slots")
+      FormMissing -> do
+          addMessageI statusError MsgInvalidFormData
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgAppointmentTime
@@ -548,7 +580,7 @@ postBookTimingR month = do
                                                  , ( "tid", pack $ show tid' )
                                                  ]
                                                )
-      _otherwise -> do
+      FormFailure errs -> do
 
           let start = weekFirstDay Monday (periodFirstDay month)
           let end = addDays 41 start
@@ -568,6 +600,36 @@ postBookTimingR month = do
               where_ $ x ^. ScheduleDay `between` (val $ periodFirstDay month, val $ periodLastDay month)
               return x )
 
+          forM_ errs $ \err -> addMessageI statusError err
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgAppointmentTime
+              idFormTiming <- newIdent
+              idCalendarPage <- newIdent
+              idFabNext <- newIdent
+              $(widgetFile "book/timing/timing")
+              
+      FormMissing -> do
+
+          let start = weekFirstDay Monday (periodFirstDay month)
+          let end = addDays 41 start
+          let page = [start .. end]
+          let next = addMonths 1 month
+          let prev = addMonths (-1) month
+
+          slots <- groupByKey (\(Entity _ (Schedule _ day _ _)) -> day) <$> runDB ( select $ do
+              x :& a <- from $ table @Schedule
+                  `innerJoin` table @Assignment `on` (\(x :& a) -> x ^. ScheduleAssignment ==. a ^. AssignmentId)
+              case sid of
+                Just service -> where_ $ a ^. AssignmentService ==. val service
+                Nothing -> where_ $ val False
+              case eid of
+                Just employee -> where_ $ a ^. AssignmentStaff ==. val employee
+                Nothing -> where_ $ val False
+              where_ $ x ^. ScheduleDay `between` (val $ periodFirstDay month, val $ periodLastDay month)
+              return x )
+
+          addMessageI statusError MsgInvalidFormData
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgAppointmentTime
@@ -656,8 +718,6 @@ postBookStaffR = do
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
 
-    existsStaff <- runDB $ P.exists ([] :: [P.Filter Staff])
-
     today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
     month <- fromMaybe today . (readMaybe . unpack =<<) <$> runInputGet ( iopt textField "month" )
 
@@ -668,7 +728,16 @@ postBookStaffR = do
                                             , ( "eid", pack $ show $ fromSqlKey eid')
                                             ]
                                           )
-      _otherwise -> do
+      FormFailure errs -> do
+          forM_ errs $ \err -> addMessageI statusError err
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgStaff
+              idFormStaff <- newIdent
+              idFabNext <- newIdent
+              $(widgetFile "book/staff/staff")
+      FormMissing -> do
+          addMessageI statusError MsgInvalidFormData
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgStaff
@@ -683,8 +752,6 @@ getBookStaffR = do
     stati <- reqGetParams <$> getRequest
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
-
-    existsStaff <- runDB $ P.exists ([] :: [P.Filter Staff])
 
     (fw,et) <- generateFormPost $ formStaff sid eid
 
@@ -739,32 +806,29 @@ formStaff sid eid extra = do
                 let findStaff opt = find (\(_,Entity eid' _) -> eid' == optionInternalValue opt)
 
                 [whamlet|
-<md-list ##{theId} *{attrs}>
-  $forall (i,opt) <- opts
-    $maybe (_,Entity _ (Staff ename _ _ _)) <- findStaff opt staff
-      <md-list-item type=text onclick="this.querySelector('md-radio').click()">
-        <div slot=headline>
-          #{ename}
-        <details slot=supporting-text>
-          <summary style="padding:1rem">MsgWorkingHours
-          <div>
-            <a href=#>09:00,
-            <a href=#>09:30,
-            <a href=#>10:00,
-            <a href=#>10:30
-        <div slot=end>
-          <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
-            :sel x opt:checked touch-target=wrapper>
-    <md-divider>
+$if null opts
+    <figure style="text-align:center">
+      <span.on-secondary style="font-size:4rem">&varnothing;
+      <figcaption.md-typescale-body-large>
+        _{MsgNoEmployeesAvailableNow}.
+$else
+  <md-list ##{theId} *{attrs}>
+    $forall (i,opt) <- opts
+      $maybe (_,Entity _ (Staff ename _ _ _)) <- findStaff opt staff
+        <md-list-item type=text onclick="this.querySelector('md-radio').click()">
+          <div slot=headline>
+            #{ename}
+          <div slot=end>
+            <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
+              :sel x opt:checked touch-target=wrapper>
+      <md-divider>
 |]
               }
 
 
 postBookServicesR :: Handler Html
 postBookServicesR = do
-    stati <- filter ((/= "bid") . fst) . reqGetParams <$> getRequest
-    -- bids <- mapMaybe ((toSqlKey @Business <$>) . readMaybe . unpack) <$> lookupGetParams "bid"
-    -- wids <- mapMaybe ((toSqlKey @Workspace <$>) . readMaybe . unpack) <$> lookupGetParams "wid"
+    stati <- reqGetParams <$> getRequest
 
     idFormSearch <- newIdent
 
@@ -778,10 +842,16 @@ postBookServicesR = do
 
     case fr of
       FormSuccess sid -> redirect (BookStaffR, [("sid",pack $ show $ fromSqlKey sid)])
-      _otherwise -> do
-
-          existsService <- runDB $ P.exists ([] :: [P.Filter Service])
-
+      FormFailure errs -> do
+          forM_ errs $ \err -> addMessageI statusError err
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgServices
+              idFormService <- newIdent
+              idFabNext <- newIdent
+              $(widgetFile "book/services")
+      FormMissing -> do
+          addMessageI statusError MsgInvalidFormData
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgServices
@@ -792,9 +862,7 @@ postBookServicesR = do
 
 getBookServicesR :: Handler Html
 getBookServicesR = do
-    stati <- filter ((/= "bid") . fst) . reqGetParams <$> getRequest
-    -- bids <- mapMaybe ((toSqlKey @Business <$>) . readMaybe . unpack) <$> lookupGetParams "bid"
-    -- wids <- mapMaybe ((toSqlKey @Workspace <$>) . readMaybe . unpack) <$> lookupGetParams "wid"
+    stati <- reqGetParams <$> getRequest
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
 
     idFormSearch <- newIdent
@@ -804,8 +872,6 @@ getBookServicesR = do
     let (bids,wids) = case fr0 of
           FormSuccess r -> r
           _otherwise -> (Just [],Just [])
-
-    existsService <- runDB $ P.exists ([] :: [P.Filter Service])
 
     (fw,et) <- generateFormPost $ formService bids wids sid
 
@@ -881,13 +947,13 @@ formSearchServices idFormSearch extra = do
                                          font-family: 'Material Symbols Outlined'
                                          font-size: 32px
                                          transition: 0.2s
-                                       
+
                                      p
                                          padding: 0 1rem
 
                                  details[open] > summary::after
                                      transform: rotate(180deg)
-                                   
+
             |]
             [whamlet|
                     <div ##{idFilterChips}>
@@ -935,11 +1001,11 @@ formService bids wids sid extra = do
         case wids of
           Just xs@(_:_) -> where_ $ w ^. WorkspaceId `in_` valList xs
           _otherwise -> where_ $ val True
-          
+
         case bids of
           Just xs@(_:_) -> where_ $ b ^. BusinessId `in_` valList xs
           _otherwise -> where_ $ val True
-          
+
         orderBy [asc (x ^. ServiceName), asc (x ^. ServiceId)]
         return (x,(w,b))
 
@@ -963,20 +1029,26 @@ formService bids wids sid extra = do
                 let findService opt = find (\(Entity sid' _,_) -> sid' == optionInternalValue opt)
 
                 [whamlet|
-<md-list ##{theId} *{attrs}>
-  $forall (i,opt) <- opts
-    $maybe (Entity _ (Service _ sname _ price),(workspace,business)) <- findService opt services
-      <md-list-item type=button onclick="this.querySelector('md-radio').click()">
-        <div slot=headline>
-          #{sname}
-        $with (Entity _ (Workspace _ wname _ _ currency),Entity _ (Business _ bname)) <- (workspace,business)
-          <div slot=supporting-text>
-            #{wname} (#{bname})
-          <div.currency slot=supporting-text data-value=#{price} data-currency=#{currency}>
-            #{currency}#{price}
-        <div slot=end>
-          <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
-            :sel x opt:checked touch-target=wrapper>
-    <md-divider>
+$if null opts
+  <figure style="text-align:center">
+    <span.on-secondary style="font-size:4rem">&varnothing;
+    <figcaption.md-typescale-body-large>
+      _{MsgNoServicesWereFoundForSearchTerms}.
+$else
+  <md-list ##{theId} *{attrs}>
+    $forall (i,opt) <- opts
+      $maybe (Entity _ (Service _ sname _ price),(workspace,business)) <- findService opt services
+        <md-list-item type=button onclick="this.querySelector('md-radio').click()">
+          <div slot=headline>
+            #{sname}
+          $with (Entity _ (Workspace _ wname _ _ currency),Entity _ (Business _ bname)) <- (workspace,business)
+            <div slot=supporting-text>
+              #{wname} (#{bname})
+            <div.currency slot=supporting-text data-value=#{price} data-currency=#{currency}>
+              #{currency}#{price}
+          <div slot=end>
+            <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
+              :sel x opt:checked touch-target=wrapper>
+      <md-divider>
 |]
               }

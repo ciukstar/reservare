@@ -13,18 +13,12 @@
 
   <form method=get action=@{BookServicesR} enctype=#{et0} ##{idFormSearch}>
     ^{fw0}
+    
+  <form method=post action=@?{(BookServicesR,stati)} enctype=#{et} ##{idFormService}>
+    ^{fw}
 
-  $if not existsService
-    <figure style="text-align:center">
-      <span.on-secondary style="font-size:4rem">&varnothing;
-      <figcaption.md-typescale-body-large>
-        _{MsgThereAreNoDataYet}
-  $else
-    <form method=post action=@?{(BookServicesR,stati)} enctype=#{et} ##{idFormService}>
-      ^{fw}
-
-    <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext} 
-      onclick="document.getElementById('#{idFormService}').submit()">
-      <md-icon slot=icon>arrow_forward
+  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext} 
+    onclick="document.getElementById('#{idFormService}').submit()">
+    <md-icon slot=icon>arrow_forward
 
 ^{widgetSnackbar msgs}

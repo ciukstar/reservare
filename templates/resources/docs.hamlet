@@ -5,7 +5,7 @@
   <span.md-typescale-title-large>
     _{MsgDocumentation}
 
-  <span.header-end>
+  <span #headerEnd>
     ^{widgetAccount}
 
 <main>
@@ -13,25 +13,33 @@
   ^{widgetBanner msgs}
 
   <section>
-    <h2.headline-medium>_{MsgAppName}
-    <h3.body-large>
+    <h2.md-typescale-headline-medium>_{MsgAppName}
+    <h3.md-typescale-body-large>
       _{MsgAppDescription}
 
-    <h2.headline-small>
+    <h2.md-typescale-headline-small>
       _{MsgOverview}
-    <p.body-medium>
+    <p.md-typescale-body-medium>
       #{t $ MsgDoc001 (m MsgAppName) (r HomeR)}
 
   <section>
-    <h2.headline-medium>_{MsgErDiagram}
-    <img #idImgErdDiagram src=@{StaticR img_Reservare_ERD_svg} alt=_{MsgErDiagram} loading=lazy>
+    <h2.md-typescale-headline-small>_{MsgUseCaseDiagram}
+    <img src=@{StaticR img_Reservare_UCD_svg} alt=_{MsgUseCaseDiagram} loading=lazy>
 
   <section>
-    <h2.headline-medium>_{MsgSourceCode}
-    <p.body-medium>#{t $ MsgDoc002 "https://github.com/ciukstar/reservare"}
+    <h2.md-typescale-headline-medium>_{MsgBookAService}
+    <img src=@{StaticR img_Reservare_Book_Service_SMD_svg} alt=_{MsgStateMachineDiagram} loading=lazy>
 
   <section>
-    <h2.headline-medium>_{MsgIssueTracking}
-    <p.body-medium>#{t $ MsgDoc003 "https://github.com/ciukstar/reservare/issues"}
+    <h2.md-typescale-headline-medium>_{MsgErDiagram}
+    <img src=@{StaticR img_Reservare_ERD_svg} alt=_{MsgErDiagram} loading=lazy>
+
+  <section>
+    <h2.md-typescale-headline-medium>_{MsgSourceCode}
+    <p.md-typescale-body-medium>#{t $ MsgDoc002 "https://github.com/ciukstar/reservare"}
+
+  <section>
+    <h2.md-typescale-headline-medium>_{MsgIssueTracking}
+    <p.md-typescale-body-medium>#{t $ MsgDoc003 "https://github.com/ciukstar/reservare/issues"}
 
   ^{widgetSnackbar msgs}

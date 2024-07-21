@@ -1,5 +1,16 @@
+Role: Role
+Priority: Priority
+Name: Name
+TheAppointment: Appointment
+Location: Location
+BookingDetails: Booking details
+EmployeeWorkScheduleForThisMonthNotSetYet: It seems that the employee's work schedule for this month has not yet been set
+NoServicesWereFoundForSearchTerms: No services were found containing all your search terms
+UseCaseDiagram: Use Case Diagram
+StateMachineDiagram: State machine diagram
+NoEmployeesAvailableNow: No employees are available for appointments at this time
 Previous: Previous
-EmployeeScheduleotGeneratedYet: Employee schedule is not yet generated
+EmployeeScheduleNotGeneratedYet: Employee schedule is not yet generated
 FillFromPreviousMonth: Fill in from previous month
 FillFromWorkingSchedule: Fill in from the working schedule
 WorkSchedule: Schedule

@@ -16,7 +16,7 @@
     <figcaption.md-typescale-title-medium>
       _{MsgYourBookingHasBeenCreatedSuccessfully}.
 
-  <md-filled-tonal-button type=link href=#>
+  <md-filled-tonal-button type=link href=@{BookDetailsR bid}>
     _{MsgViewBookingDetails}
 
   <md-text-button type=link href=@{HomeR}>

@@ -46,7 +46,7 @@
   
     ^{widgetBanner msgs}
 
-    $maybe (Entity _ (Assignment _ _ start interval),(employee,(service,(workspace,buisiness)))) <- assignment
+    $maybe (Entity _ (Assignment _ _ start interval priority role),(employee,(service,(workspace,buisiness)))) <- assignment
       <dl>
 
         <dt.md-typescale-label-large>_{MsgEmployee}
@@ -62,6 +62,15 @@
         <dt.md-typescale-label-large>_{MsgSchedulingInterval}
         <dd.md-typescale-body-medium>
           #{show $ toMinutes interval} _{MsgUnitMinutes}
+
+        <dt.md-typescale-label-large>_{MsgPriority}
+        <dd.md-typescale-body-medium>
+          #{show $ priority}
+
+        $maybe role <- role
+          <dt.md-typescale-label-large>_{MsgRole}
+          <dd.md-typescale-body-medium>
+            #{role}
 
         <dt.md-typescale-label-large>_{MsgService}
         <dd.md-typescale-body-medium>

@@ -18,4 +18,4 @@
     onclick="document.getElementById('#{idFormPayment}').submit()">
     <md-icon slot=icon>arrow_forward
 
-^{widgetSnackbar msgs}
+  ^{widgetSnackbar msgs}

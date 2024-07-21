@@ -51,12 +51,15 @@
             <div>
 
   <section.prompt>
-    $maybe slot <- tid
-      $with dt <- show slot
-        <p.md-typescale-label-large>_{MsgAppointmentSetFor}
-        <time.full-datetime.md-typescale-body-large datetime=#{dt}>#{dt}
-    $nothing
-      <p.md-typescale-body-medium>_{MsgSelectAvailableDayAndTimePlease}
+    $if null slots
+      <p.md-typescale-body-medium>_{MsgEmployeeWorkScheduleForThisMonthNotSetYet}.
+    $else
+      $maybe slot <- tid
+        $with dt <- show slot
+          <p.md-typescale-label-large>_{MsgAppointmentSetFor}
+          <time.full-datetime.md-typescale-body-large datetime=#{dt}>#{dt}
+      $nothing
+        <p.md-typescale-body-medium>_{MsgSelectAvailableDayAndTimePlease}.
 
   <form method=post action=@?{(BookTimingR today,stati)} enctype=#{et} ##{idFormTiming}>
     ^{fw}

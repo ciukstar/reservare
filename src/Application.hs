@@ -62,6 +62,7 @@ import Handler.Booking
     , getBookCheckoutR, getBookPayCompletionR, postBookPaymentIntentR
     , postBookPayR, postBookPaymentIntentCancelR
     , getBookPayAtVenueCompletionR
+    , getBookDetailsR
     )
 
 import Handler.Accounts

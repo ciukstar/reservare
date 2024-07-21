@@ -174,7 +174,7 @@ instance Yesod App where
             $(widgetFile "default-layout")
 
         lang <- fromMaybe "en" . headMay <$> languages
-            
+
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
     -- The page to be redirected to when authentication is required.
@@ -184,8 +184,10 @@ instance Yesod App where
 
     isAuthorized :: Route App -> Bool -> Handler AuthResult
 
+
     
-    isAuthorized r@BookPayAtVenueCompletionR _ = setUltDest r >> return Authorized
+    isAuthorized r@(BookDetailsR _) _ = setUltDest r >> return Authorized
+    isAuthorized r@(BookPayAtVenueCompletionR _) _ = setUltDest r >> return Authorized
     isAuthorized r@BookPaymentIntentCancelR _ = setUltDest r >> return Authorized
     isAuthorized r@BookPayR _ = setUltDest r >> return Authorized
     isAuthorized r@(BookPaymentIntentR _ _) _ = setUltDest r >> return Authorized
@@ -197,34 +199,34 @@ instance Yesod App where
     isAuthorized r@BookStaffR _ = setUltDest r >> return Authorized
     isAuthorized r@BookServicesR _ = setUltDest r >> return Authorized
 
-    
+
     isAuthorized (WorkspaceDeleR uid _ _) _ = isAuthenticatedSelf uid
     isAuthorized (WorkspaceEditR uid _ _) _ = isAuthenticatedSelf uid
     isAuthorized (WorkspaceR uid _ _) _ = isAuthenticatedSelf uid
     isAuthorized (WorkspaceNewR uid _) _ = isAuthenticatedSelf uid
     isAuthorized (WorkspacesR uid _) _ = isAuthenticatedSelf uid
-    
+
     isAuthorized (BusinessDeleR uid _) _ = isAuthenticatedSelf uid
     isAuthorized (BusinessEditR uid _) _ = isAuthenticatedSelf uid
     isAuthorized (BusinessR uid _) _ = isAuthenticatedSelf uid
     isAuthorized (BusinessNewR uid) _ = isAuthenticatedSelf uid
     isAuthorized r@(BusinessesR uid) _ = setUltDest r >> isAuthenticatedSelf uid
 
-    
-    
+
+
     isAuthorized (DataR (ServiceAssignmentDeleR _ _)) _ = isAdmin
     isAuthorized (DataR (ServiceAssignmentEditR _ _)) _ = isAdmin
     isAuthorized (DataR (ServiceAssignmentR _ _)) _ = isAdmin
     isAuthorized (DataR (ServiceAssignmentNewR _)) _ = isAdmin
     isAuthorized (DataR (ServiceAssignmentsR _)) _ = isAdmin
-    
+
     isAuthorized (DataR (ServiceDeleR _)) _ = isAdmin
     isAuthorized (DataR (ServiceEditR _)) _ = isAdmin
     isAuthorized (DataR ServiceNewR) _ = isAdmin
     isAuthorized (DataR (ServiceR _)) _ = isAdmin
     isAuthorized r@(DataR ServicesR) _ = setUltDest r >> isAdmin
-    
-            
+
+
     isAuthorized (DataR (StaffScheduleFillFromPreviousMonthR _ _ _)) _ = isAdmin
     isAuthorized (DataR (StaffScheduleFillFromWorkingHoursR _ _ _)) _ = isAdmin
     isAuthorized (DataR (StaffScheduleSlotDeleR _ _ _ _)) _ = isAdmin
@@ -233,58 +235,58 @@ instance Yesod App where
     isAuthorized (DataR (StaffScheduleSlotR _ _ _ _)) _ = isAdmin
     isAuthorized (DataR (StaffScheduleSlotsR _ _ _)) _ = isAdmin
     isAuthorized (DataR (StaffScheduleR _ _ _)) _ = isAdmin
-    
+
     isAuthorized (DataR (StaffAssignmentDeleR _ _)) _ = isAdmin
     isAuthorized (DataR (StaffAssignmentEditR _ _)) _ = isAdmin
     isAuthorized (DataR (StaffAssignmentR _ _)) _ = isAdmin
     isAuthorized (DataR (StaffAssignmentNewR _)) _ = isAdmin
     isAuthorized (DataR (StaffAssignmentsR _)) _ = isAdmin
-    
+
     isAuthorized (DataR (EmployeeDeleR _)) _ = isAdmin
     isAuthorized (DataR (EmployeeEditR _)) _ = isAdmin
     isAuthorized (DataR EmployeeNewR) _ = isAdmin
     isAuthorized (DataR (EmployeeR _)) _ = isAdmin
     isAuthorized r@(DataR StaffR) _ = setUltDest r >> isAdmin
-    
-    
+
+
     isAuthorized (DataR (DataWorkingSlotDeleR _ _ _ _)) _ = isAdmin
     isAuthorized (DataR (DataWorkingSlotEditR _ _ _ _)) _ = isAdmin
     isAuthorized (DataR (DataWorkingSlotR _ _ _ _)) _ = isAdmin
     isAuthorized (DataR (DataWorkingSlotNewR _ _ _)) _ = isAdmin
     isAuthorized (DataR (DataWorkingSlotsR _ _ _)) _ = isAdmin
     isAuthorized (DataR (DataWorkingHoursR _ _ _)) _ = isAdmin
-    
+
     isAuthorized (DataR (DataWorkspaceDeleR _ _)) _ = isAdmin
     isAuthorized (DataR (DataWorkspaceEditR _ _)) _ = isAdmin
     isAuthorized (DataR (DataWorkspaceR _ _)) _ = isAdmin
     isAuthorized (DataR (DataWorkspaceNewR _)) _ = isAdmin
     isAuthorized (DataR (DataWorkspacesR _)) _ = isAdmin
-    
+
     isAuthorized (DataR (DataBusinessDeleR _)) _ = isAdmin
     isAuthorized (DataR (DataBusinessEditR _)) _ = isAdmin
     isAuthorized (DataR (DataBusinessR _)) _ = isAdmin
     isAuthorized (DataR DataBusinessNewR) _ = isAdmin
     isAuthorized r@(DataR DataBusinessesR) _ = setUltDest r >> isAdmin
-    
+
     isAuthorized (DataR (UserDeleR _)) _ = isAdmin
     isAuthorized (DataR (UserEditR _)) _ = isAdmin
     isAuthorized (DataR (UserR _)) _ = isAdmin
     isAuthorized r@(DataR UsersR) _ = setUltDest r >> isAdmin
-    
+
     isAuthorized (DataR TokensGoogleapisClearR) _ = isAdmin
     isAuthorized (DataR TokensGoogleapisHookR) _ = isAdmin
     isAuthorized (DataR TokensR) _ = isAdmin
-    
+
     isAuthorized (AccountInfoEditR uid) _ = isAuthenticatedSelf uid
     isAuthorized (AccountEditR uid) _ = isAuthenticatedSelf uid
     isAuthorized (AccountInfoR uid) _ = isAuthenticatedSelf uid
     isAuthorized (AccountR uid) _ = isAuthenticatedSelf uid
     isAuthorized (AccountPhotoR _) _ = return Authorized
-    
+
     isAuthorized r@DocsR _ = setUltDest r >> return Authorized
-    
+
     isAuthorized ServiceWorkerR _ = return Authorized
-    
+
     isAuthorized (AuthR _) _ = return Authorized
     isAuthorized r@HomeR _ = setUltDest r >> return Authorized
     isAuthorized FaviconR _ = return Authorized
@@ -640,7 +642,7 @@ instance YesodAuthEmail App where
                           return x )
 
                       let accounts = users <> supers
-                      
+
                       toWidget [julius|
                           const menuAnchor = document.getElementById('anchorDemoAccounts');
                           const menuDemoAccounts = document.getElementById('menuDemoAccounts');
@@ -891,7 +893,7 @@ isAdmin = do
         Just (Entity _ (User _ _ _ _ _ _ _ False)) -> unauthorizedI MsgAccessDeniedAdminsOnly
         Nothing -> unauthorizedI MsgLoginPlease
 
-        
+
 -- | Access function to determine if a user is logged in.
 isAuthenticated :: Handler AuthResult
 isAuthenticated = do

@@ -21,7 +21,7 @@
       <figcaption.md-typescale-body-large>
         _{MsgThereAreNoDataYet}
         <p.md-typescale-body-small>
-          _{MsgEmployeeScheduleotGeneratedYet}
+          _{MsgEmployeeScheduleNotGeneratedYet}
         
   $else
     <form method=post action=@?{(BookTimeSlotsR day,stati)} enctype=#{et} novalidate ##{idFormSlots}>

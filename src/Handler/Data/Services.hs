@@ -51,7 +51,7 @@ import Foundation
       , MsgDeleteAreYouSure, MsgConfirmPlease, MsgEdit, MsgRecordEdited
       , MsgDele, MsgRecordDeleted, MsgInvalidFormData, MsgServiceAssignment
       , MsgEmployee, MsgAssignmentDate, MsgTheStart, MsgBusiness, MsgPrice
-      , MsgSchedulingInterval, MsgUnitMinutes
+      , MsgSchedulingInterval, MsgUnitMinutes, MsgPriority, MsgRole
       )
     )
     
@@ -64,7 +64,7 @@ import Model
     ( statusSuccess, statusError
     , ServiceId, Service(Service, serviceName, serviceWorkspace, serviceDescr, servicePrice)
     , Workspace (workspaceName, Workspace)
-    , AssignmentId, Assignment (Assignment, assignmentStaff, assignmentStart, assignmentSlotInterval)
+    , AssignmentId, Assignment (Assignment, assignmentStaff, assignmentTime, assignmentSlotInterval, assignmentPriority, assignmentRole)
     , Staff (staffName, Staff)
     , Business (Business)
     , EntityField
@@ -164,8 +164,10 @@ getServiceAssignmentR sid aid = do
         
     msgs <- getMessages
     defaultLayout $ do
-        setTitleI MsgServiceAssignment 
+        setTitleI MsgServiceAssignment
         $(widgetFile "data/services/assignments/assignment")
+  where
+      toMinutes interval = truncate @_ @Integer (nominalDiffTimeToSeconds interval / 60)
 
 
 formServiceAssignmentDelete :: Form ()
@@ -219,18 +221,38 @@ formServiceAssignment sid assignment extra = do
         { fsLabel = SomeMessage MsgAssignmentDate
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgAssignmentDate),("step","1")]
-        } (utcToLocalTime utc . assignmentStart . entityVal <$> assignment)
+        } (utcToLocalTime utc . assignmentTime . entityVal <$> assignment)
     
     (intervalR, intervalV) <- md3mreq md3intField FieldSettings
         { fsLabel = SomeMessage MsgSchedulingInterval
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgSchedulingInterval),("supporting-text", msgr MsgUnitMinutes)]
         } (truncate . (/ 60) . nominalDiffTimeToSeconds . assignmentSlotInterval . entityVal <$> assignment)
+    
+    (priorityR, priorityV) <- md3mreq md3intField FieldSettings
+        { fsLabel = SomeMessage MsgPriority
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgPriority)]
+        } (assignmentPriority . entityVal <$> assignment)
+    
+    (roleR, roleV) <- md3mopt md3textField FieldSettings
+        { fsLabel = SomeMessage MsgRole
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgRole)]
+        } (assignmentRole . entityVal <$> assignment)
 
     let r = Assignment <$> employeeR <*> pure sid <*> (localTimeToUTC utc <$> startR)
             <*> ((* 60) . secondsToNominalDiffTime . fromIntegral <$> intervalR)
+            <*> priorityR <*> roleR
 
-    let w = [whamlet|#{extra} ^{fvInput employeeV} ^{fvInput startV} ^{fvInput intervalV}|]
+    let w = [whamlet|
+                    #{extra}
+                    ^{fvInput employeeV}
+                    ^{fvInput startV}
+                    ^{fvInput intervalV}
+                    ^{fvInput priorityV}
+                    ^{fvInput roleV}
+                    |]
     
     return (r, w)
         

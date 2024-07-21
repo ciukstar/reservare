@@ -10,18 +10,12 @@
 <main>
 
   ^{widgetBanner msgs}
-
-  $if not existsStaff
-    <figure style="text-align:center">
-      <span.on-secondary style="font-size:4rem">&varnothing;
-      <figcaption.md-typescale-body-large>
-        _{MsgThereAreNoDataYet}
-  $else
-    <form method=post action=@?{(BookStaffR,stati)} enctype=#{et} ##{idFormStaff}>
-      ^{fw}
+  
+  <form method=post action=@?{(BookStaffR,stati)} enctype=#{et} ##{idFormStaff}>
+    ^{fw}
 
   <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext} 
     onclick="document.getElementById('#{idFormStaff}').submit()">
     <md-icon slot=icon>arrow_forward
 
-^{widgetSnackbar msgs}
+  ^{widgetSnackbar msgs}

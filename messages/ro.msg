@@ -1,5 +1,16 @@
+Role: Rol
+Priority: Prioritate
+Name: Numele
+TheAppointment: Întâlnirea
+Location: Locația
+BookingDetails: Detaliile rezervării
+EmployeeWorkScheduleForThisMonthNotSetYet: Se pare că programul de lucru al angajatului pentru această lună nu a fost încă stabilit
+NoServicesWereFoundForSearchTerms: Nu au fost găsite servicii care să conțină toți termenii dvs. de căutare
+UseCaseDiagram: Diagrama cazurilor de utilizare
+StateMachineDiagram: Diagrama mașinii de stare
+NoEmployeesAvailableNow: Nu există angajați disponibili pentru programări în acest moment
 Previous: Precedent
-EmployeeScheduleotGeneratedYet: Programul angajatului nu a fost încă generat
+EmployeeScheduleNotGeneratedYet: Programul angajatului nu a fost încă generat
 FillFromPreviousMonth: Completați din luna precedentă
 FillFromWorkingSchedule: Completați din programul de lucru
 WorkSchedule: Orarul de lucru

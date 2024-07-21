@@ -1,5 +1,16 @@
+Role: Роль
+Priority: Приоритет
+Name: Имя
+TheAppointment: Встреча
+Location: Местонахождение
+BookingDetails: Детали бронирования
+EmployeeWorkScheduleForThisMonthNotSetYet: Похоже, график работы сотрудника на этот месяц еще не установлен
+NoServicesWereFoundForSearchTerms: Не найдено ни одной услуги, содержащей все ваши условия поиска
+UseCaseDiagram: Диаграмма вариантов использования
+StateMachineDiagram: Схема машины состояний
+NoEmployeesAvailableNow: В настоящее время нет сотрудников для записи на прием
 Previous: Предыдущий
-EmployeeScheduleotGeneratedYet: График работы сотрудников еще не сформирован
+EmployeeScheduleNotGeneratedYet: График работы сотрудников еще не сформирован
 FillFromPreviousMonth: Заполнить с предыдущего месяца
 FillFromWorkingSchedule: Заполнить из графика работы
 WorkSchedule: График работы

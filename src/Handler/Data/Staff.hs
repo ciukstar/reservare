@@ -79,7 +79,7 @@ import Foundation
       , MsgBusiness, MsgSchedulingInterval, MsgUnitMinutes, MsgWorkSchedule
       , MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
       , MsgSymbolHour, MsgSymbolMinute, MsgWorkingHours, MsgStartTime
-      , MsgEndTime, MsgDay, MsgFillFromPreviousMonth, MsgFillFromWorkingSchedule
+      , MsgEndTime, MsgDay, MsgFillFromPreviousMonth, MsgFillFromWorkingSchedule, MsgPriority, MsgRole
       )
     )
     
@@ -93,7 +93,7 @@ import Model
     , StaffId, Staff (Staff, staffName, staffMobile, staffPhone, staffAccount)
     , User (userName, userEmail)
     , AssignmentId
-    , Assignment (Assignment, assignmentService, assignmentStart, assignmentSlotInterval)
+    , Assignment (Assignment, assignmentService, assignmentTime, assignmentSlotInterval, assignmentPriority, assignmentRole)
     , Service (Service, serviceName)
     , Workspace (Workspace)
     , Business (Business)
@@ -504,18 +504,38 @@ formServiceAssignment eid assignment extra = do
         { fsLabel = SomeMessage MsgAssignmentDate
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgAssignmentDate),("step","1")]
-        } (utcToLocalTime utc . assignmentStart . entityVal <$> assignment)
+        } (utcToLocalTime utc . assignmentTime . entityVal <$> assignment)
     
     (intervalR, intervalV) <- md3mreq md3intField FieldSettings
         { fsLabel = SomeMessage MsgSchedulingInterval
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgSchedulingInterval),("supporting-text", msgr MsgUnitMinutes)]
         } (truncate . (/ 60) . nominalDiffTimeToSeconds . assignmentSlotInterval . entityVal <$> assignment)
+    
+    (priorityR, priorityV) <- md3mreq md3intField FieldSettings
+        { fsLabel = SomeMessage MsgPriority
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgPriority)]
+        } (assignmentPriority . entityVal <$> assignment)
+    
+    (roleR, roleV) <- md3mopt md3textField FieldSettings
+        { fsLabel = SomeMessage MsgRole
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgRole)]
+        } (assignmentRole . entityVal <$> assignment)
 
     let r = Assignment eid <$> serviceR <*> (localTimeToUTC utc <$> startR)
             <*> ((* 60) . secondsToNominalDiffTime . fromIntegral <$> intervalR)
+            <*> priorityR <*> roleR
 
-    let w = [whamlet|#{extra} ^{fvInput serviceV} ^{fvInput startV} ^{fvInput intervalV}|]
+    let w = [whamlet|
+                    #{extra}
+                    ^{fvInput serviceV}
+                    ^{fvInput startV}
+                    ^{fvInput intervalV}
+                    ^{fvInput priorityV}
+                    ^{fvInput roleV}
+                    |]
 
     return (r, w)
         

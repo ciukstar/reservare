@@ -1,0 +1,80 @@
+
+<header.background>
+  <md-icon-button href=@{HomeR} aria-label=_{MsgBack}>
+    <md-icon>close
+
+  <span.md-typescale-title-large>
+    _{MsgBookingDetails}
+
+
+<main>
+
+  ^{widgetBanner msgs}
+
+  $maybe (Entity _ (Book _ _ time payMethod),(service,(workspace,employee))) <- book
+    <fieldset>
+      <legend>_{MsgTheAppointment}
+      <dl>
+        <dt.md-typescale-label-large>_{MsgAppointmentTime}
+        <dd.md-typescale-body-medium>
+          $with dt <- show time
+            <time.full-datetime datetime=#{dt}>#{dt}
+
+        $with Entity _ (Workspace _ name address _ _) <- workspace
+          <dt.md-typescale-label-large>_{MsgLocation}
+          <dd.md-typescale-body-medium>
+            #{name}
+
+          <dt.md-typescale-label-large>_{MsgAddress}
+          <dd.md-typescale-body-medium>
+            #{address}
+
+    <fieldset>
+      <legend>_{MsgEmployee}
+      <dl>
+        $with Entity _ (Staff name _ mobile phone) <- employee
+          <dt.md-typescale-label-large>_{MsgFullName}
+          <dd.md-typescale-body-medium>
+            #{name}
+
+          $maybe mobile <- mobile
+            <dt.md-typescale-label-large>_{MsgMobile}
+            <dd.md-typescale-body-medium>
+              <a href="tel:#{mobile}">#{mobile}
+
+          $maybe phone <- phone
+            <dt.md-typescale-label-large>_{MsgPhone}
+            <dd.md-typescale-body-medium>
+              <a href="tel:#{phone}">#{phone}
+
+    <fieldset>
+      <legend>_{MsgService}
+      <dl>
+        $with Entity _ (Service _ name _ price) <- service
+          <dt.md-typescale-label-large>_{MsgTheName}
+          <dd.md-typescale-body-medium>
+            #{name}
+
+          <dt.md-typescale-label-large>_{MsgPrice}
+          $with (Entity _ (Workspace _ _ _ _ currency),price) <- (workspace,show price)
+            <dd.md-typescale-body-medium.currency data-value=#{price} data-currency=#{currency}>
+              #{price} #{currency}
+
+        <dt.md-typescale-label-large>_{MsgPaymentMethod}
+        <dd.md-typescale-body-medium>
+          $case payMethod
+            $of PayAtVenue
+              _{MsgPayAtVenue}
+            $of PayNow
+              _{MsgPayNow}
+
+  $nothing
+    <figure>
+      <span.img>&varnothing;
+      <figcaption.md-typescale-body-medium>
+        _{MsgThereAreNoDataYet}.
+
+  <md-text-button type=link href=@{HomeR}>
+    _{MsgReturnToHomePage}
+
+  ^{widgetSnackbar msgs}

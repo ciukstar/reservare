@@ -14,7 +14,6 @@ header
         margin-left: auto
 
 main
-    margin: 0 1rem
     display: flex
     flex-direction: column
 
@@ -56,11 +55,12 @@ main
             box-shadow: 1px 1px 1px var(--md-sys-color-surface-dim)
             
         div.cell.disabled
-            border: 1px solid var(--md-sys-color-surface-dim,black)
+            border: 1px dashed var(--md-sys-color-surface-dim,black)
             color: rgba(0,0,0,0.6)
 
     section.prompt
-        text-align: center        
+        margin: 1rem
+        text-align: center
 
     ##{idFabNext}
         position: fixed

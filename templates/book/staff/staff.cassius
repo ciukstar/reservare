@@ -9,9 +9,6 @@ header
     justify-content: flex-start
     align-items: center
     column-gap: 0.5rem
-    
-    #headerEnd
-        margin-left: auto
 
 main 
 

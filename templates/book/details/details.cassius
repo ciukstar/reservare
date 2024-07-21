@@ -11,10 +11,17 @@ header
     column-gap: 0.5rem
 
 main
+    margin: 0 1rem
     display: flex
     flex-direction: column
-
-    ##{idFabNext}
-        position: fixed
-        right: 1rem
-        bottom: 1rem
+    row-gap: 1rem
+    
+    fieldset
+        border-radius: 0.5rem
+        border-color: var(--md-sys-color-surface-dim)
+    
+    figure
+        text-align: center        
+        span.img
+            font-size: 4rem
+        

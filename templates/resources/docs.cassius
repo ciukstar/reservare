@@ -8,7 +8,7 @@ header
     display: flex
     align-items: center
     column-gap: 0.5rem
-    .header-end
+    #headerEnd
         margin-left: auto
 
 main
@@ -17,3 +17,6 @@ main
     display: flex
     flex-direction: column
     row-gap: 1rem
+
+    img
+        width: 100%

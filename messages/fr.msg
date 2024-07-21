@@ -1,5 +1,16 @@
+Role: Rôle
+Priority: Priorité
+Name: Nom
+TheAppointment: Le Rendez-vous
+Location: Emplacement
+BookingDetails: Les détails de réservation
+EmployeeWorkScheduleForThisMonthNotSetYet: Il semble que l'horaire de travail du salarié pour ce mois-ci n'ait pas encore été fixé
+NoServicesWereFoundForSearchTerms: Aucun service contenant tous vos termes de recherche n'a été trouvé
+UseCaseDiagram: Diagramme de cas d'utilisation
+StateMachineDiagram: Diagramme de machine d'état
+NoEmployeesAvailableNow: Aucun employé n'est disponible pour un rendez-vous pour le moment
 Previous: Précédent
-EmployeeScheduleotGeneratedYet: L'horaire des employés n'est pas encore généré
+EmployeeScheduleNotGeneratedYet: L'horaire des employés n'est pas encore généré
 FillFromPreviousMonth: Remplissez du mois précédent
 FillFromWorkingSchedule: Remplissez à partir de l'horaire de travail
 WorkSchedule: Horaire de travail

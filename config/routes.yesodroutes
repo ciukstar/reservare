@@ -2,7 +2,8 @@
 -- Syntax for this file here: https://www.yesodweb.com/book/routing-and-handlers
 
 
-/book/pay/at/venue/completion BookPayAtVenueCompletionR GET
+/books/#BookId/details         BookDetailsR              GET
+/book/#BookId/pay/at/venue/completion BookPayAtVenueCompletionR GET
 /book/pay/cancel              BookPaymentIntentCancelR  POST
 /book/pay                     BookPayR                  POST
 /book/pay/intent/#Int/#Text   BookPaymentIntentR        POST

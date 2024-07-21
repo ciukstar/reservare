@@ -8,14 +8,18 @@ import Foundation
     , Route (StaticR, HomeR)
     , AppMessage
       ( MsgAppDocumentation, MsgAppDescription, MsgErDiagram, MsgDocumentation
-      , MsgAppName, MsgIssueTracking, MsgOverview, MsgSourceCode
+      , MsgAppName, MsgIssueTracking, MsgOverview, MsgStateMachineDiagram
+      , MsgSourceCode, MsgBookAService, MsgUseCaseDiagram
       , MsgDoc001, MsgDoc002, MsgDoc003
       )
     )
 
 import Settings (widgetFile)
 
-import Settings.StaticFiles (img_Reservare_ERD_svg)
+import Settings.StaticFiles
+    (img_Reservare_ERD_svg, img_Reservare_Book_Service_SMD_svg
+    , img_Reservare_UCD_svg
+    )
 
 import Text.Blaze.Html (preEscapedToHtml)
 import Text.Hamlet (Html)
