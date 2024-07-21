@@ -1,3 +1,6 @@
+Unknown: Неизвестно
+Paid: Оплачено
+Unpaid: Не оплачено
 Role: Роль
 Priority: Приоритет
 Name: Имя

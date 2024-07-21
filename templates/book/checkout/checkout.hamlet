@@ -1,6 +1,6 @@
 
 <header>
-  <md-icon-button href=@{BookPaymentR} aria-label=_{MsgBack} ##{idButtonBack}>
+  <md-icon-button type=button aria-label=_{MsgBack} ##{idButtonBack}>
     <md-icon>arrow_back
 
   <span.md-typescale-title-large>

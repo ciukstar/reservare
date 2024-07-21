@@ -1,3 +1,6 @@
+Unknown: Inconnu
+Paid: Payé
+Unpaid: Non payé
 Role: Rôle
 Priority: Priorité
 Name: Nom

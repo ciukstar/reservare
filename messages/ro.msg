@@ -1,3 +1,6 @@
+Unknown: Necunoscut
+Paid: Plătit
+Unpaid: Neplătit
 Role: Rol
 Priority: Prioritate
 Name: Numele

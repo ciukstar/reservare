@@ -48,8 +48,9 @@ import Data.Time.LocalTime (utcToLocalTime, utc, localTimeToUTC)
 
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, asc, innerJoin, on, in_
-    , (^.), (==.), (:&)((:&))
+    , (^.), (==.), (:&)((:&)), (=.)
     , toSqlKey, val, where_, selectOne, Value (unValue), between, valList
+    , update, set
     )
 import Database.Persist (Entity (Entity), entityKey, insert)
 import Database.Persist.Sql (fromSqlKey)
@@ -76,7 +77,7 @@ import Foundation
       , MsgPrevious, MsgNoServicesWereFoundForSearchTerms, MsgInvalidFormData
       , MsgEmployeeWorkScheduleForThisMonthNotSetYet, MsgBookingDetails
       , MsgPrice, MsgMobile, MsgPhone, MsgLocation, MsgAddress, MsgFullName
-      , MsgTheAppointment, MsgTheName
+      , MsgTheAppointment, MsgTheName, MsgUnpaid, MsgPaid, MsgUnknown
       )
     )
 
@@ -92,13 +93,17 @@ import Model
     , StaffId, Staff (Staff)
     , User (User), PayMethod (PayNow, PayAtVenue)
     , Schedule (Schedule)
-    , BookId, Book (Book, bookService, bookStaff, bookAppointment, bookPayMethod)
+    , BookId
+    , Book
+      ( Book, bookService, bookStaff, bookAppointment, bookPayMethod
+      , bookStatus
+      )
     , EntityField
       ( ServiceWorkspace, WorkspaceId, WorkspaceBusiness
       , BusinessId, ServiceName, AssignmentStaff, StaffId, StaffName
       , BusinessName, WorkspaceName, ServiceId, AssignmentService
       , AssignmentSlotInterval, ScheduleAssignment, AssignmentId
-      , ScheduleDay, BookId, BookService, BookStaff
+      , ScheduleDay, BookId, BookService, BookStaff, BookStatus
       )
     )
 
@@ -124,8 +129,8 @@ import Widgets (widgetSnackbar, widgetBanner)
 
 import Yesod.Auth (maybeAuth, Route (LoginR))
 import Yesod.Core.Handler
-    ( getMessages, newIdent, getYesod, getUrlRenderParams
-    , getRequest, YesodRequest (reqGetParams), redirect, addMessageI
+    ( getMessages, newIdent, getYesod, getUrlRender, addMessageI
+    , getRequest, YesodRequest (reqGetParams), redirect
     , getMessageRender, setUltDestCurrent
     )
 import Yesod.Core
@@ -211,27 +216,29 @@ postBookPaymentIntentR cents currency = do
                         ]
 
 
-getBookPayCompletionR :: Handler Html
-getBookPayCompletionR = do
+getBookPayCompletionR :: BookId -> Handler Html
+getBookPayCompletionR bid = do
 
     intent <- runInputGet $ ireq textField "payment_intent"
     _ <- runInputGet $ ireq textField "payment_intent_client_secret"
     _ <- runInputGet $ ireq textField "redirect_status"
 
-
-    let api = endpointStripePaymentIntents <> "/" <> intent
     sk <- encodeUtf8 . stripeConfSk . appStripeConf . appSettings <$> getYesod
+    let api = endpointStripePaymentIntents <> "/" <> intent
     let opts = defaults & auth ?~ basicAuth sk ""
     r <- liftIO $ getWith opts (unpack api)
 
-    let status = r ^? responseBody . key "status" . _String
-
     msgr <- getMessageRender
 
-    let result = case status of
-          Just "succeeded" -> msgr MsgYourBookingHasBeenCreatedSuccessfully
-          Just s -> s
-          Nothing -> msgr MsgSomethingWentWrong
+    let (status,result) = case r ^? responseBody . key "status" . _String of
+          Just "succeeded" -> (msgr MsgPaid, msgr MsgYourBookingHasBeenCreatedSuccessfully)
+          Just s -> (s,s)
+          Nothing -> (msgr MsgUnknown, msgr MsgSomethingWentWrong)
+
+
+    runDB $ update $ \x -> do
+        set x [BookStatus =. val status]
+        where_ $ x ^. BookId ==. val bid
 
     msgs <- getMessages
     defaultLayout $ do
@@ -239,14 +246,10 @@ getBookPayCompletionR = do
         $(widgetFile "book/completion/completion")
 
 
-getBookCheckoutR :: Handler Html
-getBookCheckoutR = do
+getBookCheckoutR :: BookId -> Handler Html
+getBookCheckoutR bid = do
 
     stati <- reqGetParams <$> getRequest
-    sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
-    -- eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
-    -- tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
-    -- pid <- (readMaybe . unpack =<<) <$> runInputGet ( iopt textField "pid" )
 
     user <- maybeAuth
     case user of
@@ -258,21 +261,20 @@ getBookCheckoutR = do
           pk <- stripeConfPk . appStripeConf . appSettings <$> getYesod
 
           services <- runDB ( select $ do
-              x :& w <- from $ table @Service
-                  `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
-              case sid of
-                Just y -> where_ $ x ^. ServiceId ==. val y
-                Nothing -> where_ $ val False
-              return (x, w) )
+              x :& s :& w <- from $ table @Book
+                  `innerJoin` table @Service `on` (\(x :& s) -> x ^. BookService ==. s ^. ServiceId)
+                  `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
+              where_ $ x ^. BookId ==. val bid
+              return (s,w) )
 
           let items = (\(Entity _ (Service _ name _ _),_) -> object ["id" .= name]) <$> services
           let cents = getSum $ mconcat $ (\(Entity _ (Service _ _ _ price),_) -> Sum price) <$> services
           let currency = maybe "USD" (\(_, Entity _ (Workspace _ _ _ _ c)) -> c) (headMay services)
 
-          rndr <- getUrlRenderParams
+          rndr <- getUrlRender
 
           let confirmParams = encodeToLazyText $ object
-                  [ "return_url"    .= rndr BookPayCompletionR stati
+                  [ "return_url"    .= (rndr $ BookPayCompletionR bid :: Text)
                   , "receipt_email" .= email
                   ]
 
@@ -303,20 +305,23 @@ postBookPaymentR = do
 
     ((fr,fw),et) <- runFormPost $ formPayment sid eid tid pid
 
+    msgr <- getMessageRender 
+
     case fr of
-      FormSuccess (sid',eid',tid',pid'@PayNow) -> redirect
-          ( BookCheckoutR
-          , [ ( "sid", pack $ show $ fromSqlKey sid')
-            , ( "eid", pack $ show $ fromSqlKey eid')
-            , ( "tid", pack $ show $ utcToLocalTime utc tid')
-            , ( "pid", pack $ show pid')
-            ]
-          )
+      FormSuccess (sid',eid',tid',pid'@PayNow) -> do
+          bid <- runDB $ insert $ Book { bookService = sid'
+                                       , bookStaff = eid'
+                                       , bookAppointment = tid'
+                                       , bookPayMethod = pid'
+                                       , bookStatus = msgr MsgUnpaid
+                                       }
+          redirect (BookCheckoutR bid, stati)
       FormSuccess (sid',eid',tid',pid'@PayAtVenue) -> do
           bid <- runDB $ insert $ Book { bookService = sid'
                                        , bookStaff = eid'
                                        , bookAppointment = tid'
                                        , bookPayMethod = pid'
+                                       , bookStatus = msgr MsgUnpaid
                                        }
           redirect $ BookPayAtVenueCompletionR bid
       FormFailure errs -> do
