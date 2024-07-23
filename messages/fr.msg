@@ -1,3 +1,8 @@
+Error: Erreur
+MicrocopyPayAtVenue: Payer après la prestation du service
+MicrocopyPayNow: Payez avec une carte de crédit ou PayPal
+MicrocopySelectPayAtVenue: Sélectionnez cette option si vous avez l'intention de payer une fois le service fourni
+MicrocopySelectPayNow: Sélectionnez cette option si vous avez l'intention d'effectuer un paiement en ligne en utilisant une carte de crédit, PayPal ou un autre mode de paiement
 Unknown: Inconnu
 Paid: Payé
 Unpaid: Non payé

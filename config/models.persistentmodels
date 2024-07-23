@@ -2,11 +2,13 @@
 -- Syntax for this file here: https://github.com/yesodweb/persistent/blob/master/docs/Persistent-entity-syntax.md
 
 Book
+    customer UserId OnDeleteCascade
     service ServiceId OnDeleteCascade
     staff StaffId OnDeleteCascade
     appointment UTCTime
     payMethod PayMethod
-    status Text
+    status PayStatus
+    message Text Maybe
 
 Schedule
     assignment AssignmentId OnDeleteCascade

@@ -189,7 +189,6 @@ instance Yesod App where
     isAuthorized r@(BookDetailsR _) _ = setUltDest r >> return Authorized
     isAuthorized r@(BookPayAtVenueCompletionR _) _ = setUltDest r >> return Authorized
     isAuthorized r@BookPaymentIntentCancelR _ = setUltDest r >> return Authorized
-    isAuthorized r@BookPayR _ = setUltDest r >> return Authorized
     isAuthorized r@(BookPaymentIntentR _ _) _ = setUltDest r >> return Authorized
     isAuthorized r@(BookPayCompletionR _) _ = setUltDest r >> return Authorized
     isAuthorized r@(BookCheckoutR _) _ = setUltDest r >> return Authorized

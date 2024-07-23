@@ -2,18 +2,17 @@
 -- Syntax for this file here: https://www.yesodweb.com/book/routing-and-handlers
 
 
-/books/#BookId/details         BookDetailsR              GET
-/book/#BookId/pay/at/venue/completion BookPayAtVenueCompletionR GET
-/book/pay/cancel              BookPaymentIntentCancelR  POST
-/book/pay                     BookPayR                  POST
-/book/pay/intent/#Int/#Text   BookPaymentIntentR        POST
-/books/#BookId/completion     BookPayCompletionR        GET
-/books/#BookId/checkout       BookCheckoutR             GET
-/book/payment                 BookPaymentR              GET POST
-/book/timing/#Day/slots       BookTimeSlotsR            GET POST
-/book/timing/#Month           BookTimingR               GET POST
-/book/staff                   BookStaffR                GET POST
-/book/services                BookServicesR             GET POST
+/books/#BookId/details                 BookDetailsR              GET
+/books/#BookId/pay/at/venue/completion BookPayAtVenueCompletionR GET
+/book/pay/cancel                       BookPaymentIntentCancelR  POST
+/book/pay/intent/#Int/#Text            BookPaymentIntentR        POST
+/books/#BookId/completion              BookPayCompletionR        GET
+/books/#BookId/checkout                BookCheckoutR             GET
+/book/payment                          BookPaymentR              GET POST
+/book/timing/#Day/slots                BookTimeSlotsR            GET POST
+/book/timing/#Month                    BookTimingR               GET POST
+/book/staff                            BookStaffR                GET POST
+/book/services                         BookServicesR             GET POST
 
     
 /users/#UserId/businesses/#BusinessId/workspaces/#WorkspaceId/form/dele WorkspaceDeleR POST

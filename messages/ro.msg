@@ -1,3 +1,8 @@
+Error: Eroare
+MicrocopyPayAtVenue: Plătiți după prestarea serviciului
+MicrocopyPayNow: Plătiți folosind un card de credit sau PayPal
+MicrocopySelectPayAtVenue: Selectați această opțiune dacă intenționați să plătiți după furnizarea serviciului
+MicrocopySelectPayNow: Selectați această opțiune dacă intenționați să efectuați o plată online folosind un card de credit, PayPal sau altă metodă de plată
 Unknown: Necunoscut
 Paid: Plătit
 Unpaid: Neplătit

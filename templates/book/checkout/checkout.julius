@@ -122,7 +122,10 @@ async function checkStatus() {
 }
 
 function showMessage(messageText) {
-  document.getElementById(#{idBannerStripe}).textContent = messageText;
+  const banner = document.getElementById(#{idBannerStripe})
+  banner.textContent = messageText;
+  banner.style.display = 'block';
+  
 }
 
 // Show a spinner on payment submission

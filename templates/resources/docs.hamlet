@@ -31,6 +31,10 @@
     <img src=@{StaticR img_Reservare_Book_Service_SMD_svg} alt=_{MsgStateMachineDiagram} loading=lazy>
 
   <section>
+    <h2.md-typescale-headline-medium>_{MsgMakeAnAppointment}
+    <img src=@{StaticR img_Reservare_Make_Appointment_SMD_svg} alt=_{MsgStateMachineDiagram} loading=lazy>
+
+  <section>
     <h2.md-typescale-headline-medium>_{MsgErDiagram}
     <img src=@{StaticR img_Reservare_ERD_svg} alt=_{MsgErDiagram} loading=lazy>
 

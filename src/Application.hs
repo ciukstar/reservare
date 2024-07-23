@@ -60,8 +60,7 @@ import Handler.Booking
     , getBookTimeSlotsR, postBookTimeSlotsR
     , getBookPaymentR, postBookPaymentR
     , getBookCheckoutR, getBookPayCompletionR, postBookPaymentIntentR
-    , postBookPayR, postBookPaymentIntentCancelR
-    , getBookPayAtVenueCompletionR
+    , postBookPaymentIntentCancelR, getBookPayAtVenueCompletionR
     , getBookDetailsR
     )
 

@@ -1,3 +1,8 @@
+Error: Error
+MicrocopyPayAtVenue: Pay after the service is provided 
+MicrocopyPayNow: Pay using a credit card or PayPal
+MicrocopySelectPayAtVenue: Select this option if you intend to pay after the service is provided 
+MicrocopySelectPayNow: Select this option if you intend to make an online payment using a credit card, PayPal, or other payment method
 Unknown: Unknown
 Paid: Paid
 Unpaid: Unpaid

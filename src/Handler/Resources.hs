@@ -9,7 +9,7 @@ import Foundation
     , AppMessage
       ( MsgAppDocumentation, MsgAppDescription, MsgErDiagram, MsgDocumentation
       , MsgAppName, MsgIssueTracking, MsgOverview, MsgStateMachineDiagram
-      , MsgSourceCode, MsgBookAService, MsgUseCaseDiagram
+      , MsgSourceCode, MsgBookAService, MsgUseCaseDiagram, MsgMakeAnAppointment
       , MsgDoc001, MsgDoc002, MsgDoc003
       )
     )
@@ -17,8 +17,8 @@ import Foundation
 import Settings (widgetFile)
 
 import Settings.StaticFiles
-    (img_Reservare_ERD_svg, img_Reservare_Book_Service_SMD_svg
-    , img_Reservare_UCD_svg
+    ( img_Reservare_UCD_svg, img_Reservare_Book_Service_SMD_svg
+    , img_Reservare_Make_Appointment_SMD_svg, img_Reservare_ERD_svg
     )
 
 import Text.Blaze.Html (preEscapedToHtml)

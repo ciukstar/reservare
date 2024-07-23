@@ -56,12 +56,12 @@
     $else
       $maybe slot <- tid
         $with dt <- show slot
-          <p.md-typescale-label-large>_{MsgAppointmentSetFor}
+          <div.md-typescale-label-large>_{MsgAppointmentSetFor}
           <time.full-datetime.md-typescale-body-large datetime=#{dt}>#{dt}
       $nothing
         <p.md-typescale-body-medium>_{MsgSelectAvailableDayAndTimePlease}.
 
-  <form method=post action=@?{(BookTimingR today,stati)} enctype=#{et} ##{idFormTiming}>
+  <form method=post action=@?{(BookTimingR month,stati)} enctype=#{et} ##{idFormTiming}>
     ^{fw}
 
   <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext}

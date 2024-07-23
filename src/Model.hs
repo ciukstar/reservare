@@ -34,6 +34,11 @@ import Text.Printf (printf, PrintfType)
 import Text.Read (readMaybe)
 
 
+data PayStatus = PayStatusPaid | PayStatusUnpaid | PayStatusError | PayStatusUnknown
+    deriving (Show, Read, Eq, Ord)
+derivePersistField "PayStatus"
+
+
 data PayMethod = PayAtVenue | PayNow
     deriving (Show, Read, Eq, Ord)
 derivePersistField "PayMethod"

@@ -14,7 +14,6 @@ module Handler.Booking
   , getBookCheckoutR
   , getBookPayCompletionR
   , postBookPaymentIntentR
-  , postBookPayR
   , postBookPaymentIntentCancelR
   , getBookPayAtVenueCompletionR
   , getBookDetailsR
@@ -78,6 +77,8 @@ import Foundation
       , MsgEmployeeWorkScheduleForThisMonthNotSetYet, MsgBookingDetails
       , MsgPrice, MsgMobile, MsgPhone, MsgLocation, MsgAddress, MsgFullName
       , MsgTheAppointment, MsgTheName, MsgUnpaid, MsgPaid, MsgUnknown
+      , MsgMicrocopyPayNow, MsgMicrocopyPayAtVenue, MsgMicrocopySelectPayNow
+      , MsgMicrocopySelectPayAtVenue, MsgError
       )
     )
 
@@ -96,14 +97,15 @@ import Model
     , BookId
     , Book
       ( Book, bookService, bookStaff, bookAppointment, bookPayMethod
-      , bookStatus
+      , bookStatus, bookMessage, bookCustomer
       )
+    , PayStatus (PayStatusUnpaid, PayStatusPaid, PayStatusError, PayStatusUnknown)
     , EntityField
       ( ServiceWorkspace, WorkspaceId, WorkspaceBusiness
       , BusinessId, ServiceName, AssignmentStaff, StaffId, StaffName
       , BusinessName, WorkspaceName, ServiceId, AssignmentService
       , AssignmentSlotInterval, ScheduleAssignment, AssignmentId
-      , ScheduleDay, BookId, BookService, BookStaff, BookStatus
+      , ScheduleDay, BookId, BookService, BookStaff, BookStatus, BookMessage
       )
     )
 
@@ -131,7 +133,7 @@ import Yesod.Auth (maybeAuth, Route (LoginR))
 import Yesod.Core.Handler
     ( getMessages, newIdent, getYesod, getUrlRender, addMessageI
     , getRequest, YesodRequest (reqGetParams), redirect
-    , getMessageRender, setUltDestCurrent
+    , getMessageRender, setUltDestCurrent, setUltDest
     )
 import Yesod.Core
     ( Yesod(defaultLayout), returnJson, MonadIO (liftIO), whamlet
@@ -189,15 +191,7 @@ postBookPaymentIntentCancelR = do
     sk <- encodeUtf8 . stripeConfSk . appStripeConf . appSettings <$> getYesod
     _ <- liftIO $ postWith (defaults & auth ?~ basicAuth sk BS.empty) api BS.empty
     addMessageI statusSuccess MsgPaymentIntentCancelled
-    redirect (BookPaymentR,("pm",pack $ show PayNow) : stati)
-
-
-postBookPayR :: Handler Html
-postBookPayR = do
-    defaultLayout $ do
-        setTitleI MsgAppointmentTime
-        [whamlet| <h1>DONE |]
-
+    redirect (BookPaymentR,stati)
 
 
 postBookPaymentIntentR :: Int -> Text -> Handler A.Value
@@ -230,15 +224,22 @@ getBookPayCompletionR bid = do
 
     msgr <- getMessageRender
 
-    let (status,result) = case r ^? responseBody . key "status" . _String of
-          Just "succeeded" -> (msgr MsgPaid, msgr MsgYourBookingHasBeenCreatedSuccessfully)
-          Just s -> (s,s)
-          Nothing -> (msgr MsgUnknown, msgr MsgSomethingWentWrong)
-
-
-    runDB $ update $ \x -> do
-        set x [BookStatus =. val status]
-        where_ $ x ^. BookId ==. val bid
+    result <- case r ^? responseBody . key "status" . _String of
+      Just s@"succeeded" -> do
+          runDB $ update $ \x -> do
+              set x [BookStatus =. val PayStatusPaid, BookMessage =. val (Just s)]
+              where_ $ x ^. BookId ==. val bid
+          return $ msgr MsgYourBookingHasBeenCreatedSuccessfully
+      Just s -> do
+          runDB $ update $ \x -> do
+              set x [BookStatus =. val PayStatusError, BookMessage =. val (Just s)]
+              where_ $ x ^. BookId ==. val bid
+          return s
+      Nothing -> do
+          runDB $ update $ \x -> do
+              set x [BookStatus =. val PayStatusUnknown, BookMessage =. val (Just $ msgr MsgUnknown)]
+              where_ $ x ^. BookId ==. val bid
+          return $ msgr MsgSomethingWentWrong
 
     msgs <- getMessages
     defaultLayout $ do
@@ -307,24 +308,41 @@ postBookPaymentR = do
 
     msgr <- getMessageRender 
 
-    case fr of
-      FormSuccess (sid',eid',tid',pid'@PayNow) -> do
-          bid <- runDB $ insert $ Book { bookService = sid'
+    user <- maybeAuth
+    
+    case (fr,user) of
+      (FormSuccess (sid',eid',tid',pid'), Nothing) -> do
+          setUltDest ( BookPaymentR, [ ("sid", pack $ show $ fromSqlKey sid')
+                                     , ("eid", pack $ show $ fromSqlKey eid')
+                                     , ("tid", pack $ show (utcToLocalTime utc tid'))
+                                     , ("pid", pack $ show pid')
+                                     ]
+                     )
+          redirect $ AuthR LoginR
+          
+      (FormSuccess (sid',eid',tid',pid'@PayNow), Just (Entity uid _)) -> do
+          bid <- runDB $ insert $ Book { bookCustomer = uid
+                                       , bookService = sid'
                                        , bookStaff = eid'
                                        , bookAppointment = tid'
                                        , bookPayMethod = pid'
-                                       , bookStatus = msgr MsgUnpaid
+                                       , bookStatus = PayStatusUnpaid
+                                       , bookMessage = Just (msgr MsgUnpaid)
                                        }
           redirect (BookCheckoutR bid, stati)
-      FormSuccess (sid',eid',tid',pid'@PayAtVenue) -> do
-          bid <- runDB $ insert $ Book { bookService = sid'
+          
+      (FormSuccess (sid',eid',tid',pid'@PayAtVenue), Just (Entity uid _)) -> do
+          bid <- runDB $ insert $ Book { bookCustomer = uid
+                                       , bookService = sid'
                                        , bookStaff = eid'
                                        , bookAppointment = tid'
                                        , bookPayMethod = pid'
-                                       , bookStatus = msgr MsgUnpaid
-                                       }
+                                       , bookStatus = PayStatusUnpaid
+                                       , bookMessage = Just (msgr MsgUnpaid)
+                                       }          
           redirect $ BookPayAtVenueCompletionR bid
-      FormFailure errs -> do
+          
+      (FormFailure errs, _) -> do
           forM_ errs $ \err -> addMessageI statusError err
           msgs <- getMessages
           defaultLayout $ do
@@ -332,7 +350,8 @@ postBookPaymentR = do
               idFormPayment <- newIdent
               idFabNext <- newIdent
               $(widgetFile "book/payment/payment")
-      FormMissing -> do
+              
+      (FormMissing, _) -> do
           addMessageI statusError MsgInvalidFormData
           msgs <- getMessages
           defaultLayout $ do
@@ -387,7 +406,9 @@ formPayment sid eid time method extra = do
         , fsAttrs = [("label", msgr MsgAppointmentTime),("hidden","hidden")]
         } (utcToLocalTime utc <$> time)
 
-    let methods = [((MsgPayNow,PayNow),"credit_card"),((MsgPayAtVenue,PayAtVenue),"point_of_sale")]
+    let methods = [ ((MsgPayNow,PayNow),("credit_card",(MsgMicrocopyPayNow,MsgMicrocopySelectPayNow)))
+                  , ((MsgPayAtVenue,PayAtVenue),("point_of_sale",(MsgMicrocopyPayAtVenue,MsgMicrocopySelectPayAtVenue)))
+                  ]
 
     (methodR,methodV) <- md3mreq (md3radioFieldList methods) "" method
 
@@ -398,7 +419,7 @@ formPayment sid eid time method extra = do
 
   where
 
-      md3radioFieldList :: [((AppMessage,PayMethod),Text)] -> Field (HandlerFor App) PayMethod
+      md3radioFieldList :: [((AppMessage,PayMethod),(Text,(AppMessage,AppMessage)))] -> Field (HandlerFor App) PayMethod
       md3radioFieldList methods = (radioField (optionsPairs (fst <$> methods)))
           { fieldView = \theId name attrs x isReq -> do
 
@@ -412,12 +433,14 @@ formPayment sid eid time method extra = do
                 [whamlet|
 <md-list ##{theId} *{attrs}>
   $forall (i,opt) <- opts
-    $maybe ((msg,_),icon) <- findMethod opt methods
-      <md-list-item type=button onclick="this.querySelector('md-radio').click()">
+    $maybe ((label,_),(icon,(micro,title))) <- findMethod opt methods
+      <md-list-item type=button onclick="this.querySelector('md-radio').click()" title=_{title}>
         <md-icon slot=start>
           #{icon}
         <div slot=headline>
-          _{msg}
+          _{label}
+        <div slot=supporting-text>
+          _{micro}
         <div slot=end>
           <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
             :sel x opt:checked touch-target=wrapper>
@@ -574,8 +597,6 @@ postBookTimingR month = do
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
     tid <- runInputGet ( iopt datetimeLocalField "tid" )
 
-    today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
-
     ((fr,fw),et) <- runFormPost $ formTiming sid eid tid
 
     case fr of
@@ -593,6 +614,8 @@ postBookTimingR month = do
           let next = addMonths 1 month
           let prev = addMonths (-1) month
 
+          today <- utctDay <$> liftIO getCurrentTime
+
           slots <- groupByKey (\(Entity _ (Schedule _ day _ _)) -> day) <$> runDB ( select $ do
               x :& a <- from $ table @Schedule
                   `innerJoin` table @Assignment `on` (\(x :& a) -> x ^. ScheduleAssignment ==. a ^. AssignmentId)
@@ -602,7 +625,7 @@ postBookTimingR month = do
               case eid of
                 Just employee -> where_ $ a ^. AssignmentStaff ==. val employee
                 Nothing -> where_ $ val False
-              where_ $ x ^. ScheduleDay `between` (val $ periodFirstDay month, val $ periodLastDay month)
+              where_ $ x ^. ScheduleDay `between` (val today, val $ periodLastDay month)
               return x )
 
           forM_ errs $ \err -> addMessageI statusError err
@@ -622,6 +645,8 @@ postBookTimingR month = do
           let next = addMonths 1 month
           let prev = addMonths (-1) month
 
+          today <- utctDay <$> liftIO getCurrentTime
+
           slots <- groupByKey (\(Entity _ (Schedule _ day _ _)) -> day) <$> runDB ( select $ do
               x :& a <- from $ table @Schedule
                   `innerJoin` table @Assignment `on` (\(x :& a) -> x ^. ScheduleAssignment ==. a ^. AssignmentId)
@@ -631,7 +656,7 @@ postBookTimingR month = do
               case eid of
                 Just employee -> where_ $ a ^. AssignmentStaff ==. val employee
                 Nothing -> where_ $ val False
-              where_ $ x ^. ScheduleDay `between` (val $ periodFirstDay month, val $ periodLastDay month)
+              where_ $ x ^. ScheduleDay `between` (val today, val $ periodLastDay month)
               return x )
 
           addMessageI statusError MsgInvalidFormData
@@ -651,8 +676,6 @@ getBookTimingR month = do
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
     tid <- runInputGet ( iopt datetimeLocalField "tid" )
 
-    today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
-
     (fw,et) <- generateFormPost $ formTiming sid eid tid
 
     let start = weekFirstDay Monday (periodFirstDay month)
@@ -660,6 +683,8 @@ getBookTimingR month = do
     let page = [start .. end]
     let next = addMonths 1 month
     let prev = addMonths (-1) month
+
+    today <- utctDay <$> liftIO getCurrentTime
 
     slots <- groupByKey (\(Entity _ (Schedule _ day _ _)) -> day) <$> runDB ( select $ do
         x :& a <- from $ table @Schedule
@@ -670,7 +695,7 @@ getBookTimingR month = do
         case eid of
           Just employee -> where_ $ a ^. AssignmentStaff ==. val employee
           Nothing -> where_ $ val False
-        where_ $ x ^. ScheduleDay `between` (val $ periodFirstDay month, val $ periodLastDay month)
+        where_ $ x ^. ScheduleDay `between` (val today, val $ periodLastDay month)
         return x )
 
 

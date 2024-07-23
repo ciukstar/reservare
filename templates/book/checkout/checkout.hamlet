@@ -1,5 +1,5 @@
 
-<header>
+<header.background>
   <md-icon-button type=button aria-label=_{MsgBack} ##{idButtonBack}>
     <md-icon>arrow_back
 
@@ -8,7 +8,7 @@
 
 <main>
 
-  <div.mdc-banner role=banner data-mdc-auto-init=MDCBanner ##{idBannerStripe}>
+  <div.error role=banner ##{idBannerStripe}>
 
   ^{widgetBanner msgs}
 
@@ -28,3 +28,5 @@
 
   <md-text-button ##{idButtonCancelPayment} type=button>
     _{MsgCancel}
+
+  ^{widgetSnackbar msgs}
