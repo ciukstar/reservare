@@ -1,0 +1,24 @@
+
+<header.background>
+  <md-icon-button href=@{HomeR} aria-label=_{MsgBack}>
+    <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgServices}
+
+
+<main>
+
+  ^{widgetBanner msgs}
+
+  <form method=get action=@{BookServicesR} enctype=#{et0} ##{idFormSearch}>
+    ^{fw0}
+    
+  <form method=post action=@?{(BookServicesR,stati)} enctype=#{et} ##{idFormService}>
+    ^{fw}
+
+  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext} 
+    onclick="document.getElementById('#{idFormService}').submit()">
+    <md-icon slot=icon>arrow_forward
+
+^{widgetSnackbar msgs}

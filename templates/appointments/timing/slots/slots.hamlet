@@ -1,0 +1,37 @@
+
+<header.background>
+  <md-icon-button href=@?{(AppointmentTimingR month,stati)} aria-label=_{MsgBack}>
+    <md-icon>close
+
+  <span.md-typescale-title-large>
+    _{MsgSelectTime}
+
+<main>
+
+  ^{widgetBanner msgs}
+  
+  <p #idDayLabel>
+    $with d <- show day
+      <time.day.md-typescale-label-large datetime=#{d}>
+        #{d}
+
+  $if null slots
+    <figure style="text-align:center">
+      <span.on-secondary style="font-size:4rem">&varnothing;
+      <figcaption.md-typescale-body-large>
+        _{MsgThereAreNoDataYet}
+        <p.md-typescale-body-small>
+          _{MsgEmployeeScheduleNotGeneratedYet}
+        
+  $else
+    <form method=post action=@?{(AppointmentTimeSlotsR day,stati)} enctype=#{et} novalidate ##{idFormSlots}>
+      <div.list-frame>
+        ^{fw}
+
+      <div.actions>
+        <md-text-button type=button href=@?{(AppointmentTimingR month,stati)}>
+          _{MsgCancel}
+        <md-filled-button type=submit>
+          _{MsgSelect}
+
+  ^{widgetSnackbar msgs}

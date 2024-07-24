@@ -1,0 +1,28 @@
+
+<header>
+  <md-icon-button href=@{HomeR} aria-label=_{MsgBack}>
+    <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgStaff}
+
+
+<main>
+
+  ^{widgetBanner msgs}
+
+  <div>
+    <md-chip-set>
+      <md-filter-chip label=Business>
+      <md-filter-chip label=Workspace>
+      <md-filter-chip label=Service>
+      <md-filter-chip label=Role>
+  
+  <form method=post action=@{AppointmentStaffR} enctype=#{et} ##{idFormAssignment}>
+    ^{fw}
+
+  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext} 
+    onclick="document.getElementById('#{idFormAssignment}').submit()">
+    <md-icon slot=icon>arrow_forward
+
+  ^{widgetSnackbar msgs}

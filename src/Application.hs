@@ -53,6 +53,13 @@ import System.Log.FastLogger
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
 
+import Handler.Appointments
+    ( getAppointmentStaffR, postAppointmentStaffR
+    , getAppointmentTimingR, postAppointmentTimingR
+    , getAppointmentTimeSlotsR, postAppointmentTimeSlotsR
+    , getAppointmentPaymentR, postAppointmentPaymentR
+    )
+
 import Handler.Booking
     ( getBookServicesR, postBookServicesR
     , getBookStaffR, postBookStaffR
