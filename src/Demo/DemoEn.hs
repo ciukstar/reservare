@@ -8,7 +8,8 @@ module Demo.DemoEn (fillDemoEn) where
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Import.NoFoundation
     ( forM_, ReaderT, Workspace (workspaceTzo, workspaceCurrency)
-    , Service (servicePrice), Assignment (assignmentSlotInterval, assignmentPriority, assignmentRole)
+    , Service (servicePrice)
+    , Assignment (assignmentSlotInterval, assignmentPriority, assignmentRole)
     , WorkingHours
       ( WorkingHours, workingHoursWorkspace, workingHoursDay
       , workingHoursStart, workingHoursEnd
@@ -331,30 +332,30 @@ fillDemoEn appSettings = do
 
     let assignment1 = Assignment { assignmentStaff = empl1
                                  , assignmentService = s1
+                                 , assignmentRole = "Tourism agent"
                                  , assignmentTime = now
                                  , assignmentSlotInterval = quarterHour
                                  , assignmentPriority = 1
-                                 , assignmentRole = Just "Tourism agent"
                                  }
 
     assig1 <- insert assignment1
 
     let assignment2 = Assignment { assignmentStaff = empl1
                                  , assignmentService = s2
+                                 , assignmentRole = "Tourism agent"
                                  , assignmentTime = now
                                  , assignmentSlotInterval = halfHour
                                  , assignmentPriority = 1
-                                 , assignmentRole = Just "Tourism agent"
                                  }
 
     assig2 <- insert assignment2
 
     let assignment3 = Assignment { assignmentStaff = empl1
                                  , assignmentService = s3
+                                 , assignmentRole = "Tourism agent"
                                  , assignmentTime = now
                                  , assignmentSlotInterval = oneHour
                                  , assignmentPriority = 1
-                                 , assignmentRole = Just "Tourism agent"
                                  }
 
     assig3 <- insert assignment3

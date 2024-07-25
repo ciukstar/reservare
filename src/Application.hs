@@ -58,6 +58,10 @@ import Handler.Appointments
     , getAppointmentTimingR, postAppointmentTimingR
     , getAppointmentTimeSlotsR, postAppointmentTimeSlotsR
     , getAppointmentPaymentR, postAppointmentPaymentR
+    , getAppointmentCheckoutR, getAppointmentPayCompletionR
+    , postAppointmentPaymentIntentR, postAppointmentPaymentIntentCancelR
+    , getAppointmentPayAtVenueCompletionR
+    , getAppointmentDetailsR
     )
 
 import Handler.Booking

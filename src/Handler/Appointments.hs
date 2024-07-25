@@ -10,6 +10,11 @@ module Handler.Appointments
   , getAppointmentTimingR, postAppointmentTimingR
   , getAppointmentTimeSlotsR, postAppointmentTimeSlotsR
   , getAppointmentPaymentR, postAppointmentPaymentR
+  , getAppointmentCheckoutR, getAppointmentPayCompletionR
+  , getAppointmentPayAtVenueCompletionR
+  , postAppointmentPaymentIntentR
+  , postAppointmentPaymentIntentCancelR
+  , getAppointmentDetailsR
   ) where
 
 
@@ -20,7 +25,7 @@ import Data.Aeson (object, (.=))
 import Data.Aeson.Lens (key, AsValue (_String))
 import Data.Aeson.Text (encodeToLazyText)
 import qualified Data.Aeson as A (Value)
-import Data.Bifunctor (Bifunctor(first), bimap)
+import Data.Bifunctor (Bifunctor(first))
 import qualified Data.ByteString as BS (empty)
 import Data.Foldable (find)
 import Data.Function ((&))
@@ -50,11 +55,11 @@ import Database.Persist.Sql (fromSqlKey)
 import Foundation
     ( Handler, Form, App (appSettings)
     , Route
-      ( HomeR, BookCheckoutR, BookPayCompletionR, BookPaymentIntentR
-      , BookPaymentIntentCancelR, AuthR, BookPayAtVenueCompletionR
-      , BookDetailsR
+      ( AuthR, HomeR, AppointmentCheckoutR
+      , AppointmentPayCompletionR, AppointmentPaymentIntentR
+      , AppointmentPaymentIntentCancelR, AppointmentPayAtVenueCompletionR
       , AppointmentStaffR, AppointmentTimingR, AppointmentTimeSlotsR
-      , AppointmentPaymentR
+      , AppointmentPaymentR, AppointmentDetailsR
       )
     , AppMessage
       ( MsgServices, MsgNext, MsgServices, MsgThereAreNoDataYet
@@ -72,7 +77,7 @@ import Foundation
       , MsgPrice, MsgMobile, MsgPhone, MsgLocation, MsgAddress, MsgFullName
       , MsgTheAppointment, MsgTheName, MsgUnpaid, MsgPaid, MsgUnknown
       , MsgMicrocopyPayNow, MsgMicrocopyPayAtVenue, MsgMicrocopySelectPayNow
-      , MsgMicrocopySelectPayAtVenue, MsgError, MsgAssignmentDate, MsgServiceAssignment
+      , MsgMicrocopySelectPayAtVenue, MsgError, MsgServiceAssignment
       )
     )
 
@@ -151,8 +156,8 @@ import Yesod.Form.Functions (generateFormPost, mreq, runFormPost)
 import Yesod.Persist.Core (YesodPersist(runDB))
 
 
-getBookDetailsR :: BookId -> Handler Html
-getBookDetailsR bid = do
+getAppointmentDetailsR :: BookId -> Handler Html
+getAppointmentDetailsR bid = do
 
     book <- runDB $ selectOne $ do
         x :& s :& w :& e <- from $ table @Book
@@ -165,20 +170,20 @@ getBookDetailsR bid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgPaymentStatus
-        $(widgetFile "book/details/details")
+        $(widgetFile "appointments/details/details")
 
 
-getBookPayAtVenueCompletionR :: BookId -> Handler Html
-getBookPayAtVenueCompletionR bid = do
+getAppointmentPayAtVenueCompletionR :: BookId -> Handler Html
+getAppointmentPayAtVenueCompletionR bid = do
 
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgPaymentStatus
-        $(widgetFile "book/completion/venue/completion")
+        $(widgetFile "appointments/completion/venue/completion")
 
 
-postBookPaymentIntentCancelR :: Handler ()
-postBookPaymentIntentCancelR = do
+postAppointmentPaymentIntentCancelR :: Handler ()
+postAppointmentPaymentIntentCancelR = do
     stati <- reqGetParams <$> getRequest
     intent <- runInputGet $ ireq textField "pi"
     let api = endpointStripePaymentIntentCancel intent
@@ -188,8 +193,8 @@ postBookPaymentIntentCancelR = do
     redirect (AppointmentPaymentR, stati)
 
 
-postBookPaymentIntentR :: Int -> Text -> Handler A.Value
-postBookPaymentIntentR cents currency = do
+postAppointmentPaymentIntentR :: Int -> Text -> Handler A.Value
+postAppointmentPaymentIntentR cents currency = do
     let api = unpack endpointStripePaymentIntents
     sk <- encodeUtf8 . stripeConfSk . appStripeConf . appSettings <$> getYesod
     let opts = defaults & auth ?~ basicAuth sk ""
@@ -204,8 +209,8 @@ postBookPaymentIntentR cents currency = do
                         ]
 
 
-getBookPayCompletionR :: BookId -> Handler Html
-getBookPayCompletionR bid = do
+getAppointmentPayCompletionR :: BookId -> Handler Html
+getAppointmentPayCompletionR bid = do
 
     intent <- runInputGet $ ireq textField "payment_intent"
     _ <- runInputGet $ ireq textField "payment_intent_client_secret"
@@ -238,11 +243,11 @@ getBookPayCompletionR bid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgPaymentStatus
-        $(widgetFile "book/completion/completion")
+        $(widgetFile "appointments/completion/completion")
 
 
-getBookCheckoutR :: BookId -> Handler Html
-getBookCheckoutR bid = do
+getAppointmentCheckoutR :: BookId -> Handler Html
+getAppointmentCheckoutR bid = do
 
     stati <- reqGetParams <$> getRequest
 
@@ -269,7 +274,7 @@ getBookCheckoutR bid = do
           rndr <- getUrlRender
 
           let confirmParams = encodeToLazyText $ object
-                  [ "return_url"    .= (rndr $ BookPayCompletionR bid :: Text)
+                  [ "return_url"    .= (rndr $ AppointmentPayCompletionR bid :: Text)
                   , "receipt_email" .= email
                   ]
 
@@ -291,20 +296,22 @@ postAppointmentPaymentR :: Handler Html
 postAppointmentPaymentR = do
     stati <- reqGetParams <$> getRequest
     aid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "aid" )
+    eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
+    sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
     pid <- (readMaybe . unpack =<<) <$> runInputGet ( iopt textField "pid" )
 
     today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
     let month = maybe today ((\(y,m,_) -> YearMonth y m) . toGregorian . utctDay) tid
 
-    ((fr,fw),et) <- runFormPost $ formPayment aid tid pid
+    ((fr,fw),et) <- runFormPost $ formPayment aid eid sid tid pid
 
     msgr <- getMessageRender 
 
     user <- maybeAuth
     
     case (fr,user) of
-      (FormSuccess (sid',eid',tid',pid'), Nothing) -> do
+      (FormSuccess (_,eid',sid',tid',pid'), Nothing) -> do
           setUltDest ( AppointmentPaymentR, [ ("sid", pack $ show $ fromSqlKey sid')
                                             , ("eid", pack $ show $ fromSqlKey eid')
                                             , ("tid", pack $ show (utcToLocalTime utc tid'))
@@ -313,7 +320,7 @@ postAppointmentPaymentR = do
                      )
           redirect $ AuthR LoginR
           
-      (FormSuccess (sid',eid',tid',pid'@PayNow), Just (Entity uid _)) -> do
+      (FormSuccess (_,eid',sid',tid',pid'@PayNow), Just (Entity uid _)) -> do
           bid <- runDB $ insert $ Book { bookCustomer = uid
                                        , bookService = sid'
                                        , bookStaff = eid'
@@ -322,9 +329,9 @@ postAppointmentPaymentR = do
                                        , bookStatus = PayStatusUnpaid
                                        , bookMessage = Just (msgr MsgUnpaid)
                                        }
-          redirect (BookCheckoutR bid, stati)
+          redirect (AppointmentCheckoutR bid, stati)
           
-      (FormSuccess (sid',eid',tid',pid'@PayAtVenue), Just (Entity uid _)) -> do
+      (FormSuccess (_,eid',sid',tid',pid'@PayAtVenue), Just (Entity uid _)) -> do
           bid <- runDB $ insert $ Book { bookCustomer = uid
                                        , bookService = sid'
                                        , bookStaff = eid'
@@ -333,7 +340,7 @@ postAppointmentPaymentR = do
                                        , bookStatus = PayStatusUnpaid
                                        , bookMessage = Just (msgr MsgUnpaid)
                                        }          
-          redirect $ BookPayAtVenueCompletionR bid
+          redirect $ AppointmentPayAtVenueCompletionR bid
           
       (FormFailure errs, _) -> do
           forM_ errs $ \err -> addMessageI statusError err
@@ -358,13 +365,15 @@ getAppointmentPaymentR :: Handler Html
 getAppointmentPaymentR = do
     stati <- reqGetParams <$> getRequest
     aid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "aid" )
+    eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
+    sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
     pid <- (readMaybe . unpack =<<) <$> runInputGet ( iopt textField "pid" )
 
     today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
     let month = maybe today ((\(y,m,_) -> YearMonth y m) . toGregorian . utctDay) tid
 
-    (fw,et) <- generateFormPost $ formPayment aid tid pid
+    (fw,et) <- generateFormPost $ formPayment aid eid sid tid pid
 
     msgs <- getMessages
     defaultLayout $ do
@@ -374,22 +383,17 @@ getAppointmentPaymentR = do
         $(widgetFile "appointments/payment/payment")
 
 
-formPayment :: Maybe AssignmentId -> Maybe UTCTime -> Maybe PayMethod
-            -> Form (ServiceId,StaffId,UTCTime,PayMethod)
-formPayment aid time method extra = do
+formPayment :: Maybe AssignmentId -> Maybe StaffId -> Maybe ServiceId -> Maybe UTCTime -> Maybe PayMethod
+            -> Form (AssignmentId,StaffId,ServiceId,UTCTime,PayMethod)
+formPayment aid eid sid time method extra = do
 
     msgr <- getMessageRender
 
-    let f :: Maybe (a,b) -> (Maybe a, Maybe b)
-        f (Just (a,b)) = (Just a, Just b)
-        f Nothing = (Nothing, Nothing)
-
-    (sid,eid) <- liftHandler $ f . (bimap unValue unValue <$>) <$> runDB ( selectOne $ do
-        x <- from $ table @Assignment
-        case aid of
-          Just y -> where_ $ x ^. AssignmentId ==. val y
-          Nothing -> where_ $ val False
-        return (x ^. AssignmentService, x ^. AssignmentStaff) )
+    (assignmentR,assignmentV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
+        { fsLabel = SomeMessage MsgServiceAssignment
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgServiceAssignment),("hidden","hidden")]
+        } (fromIntegral . fromSqlKey <$> aid)
 
     (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
         { fsLabel = SomeMessage MsgService
@@ -415,8 +419,15 @@ formPayment aid time method extra = do
 
     (methodR,methodV) <- md3mreq (md3radioFieldList methods) "" method
 
-    let r = (,,,) <$> serviceR <*> staffR <*> (localTimeToUTC utc <$> timeR) <*> methodR
-    let w = [whamlet|#{extra} ^{fvInput serviceV} ^{fvInput staffV} ^{fvInput timeV} ^{fvInput methodV}|]
+    let r = (,,,,) <$> assignmentR <*> staffR <*> serviceR <*> (localTimeToUTC utc <$> timeR) <*> methodR
+    let w = [whamlet|
+                    #{extra}
+                    ^{fvInput assignmentV}
+                    ^{fvInput staffV}
+                    ^{fvInput serviceV}
+                    ^{fvInput timeV}
+                    ^{fvInput methodV}
+                    |]
 
     return (r,w)
 
@@ -456,17 +467,21 @@ postAppointmentTimeSlotsR :: Day -> Handler Html
 postAppointmentTimeSlotsR day = do
     stati <- reqGetParams <$> getRequest
     aid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "aid" )
+    eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
+    sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     tid <- runInputGet ( iopt datetimeLocalField "tid" )
 
     let month = (\(y,m,_) -> YearMonth y m) . toGregorian $ day
 
     slots <- querySlots day aid
 
-    ((fr,fw),et) <- runFormPost $ formTimeSlot slots aid tid
+    ((fr,fw),et) <- runFormPost $ formTimeSlot slots aid eid sid tid
     case fr of
-      FormSuccess (aid',tid') -> redirect
+      FormSuccess (aid',eid',sid',tid') -> redirect
           ( AppointmentTimingR month
           , [ ( "aid", pack $ show $ fromSqlKey aid')
+            , ( "eid", pack $ show $ fromSqlKey eid')
+            , ( "sid", pack $ show $ fromSqlKey sid')
             , ( "tid", pack $ show tid')
             ]
           )
@@ -490,13 +505,15 @@ getAppointmentTimeSlotsR :: Day -> Handler Html
 getAppointmentTimeSlotsR day = do
     stati <- reqGetParams <$> getRequest
     aid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "aid" )
+    eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
+    sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     tid <- runInputGet ( iopt datetimeLocalField "tid" )
 
     let month = (\(y,m,_) -> YearMonth y m) . toGregorian $ day
 
     slots <- querySlots day aid
 
-    (fw,et) <- generateFormPost $ formTimeSlot slots aid tid
+    (fw,et) <- generateFormPost $ formTimeSlot slots aid eid sid tid
 
     msgs <- getMessages
     defaultLayout $ do
@@ -531,9 +548,9 @@ querySlots day aid = do
             schedule
 
 
-formTimeSlot :: [LocalTime] -> Maybe AssignmentId -> Maybe LocalTime
-             -> Form (AssignmentId,LocalTime)
-formTimeSlot slots aid tid extra = do
+formTimeSlot :: [LocalTime] -> Maybe AssignmentId -> Maybe StaffId -> Maybe ServiceId -> Maybe LocalTime
+             -> Form (AssignmentId,StaffId,ServiceId,LocalTime)
+formTimeSlot slots aid eid sid tid extra = do
 
     msgr <- getMessageRender
 
@@ -543,11 +560,23 @@ formTimeSlot slots aid tid extra = do
         , fsAttrs = [("label", msgr MsgServiceAssignment),("hidden","hidden")]
         } (fromIntegral . fromSqlKey <$> aid)
 
+    (staffR,staffV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
+        { fsLabel = SomeMessage MsgEmployee
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgEmployee),("hidden","hidden")]
+        } (fromIntegral . fromSqlKey <$> eid)
+
+    (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
+        { fsLabel = SomeMessage MsgService
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgService),("hidden","hidden")]
+        } (fromIntegral . fromSqlKey <$> sid)
+
 
     (slotsR,slotsV) <- mreq (md3radioFieldList slots) "" tid
 
-    let r = (,) <$> assignmentR <*> slotsR
-    let w = [whamlet|#{extra} ^{fvInput assignmentV} ^{fvInput slotsV}|]
+    let r = (,,,) <$> assignmentR <*> staffR <*> serviceR <*> slotsR
+    let w = [whamlet|#{extra} ^{fvInput assignmentV} ^{fvInput staffV} ^{fvInput serviceV} ^{fvInput slotsV}|]
 
     return (r,w)
 
@@ -757,16 +786,20 @@ postAppointmentTimingR :: Month -> Handler Html
 postAppointmentTimingR month = do
     stati <- reqGetParams <$> getRequest
     aid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "aid" )
+    eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
+    sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     tid <- runInputGet ( iopt datetimeLocalField "tid" )
 
-    ((fr,fw),et) <- runFormPost $ formTiming aid tid
+    ((fr,fw),et) <- runFormPost $ formTiming aid eid sid tid
 
     case fr of
-      FormSuccess (aid',tid') -> redirect ( AppointmentPaymentR
-                                          , [ ( "aid", pack $ show $ fromSqlKey aid' )
-                                            , ( "tid", pack $ show tid' )
-                                            ]
-                                          )
+      FormSuccess (aid',eid',sid',tid') -> redirect ( AppointmentPaymentR
+                                                    , [ ( "aid", pack $ show $ fromSqlKey aid' )
+                                                      , ( "eid", pack $ show $ fromSqlKey eid' )
+                                                      , ( "sid", pack $ show $ fromSqlKey sid' )
+                                                      , ( "tid", pack $ show tid' )
+                                                      ]
+                                                    )
       FormFailure errs -> do
 
           let start = weekFirstDay Monday (periodFirstDay month)
@@ -827,10 +860,12 @@ postAppointmentTimingR month = do
 getAppointmentTimingR :: Month -> Handler Html
 getAppointmentTimingR month = do
     stati <- reqGetParams <$> getRequest
+    eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
+    sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     aid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "aid" )
     tid <- runInputGet ( iopt datetimeLocalField "tid" )
 
-    (fw,et) <- generateFormPost $ formTiming aid tid
+    (fw,et) <- generateFormPost $ formTiming aid eid sid tid
 
     let start = weekFirstDay Monday (periodFirstDay month)
     let end = addDays 41 start
@@ -858,10 +893,23 @@ getAppointmentTimingR month = do
         $(widgetFile "appointments/timing/timing")
 
 
-formTiming :: Maybe AssignmentId -> Maybe LocalTime -> Form (AssignmentId,LocalTime)
-formTiming aid time extra = do
+formTiming :: Maybe AssignmentId -> Maybe StaffId -> Maybe ServiceId -> Maybe LocalTime
+           -> Form (AssignmentId, StaffId, ServiceId,LocalTime)
+formTiming aid eid sid time extra = do
 
     msgr <- getMessageRender
+
+    (staffR,staffV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
+        { fsLabel = SomeMessage MsgEmployee
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgEmployee),("hidden","hidden")]
+        } (fromIntegral . fromSqlKey <$> eid)
+
+    (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
+        { fsLabel = SomeMessage MsgService
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgService),("hidden","hidden")]
+        } (fromIntegral . fromSqlKey <$> sid)
 
     (assignmentR,assignmentV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
         { fsLabel = SomeMessage MsgServiceAssignment
@@ -875,8 +923,8 @@ formTiming aid time extra = do
         , fsAttrs = [("label", msgr MsgAppointmentTime),("hidden","hidden")]
         } time
 
-    let r = (,) <$> assignmentR <*> timeR
-    let w = [whamlet|#{extra} ^{fvInput assignmentV} ^{fvInput timeV}|]
+    let r = (,,,) <$> assignmentR <*> staffR <*> serviceR <*> timeR
+    let w = [whamlet|#{extra} ^{fvInput staffV} ^{fvInput serviceV} ^{fvInput assignmentV} ^{fvInput timeV}|]
 
     return (r,w)
 
@@ -897,10 +945,13 @@ postAppointmentStaffR = do
     ((fr,fw),et) <- runFormPost $ formStaff aid
 
     case fr of
-      FormSuccess aid' -> do
+      FormSuccess (aid',(eid',sid')) -> do
           today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
           month <- fromMaybe today . (readMaybe . unpack =<<) <$> runInputGet ( iopt textField "month" )
-          redirect (AppointmentTimingR month, [("aid",pack $ show $ fromSqlKey aid')])
+          redirect (AppointmentTimingR month, [ ("aid",pack $ show $ fromSqlKey aid')
+                                              , ("eid",pack $ show $ fromSqlKey eid')
+                                              , ("sid",pack $ show $ fromSqlKey sid')
+                                              ])
       FormFailure errs -> do
           forM_ errs $ \err -> addMessageI statusError err
           msgs <- getMessages
@@ -935,10 +986,10 @@ getAppointmentStaffR = do
         $(widgetFile "appointments/assignments/assignments")
 
 
-formStaff :: Maybe AssignmentId -> Form AssignmentId
+formStaff :: Maybe AssignmentId -> Form (AssignmentId,(StaffId,ServiceId))
 formStaff aid extra = do
 
-    assigments <- liftHandler $ runDB $ select $ do
+    assignments <- liftHandler $ runDB $ select $ do
         x :& e :& s :& w :& b <- from $ table @Assignment
             `innerJoin` table @Staff `on` (\(x :& e) -> x ^. AssignmentStaff ==. e ^. StaffId)
             `innerJoin` table @Service `on` (\(x :& _ :& s) -> x ^. AssignmentService ==. s ^. ServiceId)
@@ -947,7 +998,15 @@ formStaff aid extra = do
         orderBy [asc (e ^. StaffName), asc (e ^. StaffId)]
         return (x,(e,(s,(w,b))))
 
-    (assigmentR,assigmentV) <- mreq (md3radioFieldList assigments) "" aid
+    let getDefault :: Maybe AssignmentId
+                   -> [(Entity Assignment,(Entity Staff,(Entity Service,(Entity Workspace,Entity Business))))]
+                   -> Maybe (AssignmentId,(StaffId,ServiceId))
+        getDefault (Just aid') assignments' =
+            ((\(Entity aid'' _,(Entity eid'' _,(Entity sid'' _,_))) -> (aid'',(eid'',sid''))) <$>)
+               . find (\(Entity aid'' _,(_,_)) -> aid'' == aid') $ assignments'
+        getDefault Nothing _ = Nothing
+
+    (assigmentR,assigmentV) <- mreq (md3radioFieldList assignments) "" (getDefault aid assignments)
 
     let r = assigmentR
     let w = [whamlet|#{extra} ^{fvInput assigmentV}|]
@@ -955,19 +1014,21 @@ formStaff aid extra = do
     return (r,w)
 
   where
-      pairs assigments = (\(Entity aid' _,(Entity _ (Staff name _ _ _),_)) -> (name, aid')) <$> assigments
+      
+      pairs assignments = (\(Entity aid' _,(Entity eid' (Staff name _ _ _),(Entity sid' _,_))) -> (name, (aid',(eid',sid'))))
+          <$> assignments
 
       md3radioFieldList :: [(Entity Assignment,(Entity Staff,(Entity Service,(Entity Workspace,Entity Business))))]
-                        -> Field (HandlerFor App) AssignmentId
-      md3radioFieldList assigments = (radioField (optionsPairs (pairs assigments)))
+                        -> Field (HandlerFor App) (AssignmentId,(StaffId,ServiceId))
+      md3radioFieldList assignments = (radioField (optionsPairs (pairs assignments)))
           { fieldView = \theId name attrs x isReq -> do
 
-                opts <- zip [1 :: Int ..] . olOptions <$> handlerToWidget (optionsPairs (pairs assigments))
+                opts <- zip [1 :: Int ..] . olOptions <$> handlerToWidget (optionsPairs (pairs assignments))
 
                 let sel (Left _) _ = False
                     sel (Right y) opt = optionInternalValue opt == y
 
-                let findAssigment opt = find (\(Entity aid' _,(_,_)) -> aid' == optionInternalValue opt)
+                let findAssigment opt = find (\(Entity aid' _,(_,_)) -> aid' == fst (optionInternalValue opt))
 
                 [whamlet|
 $if null opts
@@ -978,16 +1039,15 @@ $if null opts
 $else
   <md-list ##{theId} *{attrs}>
     $forall (i,opt) <- opts
-      $maybe (assignment,(Entity _ (Staff ename _ _ _),(service,(workspace,business)))) <- findAssigment opt assigments
+      $maybe (assignment,(Entity _ (Staff ename _ _ _),(service,(workspace,business)))) <- findAssigment opt assignments
         <md-list-item type=text onclick="this.querySelector('md-radio').click()">
           <div slot=headline>
             #{ename}
           <div slot=supporting-text>
             $with Entity _ (Assignment _ _ _ _ _ role) <- assignment
-              $maybe role <- role
-                #{role} #
-              $with (Entity _ (Business _ bname),Entity _ (Workspace _ wname _ _ _)) <- (business,workspace)
-                (#{bname} - #{wname})
+              #{role}
+            $with (Entity _ (Business _ bname),Entity _ (Workspace _ wname _ _ _)) <- (business,workspace)
+              \ (#{bname} - #{wname})
           <div slot=supporting-text>
             $with (Entity _ (Workspace _ _ _ _ currency),Entity _ (Service _ name _ price)) <- (workspace,service)
               #{name} (#{show price} #{currency})

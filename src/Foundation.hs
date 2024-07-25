@@ -186,6 +186,14 @@ instance Yesod App where
 
 
     
+    isAuthorized r@(AppointmentDetailsR _) _ = setUltDest r >> return Authorized
+    
+    isAuthorized r@(AppointmentPayAtVenueCompletionR _) _ = setUltDest r >> return Authorized
+    
+    isAuthorized r@AppointmentPaymentIntentCancelR _ = setUltDest r >> return Authorized
+    isAuthorized r@(AppointmentPaymentIntentR _ _) _ = setUltDest r >> return Authorized
+    isAuthorized r@(AppointmentPayCompletionR _) _ = setUltDest r >> return Authorized
+    isAuthorized r@(AppointmentCheckoutR _) _ = setUltDest r >> return Authorized
     isAuthorized r@AppointmentPaymentR _ = setUltDest r >> return Authorized
     isAuthorized r@(AppointmentTimeSlotsR _) _ = setUltDest r >> return Authorized
     isAuthorized r@(AppointmentTimingR _) _ = setUltDest r >> return Authorized

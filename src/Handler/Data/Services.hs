@@ -62,9 +62,16 @@ import Material3
 
 import Model
     ( statusSuccess, statusError
-    , ServiceId, Service(Service, serviceName, serviceWorkspace, serviceDescr, servicePrice)
+    , ServiceId
+    , Service
+      ( Service, serviceName, serviceWorkspace, serviceDescr, servicePrice
+      )
     , Workspace (workspaceName, Workspace)
-    , AssignmentId, Assignment (Assignment, assignmentStaff, assignmentTime, assignmentSlotInterval, assignmentPriority, assignmentRole)
+    , AssignmentId
+    , Assignment
+      ( Assignment, assignmentStaff, assignmentTime, assignmentSlotInterval
+      , assignmentPriority, assignmentRole
+      )
     , Staff (staffName, Staff)
     , Business (Business)
     , EntityField
@@ -217,6 +224,12 @@ formServiceAssignment sid assignment extra = do
         , fsAttrs = [("label", msgr MsgEmployee)]
         } (assignmentStaff . entityVal <$> assignment)
     
+    (roleR, roleV) <- md3mreq md3textField FieldSettings
+        { fsLabel = SomeMessage MsgRole
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgRole)]
+        } (assignmentRole . entityVal <$> assignment)
+    
     (startR, startV) <- md3mreq md3datetimeLocalField FieldSettings
         { fsLabel = SomeMessage MsgAssignmentDate
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
@@ -234,24 +247,18 @@ formServiceAssignment sid assignment extra = do
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgPriority)]
         } (assignmentPriority . entityVal <$> assignment)
-    
-    (roleR, roleV) <- md3mopt md3textField FieldSettings
-        { fsLabel = SomeMessage MsgRole
-        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgRole)]
-        } (assignmentRole . entityVal <$> assignment)
 
-    let r = Assignment <$> employeeR <*> pure sid <*> (localTimeToUTC utc <$> startR)
+    let r = Assignment <$> employeeR <*> pure sid <*> roleR <*> (localTimeToUTC utc <$> startR)
             <*> ((* 60) . secondsToNominalDiffTime . fromIntegral <$> intervalR)
-            <*> priorityR <*> roleR
+            <*> priorityR
 
     let w = [whamlet|
                     #{extra}
                     ^{fvInput employeeV}
+                    ^{fvInput roleV}
                     ^{fvInput startV}
                     ^{fvInput intervalV}
                     ^{fvInput priorityV}
-                    ^{fvInput roleV}
                     |]
     
     return (r, w)

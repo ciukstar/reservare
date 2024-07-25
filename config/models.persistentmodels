@@ -19,10 +19,11 @@ Schedule
 Assignment
     staff StaffId OnDeleteCascade
     service ServiceId OnDeleteCascade
+    role Text
     time UTCTime
     slotInterval NominalDiffTime
     priority Int
-    role Text Maybe
+    UniqueAssignment staff service role
 
 Service
     workspace WorkspaceId OnDeleteCascade

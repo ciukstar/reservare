@@ -500,6 +500,12 @@ formServiceAssignment eid assignment extra = do
         , fsAttrs = [("label", msgr MsgService)]
         } (assignmentService . entityVal <$> assignment)
     
+    (roleR, roleV) <- md3mreq md3textField FieldSettings
+        { fsLabel = SomeMessage MsgRole
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgRole)]
+        } (assignmentRole . entityVal <$> assignment)
+    
     (startR, startV) <- md3mreq md3datetimeLocalField FieldSettings
         { fsLabel = SomeMessage MsgAssignmentDate
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
@@ -517,16 +523,10 @@ formServiceAssignment eid assignment extra = do
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgPriority)]
         } (assignmentPriority . entityVal <$> assignment)
-    
-    (roleR, roleV) <- md3mopt md3textField FieldSettings
-        { fsLabel = SomeMessage MsgRole
-        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgRole)]
-        } (assignmentRole . entityVal <$> assignment)
 
-    let r = Assignment eid <$> serviceR <*> (localTimeToUTC utc <$> startR)
+    let r = Assignment eid <$> serviceR <*> roleR <*> (localTimeToUTC utc <$> startR)
             <*> ((* 60) . secondsToNominalDiffTime . fromIntegral <$> intervalR)
-            <*> priorityR <*> roleR
+            <*> priorityR
 
     let w = [whamlet|
                     #{extra}
