@@ -51,7 +51,7 @@ main
                 line-height: 1
                 text-decoration: none
         a.cell
-            border: 1px solid var(--md-sys-color-primary-container,black)
+            border: 2px solid var(--md-sys-color-primary-container,black)
             box-shadow: 1px 1px 1px var(--md-sys-color-surface-dim)
             
         div.cell.disabled

@@ -5,16 +5,9 @@
 
 module Demo.DemoEn (fillDemoEn) where
 
+import Control.Monad (unless, when, forM_)
 import Control.Monad.IO.Class (MonadIO (liftIO))
-import Import.NoFoundation
-    ( forM_, ReaderT, Workspace (workspaceTzo, workspaceCurrency)
-    , Service (servicePrice)
-    , Assignment (assignmentSlotInterval, assignmentPriority, assignmentRole)
-    , WorkingHours
-      ( WorkingHours, workingHoursWorkspace, workingHoursDay
-      , workingHoursStart, workingHoursEnd
-      ), unless, when
-    )
+import Control.Monad.Trans.Reader (ReaderT) 
 
 import Data.FileEmbed (embedFile)
 import Data.Maybe (fromMaybe)
@@ -44,6 +37,13 @@ import Model
     , Service (Service, serviceWorkspace, serviceName, serviceDescr)
     , Staff (Staff, staffName, staffAccount, staffMobile, staffPhone)
     , Assignment (Assignment, assignmentService, assignmentStaff, assignmentTime)
+    , Workspace (workspaceTzo, workspaceCurrency)
+    , Service (servicePrice)
+    , Assignment (assignmentSlotInterval, assignmentPriority, assignmentRole)
+    , WorkingHours
+      ( WorkingHours, workingHoursWorkspace, workingHoursDay
+      , workingHoursStart, workingHoursEnd
+      ), Schedule (Schedule, scheduleStart, scheduleEnd)
     )
 
 import Settings (AppSettings)
@@ -51,6 +51,7 @@ import Settings (AppSettings)
 import Text.Hamlet (shamlet)
 
 import Yesod.Auth.Email (saltPass)
+import Import (Schedule(scheduleAssignment, scheduleDay))
 
 
 fillDemoEn :: MonadIO m => AppSettings -> ReaderT SqlBackend m ()
@@ -318,46 +319,143 @@ fillDemoEn appSettings = do
                              }
 
     b31 <- insert business3
-
-    let employee1 = Staff { staffName = fromMaybe (userEmail user1) (userName user1)
-                          , staffAccount = Just usr1
-                          , staffMobile = Just "(206) 342-8631"
-                          , staffPhone = Just "(717) 550-1675"
-                          }
-
-    empl1 <- insert employee1
+    
     let oneHour = nominalDay / 24
     let halfHour = oneHour / 2
     let quarterHour = halfHour / 2
 
-    let assignment1 = Assignment { assignmentStaff = empl1
-                                 , assignmentService = s1
-                                 , assignmentRole = "Tourism agent"
-                                 , assignmentTime = now
-                                 , assignmentSlotInterval = quarterHour
-                                 , assignmentPriority = 1
-                                 }
+    let employee1 = Staff { staffName = fromMaybe (userEmail user1) (userName user1)
+                          , staffAccount = Just usr1
+                          , staffMobile = Just "+44 07366 783859"
+                          , staffPhone = Just "+44 09691 575048"
+                          }
 
-    assig1 <- insert assignment1
+    empl1 <- insert employee1
 
-    let assignment2 = Assignment { assignmentStaff = empl1
-                                 , assignmentService = s2
-                                 , assignmentRole = "Tourism agent"
-                                 , assignmentTime = now
-                                 , assignmentSlotInterval = halfHour
-                                 , assignmentPriority = 1
-                                 }
+    let employee2 = Staff { staffName = fromMaybe (userEmail user2) (userName user2)
+                          , staffAccount = Just usr2
+                          , staffMobile = Just "+44 01788 494865"
+                          , staffPhone = Just "+44 02774 546857"
+                          }
 
-    assig2 <- insert assignment2
+    empl2 <- insert employee2
 
-    let assignment3 = Assignment { assignmentStaff = empl1
-                                 , assignmentService = s3
-                                 , assignmentRole = "Tourism agent"
-                                 , assignmentTime = now
-                                 , assignmentSlotInterval = oneHour
-                                 , assignmentPriority = 1
-                                 }
+    let employee3 = Staff { staffName = fromMaybe (userEmail user3) (userName user3)
+                          , staffAccount = Just usr3
+                          , staffMobile = Just "+44 7103 26014564"
+                          , staffPhone = Just "+44 7103 26014564"
+                          }
 
-    assig3 <- insert assignment3
+    empl3 <- insert employee3
+
+    let employee4 = Staff { staffName = fromMaybe (userEmail user4) (userName user4)
+                          , staffAccount = Just usr4
+                          , staffMobile = Just "+44 4759604365"
+                          , staffPhone = Just "+44 4759604365"
+                          }
+
+    empl4 <- insert employee4
+
+    let assignment111 = Assignment { assignmentStaff = empl1
+                                   , assignmentService = s1
+                                   , assignmentRole = "Tourism agent"
+                                   , assignmentTime = now
+                                   , assignmentSlotInterval = quarterHour
+                                   , assignmentPriority = 1
+                                   }
+
+    assig111 <- insert assignment111
+
+    forM_ [periodFirstDay (YearMonth y m) .. periodLastDay (YearMonth y m)] $ \day -> do
+        unless (Friday == dayOfWeek day || Saturday == dayOfWeek day || Sunday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig111
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 9 0 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig111
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 18 0 0
+                             }
+        when (Friday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig111
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 10 30 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig111
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 17 45 0
+                             }
+
+    let assignment221 = Assignment { assignmentStaff = empl2
+                                   , assignmentService = s2
+                                   , assignmentRole = "Tourism agent"
+                                   , assignmentTime = now
+                                   , assignmentSlotInterval = halfHour
+                                   , assignmentPriority = 1
+                                   }
+
+    assig221 <- insert assignment221
+
+    forM_ [periodFirstDay (YearMonth y m) .. periodLastDay (YearMonth y m)] $ \day -> do
+        unless (Friday == dayOfWeek day || Saturday == dayOfWeek day || Sunday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig221
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 9 0 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig221
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 18 0 0
+                             }
+        when (Friday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig221
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 10 30 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig221
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 17 45 0
+                             }
+
+    let assignment331 = Assignment { assignmentStaff = empl3
+                                    , assignmentService = s3
+                                    , assignmentRole = "Tourism agent"
+                                    , assignmentTime = now
+                                    , assignmentSlotInterval = oneHour
+                                    , assignmentPriority = 1
+                                    }
+
+    assig331 <- insert assignment331
+
+    forM_ [periodFirstDay (YearMonth y m) .. periodLastDay (YearMonth y m)] $ \day -> do
+        unless (Friday == dayOfWeek day || Saturday == dayOfWeek day || Sunday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig331
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 9 0 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig331
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 18 0 0
+                             }
+        when (Friday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig331
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 10 30 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig331
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 17 45 0
+                             }
         
     return ()
