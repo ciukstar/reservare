@@ -47,7 +47,7 @@ import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, asc, innerJoin, on, in_
     , (^.), (==.), (:&)((:&)), (=.)
     , toSqlKey, val, where_, selectOne, Value (unValue), between, valList
-    , update, set
+    , update, set, just, distinct
     )
 import Database.Persist (Entity (Entity), entityKey, insert)
 import Database.Persist.Sql (fromSqlKey)
@@ -72,12 +72,13 @@ import Foundation
       , MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
       , MsgAppointmentSetFor, MsgSelectAvailableDayAndTimePlease
       , MsgEmployeeScheduleNotGeneratedYet, MsgNoEmployeesAvailableNow
-      , MsgPrevious, MsgNoServicesWereFoundForSearchTerms, MsgInvalidFormData
+      , MsgPrevious, MsgInvalidFormData
       , MsgEmployeeWorkScheduleForThisMonthNotSetYet, MsgBookingDetails
       , MsgPrice, MsgMobile, MsgPhone, MsgLocation, MsgAddress, MsgFullName
       , MsgTheAppointment, MsgTheName, MsgUnpaid, MsgPaid, MsgUnknown
       , MsgMicrocopyPayNow, MsgMicrocopyPayAtVenue, MsgMicrocopySelectPayNow
       , MsgMicrocopySelectPayAtVenue, MsgError, MsgServiceAssignment
+      , MsgCanceled, MsgPaymentIntent, MsgRole
       )
     )
 
@@ -96,15 +97,18 @@ import Model
     , BookId
     , Book
       ( Book, bookService, bookStaff, bookAppointment, bookPayMethod
-      , bookStatus, bookMessage, bookCustomer
+      , bookStatus, bookMessage, bookCustomer, bookIntent
       )
-    , PayStatus (PayStatusUnpaid, PayStatusPaid, PayStatusError, PayStatusUnknown)
+    , PayStatus
+      ( PayStatusUnpaid, PayStatusPaid, PayStatusCanceled, PayStatusError
+      , PayStatusUnknown
+      )
     , EntityField
       ( ServiceWorkspace, WorkspaceId, WorkspaceBusiness
       , BusinessId, ServiceName, AssignmentStaff, StaffId, StaffName
       , BusinessName, WorkspaceName, ServiceId, AssignmentService
       , AssignmentSlotInterval, ScheduleAssignment, AssignmentId
-      , ScheduleDay, BookId, BookService, BookStaff, BookStatus, BookMessage
+      , ScheduleDay, BookId, BookService, BookStaff, BookStatus, BookMessage, BookIntent, AssignmentRole
       )
     )
 
@@ -182,19 +186,24 @@ getAppointmentPayAtVenueCompletionR bid = do
         $(widgetFile "appointments/completion/venue/completion")
 
 
-postAppointmentPaymentIntentCancelR :: Handler ()
-postAppointmentPaymentIntentCancelR = do
+postAppointmentPaymentIntentCancelR :: BookId -> Handler ()
+postAppointmentPaymentIntentCancelR bid = do
     stati <- reqGetParams <$> getRequest
     intent <- runInputGet $ ireq textField "pi"
     let api = endpointStripePaymentIntentCancel intent
     sk <- encodeUtf8 . stripeConfSk . appStripeConf . appSettings <$> getYesod
     _ <- liftIO $ postWith (defaults & auth ?~ basicAuth sk BS.empty) api BS.empty
+
+    runDB $ update $ \x -> do
+        set x [BookStatus =. val PayStatusCanceled, BookIntent =. just (val intent)]
+        where_ $ x ^. BookId ==. val bid
+        
     addMessageI statusSuccess MsgPaymentIntentCancelled
     redirect (AppointmentPaymentR, stati)
 
 
-postAppointmentPaymentIntentR :: Int -> Text -> Handler A.Value
-postAppointmentPaymentIntentR cents currency = do
+postAppointmentPaymentIntentR :: BookId -> Int -> Text -> Handler A.Value
+postAppointmentPaymentIntentR bid cents currency = do
     let api = unpack endpointStripePaymentIntents
     sk <- encodeUtf8 . stripeConfSk . appStripeConf . appSettings <$> getYesod
     let opts = defaults & auth ?~ basicAuth sk ""
@@ -204,7 +213,13 @@ postAppointmentPaymentIntentR cents currency = do
                                     , "payment_method_types[]" := ("paypal" :: Text)
                                     ]
 
-    returnJson $ object [ "paymentIntentId" .= (r ^? responseBody . key "id")
+    let intent = r ^? responseBody . key "id" . _String
+
+    runDB $ update $ \x -> do
+        set x [BookIntent =. val intent]
+        where_ $ x ^. BookId ==. val bid
+
+    returnJson $ object [ "paymentIntentId" .= intent
                         , "clientSecret"    .= (r ^? responseBody . key "client_secret")
                         ]
 
@@ -328,6 +343,7 @@ postAppointmentPaymentR = do
                                        , bookPayMethod = pid'
                                        , bookStatus = PayStatusUnpaid
                                        , bookMessage = Just (msgr MsgUnpaid)
+                                       , bookIntent = Nothing
                                        }
           redirect (AppointmentCheckoutR bid, stati)
           
@@ -339,6 +355,7 @@ postAppointmentPaymentR = do
                                        , bookPayMethod = pid'
                                        , bookStatus = PayStatusUnpaid
                                        , bookMessage = Just (msgr MsgUnpaid)
+                                       , bookIntent = Nothing
                                        }          
           redirect $ AppointmentPayAtVenueCompletionR bid
           
@@ -611,8 +628,12 @@ groupByKey :: Ord k => (v -> k) -> [v] -> M.Map k [v]
 groupByKey f = M.fromListWith (<>) . fmap (\x -> (f x,[x]))
 
 
-formSearchServices :: Text -> Form (Maybe [BusinessId],Maybe [WorkspaceId])
-formSearchServices idFormSearch extra = do
+formSearchAssignments :: Text -> Form ( Maybe [BusinessId]
+                                      , Maybe [WorkspaceId]
+                                      , Maybe [ServiceId]
+                                      , Maybe [Text]
+                                      )
+formSearchAssignments idFormSearch extra = do
 
     msgr <- getMessageRender
 
@@ -647,7 +668,41 @@ formSearchServices idFormSearch extra = do
                       , fsAttrs = [("label", msgr MsgWorkspace),("hidden","hidden")]
                       } Nothing
 
-    let r = (,) <$> bR <*> wR
+    services <- liftHandler $ runDB $ select $ do
+        x <- from $ table @Service
+        unless (null workspaces) $ where_ $ x ^. ServiceWorkspace `in_` valList (entityKey <$> workspaces)
+        when (null workspaces) $ where_ $ val False
+        case wR of
+          FormSuccess (Just wids@(_:_)) -> where_ $ x ^. ServiceWorkspace `in_` valList wids
+          _otherwise -> where_ $ val False
+        orderBy [asc (x ^. ServiceName)]
+        return x
+
+    let serviceItem (Entity sid (Service _ name _ _)) = (name,sid)
+
+    (sR,sV) <- mopt (chipsFieldList idFormSearch MsgService (serviceItem <$> services))
+        FieldSettings { fsLabel = SomeMessage MsgService
+                      , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+                      , fsAttrs = [("label", msgr MsgService),("hidden","hidden")]
+                      } Nothing
+
+    roles <- liftHandler $ (unValue <$>) <$> runDB ( select $ distinct $ do
+        x <- from $ table @Assignment
+        unless (null services) $ where_ $ x ^. AssignmentService `in_` valList (entityKey <$> services)
+        when (null services) $ where_ $ val False
+        case sR of
+          FormSuccess (Just sids@(_:_)) -> where_ $ x ^. AssignmentService `in_` valList sids
+          _otherwise -> where_ $ val False
+        orderBy [asc (x ^. AssignmentRole)]
+        return $ x ^. AssignmentRole )
+
+    (rR,rV) <- mopt (chipsFieldList idFormSearch MsgRole ((\x -> (x,x)) <$> roles))
+        FieldSettings { fsLabel = SomeMessage MsgRole
+                      , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+                      , fsAttrs = [("label", msgr MsgRole),("hidden","hidden")]
+                      } Nothing
+
+    let r = (,,,) <$> bR <*> wR <*> sR <*> rR
     let w = do
             idFilterChips <- newIdent
             toWidget [cassius|
@@ -692,6 +747,16 @@ formSearchServices idFormSearch extra = do
                           <md-divider>
                           ^{fvInput wV}
                         $of _
+                      $case wR
+                        $of FormSuccess (Just ((:) _ _))
+                          <md-divider>
+                          ^{fvInput sV}
+                        $of _
+                      $case sR
+                        $of FormSuccess (Just ((:) _ _))
+                          <md-divider>
+                          ^{fvInput rV}
+                        $of _
             |]
 
     return (r,w)
@@ -715,71 +780,6 @@ formSearchServices idFormSearch extra = do
                             <input type=checkbox name=#{name} value=#{optionExternalValue opt} *{attrs} :sele x opt:checked>
                 |]
           }
-
-
-
-formService :: Maybe [BusinessId] -> Maybe [WorkspaceId] -> Maybe ServiceId -> Form ServiceId
-formService bids wids sid extra = do
-
-    services <- liftHandler $ runDB $ select $ do
-        x :& w :& b <- from $ table @Service
-            `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
-            `innerJoin` table @Business `on` (\(_ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)
-
-        case wids of
-          Just xs@(_:_) -> where_ $ w ^. WorkspaceId `in_` valList xs
-          _otherwise -> where_ $ val True
-
-        case bids of
-          Just xs@(_:_) -> where_ $ b ^. BusinessId `in_` valList xs
-          _otherwise -> where_ $ val True
-
-        orderBy [asc (x ^. ServiceName), asc (x ^. ServiceId)]
-        return (x,(w,b))
-
-    (serviceR,serviceV) <- mreq (md3radioFieldList services) "" sid
-
-    return (serviceR,[whamlet|#{extra} ^{fvInput serviceV}|])
-
-  where
-      pairs services = (\(Entity sid' (Service _ name _ _),_) -> (name, sid')) <$> services
-
-      md3radioFieldList :: [(Entity Service,(Entity Workspace, Entity Business))]
-                        -> Field (HandlerFor App) ServiceId
-      md3radioFieldList services = (radioField (optionsPairs (pairs services)))
-          { fieldView = \theId name attrs x isReq -> do
-
-                opts <- zip [1 :: Int ..] . olOptions <$> handlerToWidget (optionsPairs (pairs services))
-
-                let sel (Left _) _ = False
-                    sel (Right y) opt = optionInternalValue opt == y
-
-                let findService opt = find (\(Entity sid' _,_) -> sid' == optionInternalValue opt)
-
-                [whamlet|
-$if null opts
-  <figure style="text-align:center">
-    <span.on-secondary style="font-size:4rem">&varnothing;
-    <figcaption.md-typescale-body-large>
-      _{MsgNoServicesWereFoundForSearchTerms}.
-$else
-  <md-list ##{theId} *{attrs}>
-    $forall (i,opt) <- opts
-      $maybe (Entity _ (Service _ sname _ price),(workspace,business)) <- findService opt services
-        <md-list-item type=button onclick="this.querySelector('md-radio').click()">
-          <div slot=headline>
-            #{sname}
-          $with (Entity _ (Workspace _ wname _ _ currency),Entity _ (Business _ bname)) <- (workspace,business)
-            <div slot=supporting-text>
-              #{wname} (#{bname})
-            <div.currency slot=supporting-text data-value=#{price} data-currency=#{currency}>
-              #{currency}#{price}
-          <div slot=end>
-            <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
-              :sel x opt:checked touch-target=wrapper>
-      <md-divider>
-|]
-              }
 
 
 postAppointmentTimingR :: Month -> Handler Html
@@ -936,13 +936,13 @@ postAppointmentStaffR = do
 
     idFormSearch <- newIdent
 
-    ((fr0,fw0),et0) <- runFormGet $ formSearchServices idFormSearch
+    ((fr0,fw0),et0) <- runFormGet $ formSearchAssignments idFormSearch
 
-    let (bids,wids) = case fr0 of
+    let (bids,wids,sids,roles) = case fr0 of
           FormSuccess r -> r
-          _otherwise -> (Just [],Just [])
+          _otherwise -> (Just [],Just [],Just [],Just [])
 
-    ((fr,fw),et) <- runFormPost $ formStaff aid
+    ((fr,fw),et) <- runFormPost $ formAssignments bids wids sids roles aid
 
     case fr of
       FormSuccess (aid',(eid',sid')) -> do
@@ -976,7 +976,15 @@ getAppointmentStaffR = do
     stati <- reqGetParams <$> getRequest
     aid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "aid" )
 
-    (fw,et) <- generateFormPost $ formStaff aid
+    idFormSearch <- newIdent
+
+    ((fr0,fw0),et0) <- runFormGet $ formSearchAssignments idFormSearch
+
+    let (bids,wids,sids,roles) = case fr0 of
+          FormSuccess r -> r
+          _otherwise -> (Just [],Just [],Just [],Just [])
+
+    (fw,et) <- generateFormPost $ formAssignments bids wids sids roles aid
 
     msgs <- getMessages
     defaultLayout $ do
@@ -986,8 +994,9 @@ getAppointmentStaffR = do
         $(widgetFile "appointments/assignments/assignments")
 
 
-formStaff :: Maybe AssignmentId -> Form (AssignmentId,(StaffId,ServiceId))
-formStaff aid extra = do
+formAssignments :: Maybe [BusinessId] -> Maybe [WorkspaceId] -> Maybe [ServiceId] -> Maybe [Text]
+                -> Maybe AssignmentId -> Form (AssignmentId,(StaffId,ServiceId))
+formAssignments bids wids sids roles aid extra = do
 
     assignments <- liftHandler $ runDB $ select $ do
         x :& e :& s :& w :& b <- from $ table @Assignment
@@ -995,6 +1004,18 @@ formStaff aid extra = do
             `innerJoin` table @Service `on` (\(x :& _ :& s) -> x ^. AssignmentService ==. s ^. ServiceId)
             `innerJoin` table @Workspace `on` (\(_ :& _ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
             `innerJoin` table @Business `on` (\(_ :& _ :& _ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)
+        case roles of
+          Just xs@(_:_) -> where_ $ x ^. AssignmentRole `in_` valList xs
+          _otherwise -> where_ $ val True
+        case sids of
+          Just xs@(_:_) -> where_ $ s ^. ServiceId `in_` valList xs
+          _otherwise -> where_ $ val True
+        case wids of
+          Just xs@(_:_) -> where_ $ w ^. WorkspaceId `in_` valList xs
+          _otherwise -> where_ $ val True
+        case bids of
+          Just xs@(_:_) -> where_ $ b ^. BusinessId `in_` valList xs
+          _otherwise -> where_ $ val True
         orderBy [asc (e ^. StaffName), asc (e ^. StaffId)]
         return (x,(e,(s,(w,b))))
 
@@ -1044,13 +1065,16 @@ $else
           <div slot=headline>
             #{ename}
           <div slot=supporting-text>
-            $with Entity _ (Assignment _ _ _ _ _ role) <- assignment
+            $with Entity _ (Assignment _ _ role _ _ _) <- assignment
               #{role}
             $with (Entity _ (Business _ bname),Entity _ (Workspace _ wname _ _ _)) <- (business,workspace)
               \ (#{bname} - #{wname})
           <div slot=supporting-text>
             $with (Entity _ (Workspace _ _ _ _ currency),Entity _ (Service _ name _ price)) <- (workspace,service)
-              #{name} (#{show price} #{currency})
+              #{name} (
+              <span.currency data-value=#{price} data-currency=#{currency}>
+                #{show price} #{currency}
+              )
           <div slot=end>
             <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
               :sel x opt:checked touch-target=wrapper>

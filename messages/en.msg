@@ -1,3 +1,5 @@
+PaymentIntent: Payment intent
+Canceled: Canceled
 Error: Error
 MicrocopyPayAtVenue: Pay after the service is provided 
 MicrocopyPayNow: Pay using a credit card or PayPal

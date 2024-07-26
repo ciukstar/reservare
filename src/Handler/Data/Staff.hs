@@ -35,6 +35,7 @@ import Control.Monad (void, forM_)
 
 import qualified Data.Map as M (Map, fromListWith, member, notMember, lookup)
 import Data.Maybe (fromMaybe)
+import Data.Text (Text)
 import Data.Time
     ( nominalDiffTimeToSeconds, secondsToNominalDiffTime
     , DayPeriod (periodFirstDay, periodLastDay), weekFirstDay
@@ -79,7 +80,8 @@ import Foundation
       , MsgBusiness, MsgSchedulingInterval, MsgUnitMinutes, MsgWorkSchedule
       , MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
       , MsgSymbolHour, MsgSymbolMinute, MsgWorkingHours, MsgStartTime
-      , MsgEndTime, MsgDay, MsgFillFromPreviousMonth, MsgFillFromWorkingSchedule, MsgPriority, MsgRole
+      , MsgEndTime, MsgDay, MsgFillFromPreviousMonth, MsgFillFromWorkingSchedule
+      , MsgPriority, MsgRole, MsgAlreadyExists
       )
     )
     
@@ -93,8 +95,11 @@ import Model
     , StaffId, Staff (Staff, staffName, staffMobile, staffPhone, staffAccount)
     , User (userName, userEmail)
     , AssignmentId
-    , Assignment (Assignment, assignmentService, assignmentTime, assignmentSlotInterval, assignmentPriority, assignmentRole)
-    , Service (Service, serviceName)
+    , Assignment
+      ( Assignment, assignmentService, assignmentTime, assignmentSlotInterval
+      , assignmentPriority, assignmentRole
+      )
+    , ServiceId, Service (Service, serviceName)
     , Workspace (Workspace)
     , Business (Business)
     , Schedule (Schedule, scheduleStart, scheduleEnd), ScheduleId
@@ -102,7 +107,7 @@ import Model
       ( StaffId, UserName, UserId, AssignmentService, ServiceId
       , ServiceWorkspace, WorkspaceId, WorkspaceBusiness, BusinessId
       , AssignmentStaff, AssignmentId, ServiceName, ScheduleAssignment
-      , ScheduleDay, ScheduleId, WorkingHoursDay, WorkingHoursWorkspace
+      , ScheduleDay, ScheduleId, WorkingHoursDay, WorkingHoursWorkspace, AssignmentRole
       ), WorkingHours (WorkingHours)
     )
 
@@ -124,8 +129,9 @@ import Yesod.Form
       ( FieldSettings, fsLabel, fsTooltip, fsId, fsName, fsAttrs
       )
     , FormResult (FormSuccess), FieldView (fvInput), optionsPairs, runFormPost
+    , Field
     )
-import Yesod.Form.Functions (generateFormPost)
+import Yesod.Form.Functions (generateFormPost, checkM)
 import Yesod.Persist (YesodPersist(runDB))
 
 
@@ -500,7 +506,7 @@ formServiceAssignment eid assignment extra = do
         , fsAttrs = [("label", msgr MsgService)]
         } (assignmentService . entityVal <$> assignment)
     
-    (roleR, roleV) <- md3mreq md3textField FieldSettings
+    (roleR, roleV) <- md3mreq (uniqueRoleField eid serviceR) FieldSettings
         { fsLabel = SomeMessage MsgRole
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgRole)]
@@ -531,16 +537,36 @@ formServiceAssignment eid assignment extra = do
     let w = [whamlet|
                     #{extra}
                     ^{fvInput serviceV}
+                    ^{fvInput roleV}
                     ^{fvInput startV}
                     ^{fvInput intervalV}
                     ^{fvInput priorityV}
-                    ^{fvInput roleV}
                     |]
 
     return (r, w)
         
   where
       options e = (serviceName . entityVal $ e, entityKey e)
+      
+      uniqueRoleField :: StaffId -> FormResult ServiceId -> Field Handler Text
+      uniqueRoleField eid' sid = checkM (uniqueRole eid' sid) md3textField
+
+      uniqueRole :: StaffId -> FormResult ServiceId -> Text -> Handler (Either AppMessage Text)
+      uniqueRole eid' sid role = do
+          x <- runDB $ selectOne $ do
+              x <- from $ table @Assignment
+              where_ $ x ^. AssignmentStaff ==. val eid'
+              case sid of
+                FormSuccess sid' -> where_ $ x ^. AssignmentService ==. val sid'
+                _otherwise -> where_ $ val True
+              where_ $ x ^. AssignmentRole ==. val role
+              return x
+          return $ case x of
+            Nothing -> Right role
+            Just (Entity aid _) -> case assignment of
+              Nothing -> Left MsgAlreadyExists
+              Just (Entity aid' _) | aid == aid' -> Right role
+                                   | otherwise -> Left MsgAlreadyExists
 
 
 getStaffAssignmentsR :: StaffId -> Handler Html

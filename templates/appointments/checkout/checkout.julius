@@ -37,7 +37,7 @@ document.getElementById(#{idFormPayment}).addEventListener("submit", handleSubmi
 // Fetches a payment intent and captures the client secret
 async function initialize() {
   setLoading(true);
-  const response = await fetch("@{AppointmentPaymentIntentR cents currency}", {
+  const response = await fetch("@{AppointmentPaymentIntentR bid cents currency}", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ items })
@@ -58,7 +58,7 @@ async function initialize() {
     document.getElementById(#{idButtonBack})
   ].forEach(function (x) {
     x.addEventListener("click",function (e) {
-      const r = fetch(`@{AppointmentPaymentIntentCancelR}?pi=${paymentIntentId}`, {
+      const r = fetch(`@{AppointmentPaymentIntentCancelR bid}?pi=${paymentIntentId}`, {
         method: "POST",
         headers: { "Cotent-Type": "application/x-www-form-urlencoded" }
       }).then(function (result) {

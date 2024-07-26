@@ -49,7 +49,7 @@ import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, asc, innerJoin, on, in_
     , (^.), (==.), (:&)((:&)), (=.)
     , toSqlKey, val, where_, selectOne, Value (unValue), between, valList
-    , update, set
+    , update, set, just
     )
 import Database.Persist (Entity (Entity), entityKey, insert)
 import Database.Persist.Sql (fromSqlKey)
@@ -78,7 +78,7 @@ import Foundation
       , MsgPrice, MsgMobile, MsgPhone, MsgLocation, MsgAddress, MsgFullName
       , MsgTheAppointment, MsgTheName, MsgUnpaid, MsgPaid, MsgUnknown
       , MsgMicrocopyPayNow, MsgMicrocopyPayAtVenue, MsgMicrocopySelectPayNow
-      , MsgMicrocopySelectPayAtVenue, MsgError
+      , MsgMicrocopySelectPayAtVenue, MsgError, MsgCanceled, MsgPaymentIntent
       )
     )
 
@@ -97,15 +97,19 @@ import Model
     , BookId
     , Book
       ( Book, bookService, bookStaff, bookAppointment, bookPayMethod
-      , bookStatus, bookMessage, bookCustomer
+      , bookStatus, bookMessage, bookCustomer, bookIntent
       )
-    , PayStatus (PayStatusUnpaid, PayStatusPaid, PayStatusError, PayStatusUnknown)
+    , PayStatus
+      ( PayStatusUnpaid, PayStatusPaid, PayStatusCanceled, PayStatusError
+      , PayStatusUnknown
+      )
     , EntityField
       ( ServiceWorkspace, WorkspaceId, WorkspaceBusiness
       , BusinessId, ServiceName, AssignmentStaff, StaffId, StaffName
       , BusinessName, WorkspaceName, ServiceId, AssignmentService
       , AssignmentSlotInterval, ScheduleAssignment, AssignmentId
-      , ScheduleDay, BookId, BookService, BookStaff, BookStatus, BookMessage
+      , ScheduleDay, BookId, BookService, BookStaff, BookStatus
+      , BookMessage, BookIntent
       )
     )
 
@@ -183,19 +187,24 @@ getBookPayAtVenueCompletionR bid = do
         $(widgetFile "book/completion/venue/completion")
 
 
-postBookPaymentIntentCancelR :: Handler ()
-postBookPaymentIntentCancelR = do
+postBookPaymentIntentCancelR :: BookId -> Handler ()
+postBookPaymentIntentCancelR bid = do
     stati <- reqGetParams <$> getRequest
     intent <- runInputGet $ ireq textField "pi"
     let api = endpointStripePaymentIntentCancel intent
     sk <- encodeUtf8 . stripeConfSk . appStripeConf . appSettings <$> getYesod
     _ <- liftIO $ postWith (defaults & auth ?~ basicAuth sk BS.empty) api BS.empty
+
+    runDB $ update $ \x -> do
+        set x [BookStatus =. val PayStatusCanceled, BookIntent =. just (val intent)]
+        where_ $ x ^. BookId ==. val bid
+            
     addMessageI statusSuccess MsgPaymentIntentCancelled
     redirect (BookPaymentR,stati)
 
 
-postBookPaymentIntentR :: Int -> Text -> Handler A.Value
-postBookPaymentIntentR cents currency = do
+postBookPaymentIntentR :: BookId -> Int -> Text -> Handler A.Value
+postBookPaymentIntentR bid cents currency = do
     let api = unpack endpointStripePaymentIntents
     sk <- encodeUtf8 . stripeConfSk . appStripeConf . appSettings <$> getYesod
     let opts = defaults & auth ?~ basicAuth sk ""
@@ -205,7 +214,13 @@ postBookPaymentIntentR cents currency = do
                                     , "payment_method_types[]" := ("paypal" :: Text)
                                     ]
 
-    returnJson $ object [ "paymentIntentId" .= (r ^? responseBody . key "id")
+    let intent = r ^? responseBody . key "id" . _String
+
+    runDB $ update $ \x -> do
+        set x [BookIntent =. val intent]
+        where_ $ x ^. BookId ==. val bid
+
+    returnJson $ object [ "paymentIntentId" .= intent
                         , "clientSecret"    .= (r ^? responseBody . key "client_secret")
                         ]
 
@@ -328,6 +343,7 @@ postBookPaymentR = do
                                        , bookPayMethod = pid'
                                        , bookStatus = PayStatusUnpaid
                                        , bookMessage = Just (msgr MsgUnpaid)
+                                       , bookIntent = Nothing
                                        }
           redirect (BookCheckoutR bid, stati)
           
@@ -339,6 +355,7 @@ postBookPaymentR = do
                                        , bookPayMethod = pid'
                                        , bookStatus = PayStatusUnpaid
                                        , bookMessage = Just (msgr MsgUnpaid)
+                                       , bookIntent = Nothing
                                        }          
           redirect $ BookPayAtVenueCompletionR bid
           

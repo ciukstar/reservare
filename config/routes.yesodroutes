@@ -4,8 +4,8 @@
 
 /appointments/#BookId/details                 AppointmentDetailsR              GET
 /appointments/#BookId/pay/at/venue/completion AppointmentPayAtVenueCompletionR GET
-/appointments/pay/cancel                      AppointmentPaymentIntentCancelR  POST
-/appointments/pay/intent/#Int/#Text           AppointmentPaymentIntentR        POST
+/appointments/#BookId/pay/cancel              AppointmentPaymentIntentCancelR  POST
+/appointments/#BookId/pay/intent/#Int/#Text   AppointmentPaymentIntentR        POST
 /appointments/#BookId/completion              AppointmentPayCompletionR        GET
 /appointments/#BookId/checkout                AppointmentCheckoutR             GET
 /appointment/payment                          AppointmentPaymentR              GET POST
@@ -16,8 +16,8 @@
 
 /books/#BookId/details                 BookDetailsR              GET
 /books/#BookId/pay/at/venue/completion BookPayAtVenueCompletionR GET
-/book/pay/cancel                       BookPaymentIntentCancelR  POST
-/book/pay/intent/#Int/#Text            BookPaymentIntentR        POST
+/books/#BookId/pay/cancel              BookPaymentIntentCancelR  POST
+/books/#BookId/pay/intent/#Int/#Text   BookPaymentIntentR        POST
 /books/#BookId/completion              BookPayCompletionR        GET
 /books/#BookId/checkout                BookCheckoutR             GET
 /book/payment                          BookPaymentR              GET POST

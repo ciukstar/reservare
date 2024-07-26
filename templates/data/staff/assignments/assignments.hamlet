@@ -35,11 +35,13 @@
             _{MsgYouMightWantToAddAFew}
     $else
       <md-list>
-        $forall (Entity aid (Assignment _ _ _ time _ _),(employee,(service,(workspace,buisiness)))) <- assignments
+        $forall (Entity aid (Assignment _ _ role time _ _),(employee,(service,(workspace,buisiness)))) <- assignments
           <md-list-item type=link href=@{DataR $ StaffAssignmentR eid aid}>
             <div slot=headline>
+              #{role}
+            <div slot=supporting-text>
               $with Entity _ (Staff name _ _ _) <- employee
-                #{name}
+                (#{name})
             <div slot=supporting-text>
               $with Entity _ (Service _ name _ _) <- service
                 _{MsgService}: #{name}

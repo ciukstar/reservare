@@ -11,7 +11,7 @@
 
   ^{widgetBanner msgs}
 
-  $maybe (Entity _ (Book _ _ _ time payMethod status message),(service,(workspace,employee))) <- book
+  $maybe (Entity _ (Book _ _ _ time payMethod status message intent),(service,(workspace,employee))) <- book
     <fieldset>
       <legend>_{MsgTheAppointment}
       <dl>
@@ -70,11 +70,13 @@
 
         <dt.md-typescale-label-large>_{MsgPaymentStatus}
         <dd.md-typescale-body-medium>
-          $case status 
-            $of PayStatusPaid
-              _{MsgPaid}
+          $case status
             $of PayStatusUnpaid
               _{MsgUnpaid}
+            $of PayStatusPaid
+              _{MsgPaid}
+            $of PayStatusCanceled
+              _{MsgCanceled}
             $of PayStatusError
               _{MsgError}
               $maybe err <- message
@@ -83,6 +85,11 @@
               _{MsgUnknown}
               $maybe msg <- message
                 \ (#{msg})
+
+        $maybe intent <- intent
+          <dt.md-typescale-label-large>_{MsgPaymentIntent}
+          <dd.md-typescale-body-medium>
+            #{intent}
 
   $nothing
     <figure>

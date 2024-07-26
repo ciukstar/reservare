@@ -1,3 +1,5 @@
+PaymentIntent: Намерение платежа
+Canceled: Отменено
 Error: Ошибка
 MicrocopyPayAtVenue: Оплата после оказания услуги
 MicrocopyPayNow: Оплата с помощью кредитной карты или PayPal

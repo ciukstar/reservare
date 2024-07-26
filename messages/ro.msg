@@ -1,3 +1,5 @@
+PaymentIntent: Intenția de plată
+Canceled: Anulat
 Error: Eroare
 MicrocopyPayAtVenue: Plătiți după prestarea serviciului
 MicrocopyPayNow: Plătiți folosind un card de credit sau PayPal

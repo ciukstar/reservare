@@ -1,3 +1,5 @@
+PaymentIntent: L'intention de paiement
+Canceled: Annulé
 Error: Erreur
 MicrocopyPayAtVenue: Payer après la prestation du service
 MicrocopyPayNow: Payez avec une carte de crédit ou PayPal

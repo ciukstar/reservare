@@ -23,6 +23,7 @@ module Handler.Data.Services
 
 import Control.Monad (void)
 
+import Data.Text (Text)
 import Data.Time (nominalDiffTimeToSeconds, secondsToNominalDiffTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Data.Time.LocalTime (utcToLocalTime, localTimeToUTC, utc)
@@ -51,7 +52,8 @@ import Foundation
       , MsgDeleteAreYouSure, MsgConfirmPlease, MsgEdit, MsgRecordEdited
       , MsgDele, MsgRecordDeleted, MsgInvalidFormData, MsgServiceAssignment
       , MsgEmployee, MsgAssignmentDate, MsgTheStart, MsgBusiness, MsgPrice
-      , MsgSchedulingInterval, MsgUnitMinutes, MsgPriority, MsgRole
+      , MsgSchedulingInterval, MsgUnitMinutes, MsgPriority, MsgAlreadyExists
+      , MsgRole
       )
     )
     
@@ -66,18 +68,18 @@ import Model
     , Service
       ( Service, serviceName, serviceWorkspace, serviceDescr, servicePrice
       )
-    , Workspace (workspaceName, Workspace)
+    , WorkspaceId, Workspace (workspaceName, Workspace)
     , AssignmentId
     , Assignment
       ( Assignment, assignmentStaff, assignmentTime, assignmentSlotInterval
       , assignmentPriority, assignmentRole
       )
-    , Staff (staffName, Staff)
+    , StaffId, Staff (staffName, Staff)
     , Business (Business)
     , EntityField
       ( ServiceId, WorkspaceName, WorkspaceId, AssignmentId, WorkspaceBusiness
       , StaffName, StaffId, AssignmentService, ServiceWorkspace, BusinessId
-      , AssignmentStaff
+      , AssignmentStaff, ServiceName, AssignmentRole
       )
     )
 
@@ -95,9 +97,9 @@ import Yesod.Core
 import Yesod.Core.Widget (setTitleI)
 import Yesod.Form
     ( FieldSettings(FieldSettings, fsLabel, fsTooltip, fsId, fsName, fsAttrs)
-    , optionsPairs, FieldView (fvInput), FormResult (FormSuccess)
+    , optionsPairs, FieldView (fvInput), FormResult (FormSuccess), Field
     )
-import Yesod.Form.Functions (generateFormPost, runFormPost)
+import Yesod.Form.Functions (generateFormPost, runFormPost, checkM)
 import Yesod.Persist (YesodPersist(runDB))
 
 
@@ -224,7 +226,7 @@ formServiceAssignment sid assignment extra = do
         , fsAttrs = [("label", msgr MsgEmployee)]
         } (assignmentStaff . entityVal <$> assignment)
     
-    (roleR, roleV) <- md3mreq md3textField FieldSettings
+    (roleR, roleV) <- md3mreq (uniqueRoleField sid employeeR) FieldSettings
         { fsLabel = SomeMessage MsgRole
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgRole)]
@@ -265,6 +267,26 @@ formServiceAssignment sid assignment extra = do
         
   where
       options e = (staffName . entityVal $ e, entityKey e)
+      
+      uniqueRoleField :: ServiceId -> FormResult StaffId -> Field Handler Text
+      uniqueRoleField sid' eid = checkM (uniqueRole sid' eid) md3textField
+
+      uniqueRole :: ServiceId -> FormResult StaffId -> Text -> Handler (Either AppMessage Text)
+      uniqueRole sid' eid name = do
+          x <- runDB $ selectOne $ do
+              x <- from $ table @Assignment
+              where_ $ x ^. AssignmentService ==. val sid'
+              case eid of
+                FormSuccess eid' -> where_ $ x ^. AssignmentStaff ==. val eid'
+                _otherwise -> where_ $ val True
+              where_ $ x ^. AssignmentRole ==. val name
+              return x
+          return $ case x of
+            Nothing -> Right name
+            Just (Entity aid _) -> case assignment of
+              Nothing -> Left MsgAlreadyExists
+              Just (Entity aid' _) | aid == aid' -> Right name
+                                   | otherwise -> Left MsgAlreadyExists
 
 
 getServiceAssignmentsR :: ServiceId -> Handler Html
@@ -384,7 +406,7 @@ formService service extra = do
         , fsAttrs = [("label", msgr MsgWorkspace)]
         } (serviceWorkspace . entityVal <$> service)
     
-    (nameR,nameV) <- md3mreq md3textField FieldSettings
+    (nameR,nameV) <- md3mreq (uniqueNameField workspaceR) FieldSettings
         { fsLabel = SomeMessage MsgTheName
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgTheName)]
@@ -408,6 +430,25 @@ formService service extra = do
         
   where
       options e = (workspaceName . entityVal $ e, entityKey e)
+      
+      uniqueNameField :: FormResult WorkspaceId -> Field Handler Text
+      uniqueNameField wid = checkM (uniqueName wid) md3textField
+
+      uniqueName :: FormResult WorkspaceId -> Text -> Handler (Either AppMessage Text)
+      uniqueName wid name = do
+          x <- runDB $ selectOne $ do
+              x <- from $ table @Service
+              case wid of
+                FormSuccess wid' -> where_ $ x ^. ServiceWorkspace ==. val wid'
+                _otherwise -> where_ $ val True
+              where_ $ x ^. ServiceName ==. val name
+              return x
+          return $ case x of
+            Nothing -> Right name
+            Just (Entity sid _) -> case service of
+              Nothing -> Left MsgAlreadyExists
+              Just (Entity sid' _) | sid == sid' -> Right name
+                                   | otherwise -> Left MsgAlreadyExists
     
 
 

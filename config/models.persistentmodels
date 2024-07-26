@@ -9,6 +9,7 @@ Book
     payMethod PayMethod
     status PayStatus
     message Text Maybe
+    intent Text Maybe
 
 Schedule
     assignment AssignmentId OnDeleteCascade

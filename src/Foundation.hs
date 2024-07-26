@@ -190,8 +190,8 @@ instance Yesod App where
     
     isAuthorized r@(AppointmentPayAtVenueCompletionR _) _ = setUltDest r >> return Authorized
     
-    isAuthorized r@AppointmentPaymentIntentCancelR _ = setUltDest r >> return Authorized
-    isAuthorized r@(AppointmentPaymentIntentR _ _) _ = setUltDest r >> return Authorized
+    isAuthorized r@(AppointmentPaymentIntentCancelR _) _ = setUltDest r >> return Authorized
+    isAuthorized r@(AppointmentPaymentIntentR _ _ _) _ = setUltDest r >> return Authorized
     isAuthorized r@(AppointmentPayCompletionR _) _ = setUltDest r >> return Authorized
     isAuthorized r@(AppointmentCheckoutR _) _ = setUltDest r >> return Authorized
     isAuthorized r@AppointmentPaymentR _ = setUltDest r >> return Authorized
@@ -201,8 +201,8 @@ instance Yesod App where
     
     isAuthorized r@(BookDetailsR _) _ = setUltDest r >> return Authorized
     isAuthorized r@(BookPayAtVenueCompletionR _) _ = setUltDest r >> return Authorized
-    isAuthorized r@BookPaymentIntentCancelR _ = setUltDest r >> return Authorized
-    isAuthorized r@(BookPaymentIntentR _ _) _ = setUltDest r >> return Authorized
+    isAuthorized r@(BookPaymentIntentCancelR _) _ = setUltDest r >> return Authorized
+    isAuthorized r@(BookPaymentIntentR _ _ _) _ = setUltDest r >> return Authorized
     isAuthorized r@(BookPayCompletionR _) _ = setUltDest r >> return Authorized
     isAuthorized r@(BookCheckoutR _) _ = setUltDest r >> return Authorized
     isAuthorized r@BookPaymentR _ = setUltDest r >> return Authorized
