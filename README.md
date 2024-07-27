@@ -4,7 +4,7 @@ Appointment booking web app
 
 ## Overview
 
-[“Reservare”](https://reservare-yngkatqywq-de.a.run.app) allows businesses to register services and resources that a customer can book and/or schedule an appointment for.  
+[“Reservare”](https://reservare-i4rimw5qwq-de.a.run.app) allows businesses to register services and resources that a customer can book and/or schedule an appointment for.  
 *Use Case Diagram*  
 ![Use Case Diagram](static/img/Reservare-UCD.svg)
 
@@ -66,6 +66,6 @@ Appointment booking web app
 
 ## Demo
 
-[Click here to see demo](https://reservare-yngkatqywq-de.a.run.app)
+[Click here to see demo](https://reservare-i4rimw5qwq-de.a.run.app)
 
-_* Click on the [![Demo user accounts](demo/button-demo-accounts.png)](https://reservare-yngkatqywq-de.a.run.app/auth/login) button to get a list of demo accounts_
+_* Click on the [![Demo user accounts](demo/button-demo-accounts.png)](https://reservare-i4rimw5qwq-de.a.run.app/auth/login) button to get a list of demo accounts_
