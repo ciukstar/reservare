@@ -1,5 +1,12 @@
 name:    reservare
 version: "0.0.0"
+synopsis:   Appointment booking web app
+category:   Application
+author:     Sergiu Starciuc <ciukstar@gmail.com>
+maintainer: Sergiu Starciuc <ciukstar@gmail.com>
+license:    MIT
+github:     ciukstar/reservare
+homepage:   https://reservare-i4rimw5qwq-de.a.run.app
 
 dependencies:
 

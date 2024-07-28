@@ -40,10 +40,11 @@ import Model
     , Workspace (workspaceTzo, workspaceCurrency)
     , Service (servicePrice)
     , Assignment (assignmentSlotInterval, assignmentPriority, assignmentRole)
+    , Schedule (Schedule, scheduleStart, scheduleEnd, scheduleAssignment, scheduleDay)
     , WorkingHours
       ( WorkingHours, workingHoursWorkspace, workingHoursDay
       , workingHoursStart, workingHoursEnd
-      ), Schedule (Schedule, scheduleStart, scheduleEnd)
+      )
     )
 
 import Settings (AppSettings)
@@ -51,7 +52,6 @@ import Settings (AppSettings)
 import Text.Hamlet (shamlet)
 
 import Yesod.Auth.Email (saltPass)
-import Import (Schedule(scheduleAssignment, scheduleDay))
 
 
 fillDemoEn :: MonadIO m => AppSettings -> ReaderT SqlBackend m ()
@@ -457,5 +457,3 @@ fillDemoEn appSettings = do
                              , scheduleStart = TimeOfDay 14 0 0
                              , scheduleEnd = TimeOfDay 17 45 0
                              }
-        
-    return ()

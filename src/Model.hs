@@ -125,14 +125,14 @@ apiInfoGoogle = "GOOGLE_API"
 
 
 gmailRefreshToken :: Text
-gmailRefreshToken = "gmail_refresh_token"
+gmailRefreshToken = "reservare_gmail_refresh_token"
 
 
 gmailSender :: Text
 gmailSender = "gmail_sender"
 
 secretVolumeGmail :: String
-secretVolumeGmail = "/grt/gmail_refresh_token"
+secretVolumeGmail = "/reservare/gmail_refresh_token"
 
 
 statusSuccess :: Text
