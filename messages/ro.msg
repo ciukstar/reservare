@@ -1,3 +1,5 @@
+Available: Disponibil
+Duration: Durată
 PaymentIntent: Intenția de plată
 Canceled: Anulat
 Error: Eroare

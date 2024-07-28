@@ -78,7 +78,7 @@ import Foundation
       , MsgPrice, MsgMobile, MsgPhone, MsgLocation, MsgAddress, MsgFullName
       , MsgTheAppointment, MsgTheName, MsgUnpaid, MsgPaid, MsgUnknown
       , MsgMicrocopyPayNow, MsgMicrocopyPayAtVenue, MsgMicrocopySelectPayNow
-      , MsgMicrocopySelectPayAtVenue, MsgError, MsgCanceled, MsgPaymentIntent
+      , MsgMicrocopySelectPayAtVenue, MsgError, MsgCanceled, MsgPaymentIntent, MsgDuration
       )
     )
 
@@ -109,7 +109,7 @@ import Model
       , BusinessName, WorkspaceName, ServiceId, AssignmentService
       , AssignmentSlotInterval, ScheduleAssignment, AssignmentId
       , ScheduleDay, BookId, BookService, BookStaff, BookStatus
-      , BookMessage, BookIntent
+      , BookMessage, BookIntent, ServiceAvailable
       )
     )
 
@@ -170,6 +170,7 @@ getBookDetailsR bid = do
             `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
             `innerJoin` table @Staff `on` (\(x :& _ :& _ :& e) -> x ^. BookStaff ==. e ^. StaffId)
         where_ $ x ^. BookId ==. val bid
+        where_ $ s ^. ServiceAvailable ==. val True
         return (x,(s,(w,e)))
 
     msgs <- getMessages
@@ -281,10 +282,11 @@ getBookCheckoutR bid = do
                   `innerJoin` table @Service `on` (\(x :& s) -> x ^. BookService ==. s ^. ServiceId)
                   `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
               where_ $ x ^. BookId ==. val bid
+              where_ $ s ^. ServiceAvailable ==. val True
               return (s,w) )
 
-          let items = (\(Entity _ (Service _ name _ _),_) -> object ["id" .= name]) <$> services
-          let cents = getSum $ mconcat $ (\(Entity _ (Service _ _ _ price),_) -> Sum price) <$> services
+          let items = (\(Entity _ (Service _ name _ _ _ _),_) -> object ["id" .= name]) <$> services
+          let cents = getSum $ mconcat $ (\(Entity _ (Service _ _ _ price _ _),_) -> Sum price) <$> services
           let currency = maybe "USD" (\(_, Entity _ (Workspace _ _ _ _ c)) -> c) (headMay services)
 
           rndr <- getUrlRender
@@ -1044,7 +1046,9 @@ formService bids wids sid extra = do
         x :& w :& b <- from $ table @Service
             `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
             `innerJoin` table @Business `on` (\(_ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)
-
+            
+        where_ $ x ^. ServiceAvailable ==. val True
+        
         case wids of
           Just xs@(_:_) -> where_ $ w ^. WorkspaceId `in_` valList xs
           _otherwise -> where_ $ val True
@@ -1061,7 +1065,7 @@ formService bids wids sid extra = do
     return (serviceR,[whamlet|#{extra} ^{fvInput serviceV}|])
 
   where
-      pairs services = (\(Entity sid' (Service _ name _ _),_) -> (name, sid')) <$> services
+      pairs services = (\(Entity sid' (Service _ name _ _ _ _),_) -> (name, sid')) <$> services
 
       md3radioFieldList :: [(Entity Service,(Entity Workspace, Entity Business))]
                         -> Field (HandlerFor App) ServiceId
@@ -1084,7 +1088,7 @@ $if null opts
 $else
   <md-list ##{theId} *{attrs}>
     $forall (i,opt) <- opts
-      $maybe (Entity _ (Service _ sname _ price),(workspace,business)) <- findService opt services
+      $maybe (Entity _ (Service _ sname _ price _ _),(workspace,business)) <- findService opt services
         <md-list-item type=button onclick="this.querySelector('md-radio').click()">
           <div slot=headline>
             #{sname}

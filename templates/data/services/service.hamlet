@@ -41,7 +41,7 @@
   <div ##{idPanelDetails} role=tabpanel aria-labelledby=#{idTabDetails}>
     ^{widgetBanner msgs}
 
-    $maybe (Entity _ (Service _ name descr price),Entity _ (Workspace _ _ _ _ currency)) <- service
+    $maybe (Entity _ (Service _ name descr price available duration),Entity _ (Workspace _ _ _ _ currency)) <- service
       <dl>
         <dt.md-typescale-label-large scope=row>_{MsgTheName}
         <dd.md-typescale-body-medium>
@@ -55,6 +55,14 @@
         <dt.md-typescale-label-large scope=row>_{MsgPrice}
         <dd.md-typescale-body-medium.currency data-value=#{price} data-currency=#{currency}>
           #{currency}#{price}
+
+        <dt.md-typescale-label-large>_{MsgAvailable}
+        <dd.md-typescale-body-medium>
+          #{show available}
+
+        <dt.md-typescale-label-large>_{MsgDuration}
+        <dd.md-typescale-body-medium>
+          #{show duration}
 
     ^{widgetSnackbar msgs}
 

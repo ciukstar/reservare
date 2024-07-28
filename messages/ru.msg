@@ -1,3 +1,5 @@
+Available: Доступный
+Duration: Продолжительность
 PaymentIntent: Намерение платежа
 Canceled: Отменено
 Error: Ошибка

@@ -1,3 +1,5 @@
+Available: Disponible
+Duration: Durée
 PaymentIntent: L'intention de paiement
 Canceled: Annulé
 Error: Erreur

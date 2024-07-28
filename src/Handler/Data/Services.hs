@@ -53,20 +53,20 @@ import Foundation
       , MsgDele, MsgRecordDeleted, MsgInvalidFormData, MsgServiceAssignment
       , MsgEmployee, MsgAssignmentDate, MsgTheStart, MsgBusiness, MsgPrice
       , MsgSchedulingInterval, MsgUnitMinutes, MsgPriority, MsgAlreadyExists
-      , MsgRole
+      , MsgRole, MsgAvailable, MsgDuration
       )
     )
     
 import Material3
     ( md3mreq, md3textField, md3textareaField, md3mopt, md3selectField
-    , md3datetimeLocalField, md3intField
+    , md3datetimeLocalField, md3intField, md3switchField
     )
 
 import Model
     ( statusSuccess, statusError
     , ServiceId
     , Service
-      ( Service, serviceName, serviceWorkspace, serviceDescr, servicePrice
+      ( Service, serviceName, serviceWorkspace, serviceDescr, servicePrice, serviceAvailable, serviceDuration
       )
     , WorkspaceId, Workspace (workspaceName, Workspace)
     , AssignmentId
@@ -97,7 +97,7 @@ import Yesod.Core
 import Yesod.Core.Widget (setTitleI)
 import Yesod.Form
     ( FieldSettings(FieldSettings, fsLabel, fsTooltip, fsId, fsName, fsAttrs)
-    , optionsPairs, FieldView (fvInput), FormResult (FormSuccess), Field
+    , optionsPairs, FieldView (fvInput, fvId, fvLabel), FormResult (FormSuccess), Field
     )
 import Yesod.Form.Functions (generateFormPost, runFormPost, checkM)
 import Yesod.Persist (YesodPersist(runDB))
@@ -423,10 +423,36 @@ formService service extra = do
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgPrice)]
         } (servicePrice . entityVal <$> service)
+    
+    (availableR,availableV) <- md3mreq md3switchField FieldSettings
+        { fsLabel = SomeMessage MsgAvailable
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgAvailable)]
+        } (serviceAvailable . entityVal <$> service)
+    
+    (durationR,durationV) <- md3mreq md3intField FieldSettings
+        { fsLabel = SomeMessage MsgDuration
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgDuration),("supporting-text", msgr MsgUnitMinutes)]
+        } (truncate . (/ 60) . nominalDiffTimeToSeconds . serviceDuration . entityVal <$> service)
 
-    return ( Service <$> workspaceR <*> nameR <*> descrR <*> priceR
-           , [whamlet|#{extra} ^{fvInput workspaceV} ^{fvInput nameV} ^{fvInput descrV} ^{fvInput priceV}|]
-           )
+    let r = Service <$> workspaceR <*> nameR <*> descrR <*> priceR <*> availableR
+             <*> ((* 60) . secondsToNominalDiffTime . fromIntegral <$> durationR)
+    let w = [whamlet|
+                    #{extra}
+                    ^{fvInput workspaceV}
+                    ^{fvInput nameV}
+                    ^{fvInput descrV}
+                    ^{fvInput priceV}
+
+                    <div style="display:flex;align-items:center;gap:1rem">
+                      ^{fvInput availableV}
+                      <label.body-large for=#{fvId availableV}>
+                        #{fvLabel availableV}
+                        
+                    ^{fvInput durationV}
+                    |]
+    return (r,w)
         
   where
       options e = (workspaceName . entityVal $ e, entityKey e)

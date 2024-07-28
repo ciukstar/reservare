@@ -9,10 +9,10 @@
 
 <main>
 
-  ^{widgetBanner msgs}
-
   <form method=get action=@{BookServicesR} enctype=#{et0} ##{idFormSearch}>
     ^{fw0}
+
+  ^{widgetBanner msgs}
     
   <form method=post action=@?{(BookServicesR,stati)} enctype=#{et} ##{idFormService}>
     ^{fw}

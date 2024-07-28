@@ -78,7 +78,7 @@ import Foundation
       , MsgTheAppointment, MsgTheName, MsgUnpaid, MsgPaid, MsgUnknown
       , MsgMicrocopyPayNow, MsgMicrocopyPayAtVenue, MsgMicrocopySelectPayNow
       , MsgMicrocopySelectPayAtVenue, MsgError, MsgServiceAssignment
-      , MsgCanceled, MsgPaymentIntent, MsgRole
+      , MsgCanceled, MsgPaymentIntent, MsgRole, MsgDuration
       )
     )
 
@@ -108,7 +108,7 @@ import Model
       , BusinessId, ServiceName, AssignmentStaff, StaffId, StaffName
       , BusinessName, WorkspaceName, ServiceId, AssignmentService
       , AssignmentSlotInterval, ScheduleAssignment, AssignmentId
-      , ScheduleDay, BookId, BookService, BookStaff, BookStatus, BookMessage, BookIntent, AssignmentRole
+      , ScheduleDay, BookId, BookService, BookStaff, BookStatus, BookMessage, BookIntent, AssignmentRole, ServiceAvailable
       )
     )
 
@@ -169,6 +169,7 @@ getAppointmentDetailsR bid = do
             `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
             `innerJoin` table @Staff `on` (\(x :& _ :& _ :& e) -> x ^. BookStaff ==. e ^. StaffId)
         where_ $ x ^. BookId ==. val bid
+        where_ $ s ^. ServiceAvailable ==. val True
         return (x,(s,(w,e)))
 
     msgs <- getMessages
@@ -280,10 +281,11 @@ getAppointmentCheckoutR bid = do
                   `innerJoin` table @Service `on` (\(x :& s) -> x ^. BookService ==. s ^. ServiceId)
                   `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
               where_ $ x ^. BookId ==. val bid
+              where_ $ s ^. ServiceAvailable ==. val True
               return (s,w) )
 
-          let items = (\(Entity _ (Service _ name _ _),_) -> object ["id" .= name]) <$> services
-          let cents = getSum $ mconcat $ (\(Entity _ (Service _ _ _ price),_) -> Sum price) <$> services
+          let items = (\(Entity _ (Service _ name _ _ _ _),_) -> object ["id" .= name]) <$> services
+          let cents = getSum $ mconcat $ (\(Entity _ (Service _ _ _ price _ _),_) -> Sum price) <$> services
           let currency = maybe "USD" (\(_, Entity _ (Workspace _ _ _ _ c)) -> c) (headMay services)
 
           rndr <- getUrlRender
@@ -670,6 +672,7 @@ formSearchAssignments idFormSearch extra = do
 
     services <- liftHandler $ runDB $ select $ do
         x <- from $ table @Service
+        where_ $ x ^. ServiceAvailable ==. val True
         unless (null workspaces) $ where_ $ x ^. ServiceWorkspace `in_` valList (entityKey <$> workspaces)
         when (null workspaces) $ where_ $ val False
         case wR of
@@ -678,7 +681,7 @@ formSearchAssignments idFormSearch extra = do
         orderBy [asc (x ^. ServiceName)]
         return x
 
-    let serviceItem (Entity sid (Service _ name _ _)) = (name,sid)
+    let serviceItem (Entity sid (Service _ name _ _ _ _)) = (name,sid)
 
     (sR,sV) <- mopt (chipsFieldList idFormSearch MsgService (serviceItem <$> services))
         FieldSettings { fsLabel = SomeMessage MsgService
@@ -959,7 +962,7 @@ postAppointmentStaffR = do
               setTitleI MsgServices
               idFormAssignment <- newIdent
               idFabNext <- newIdent
-              $(widgetFile "appointments/assignments/assignments")
+              $(widgetFile "appointments/assignments")
       FormMissing -> do
           addMessageI statusError MsgInvalidFormData
           msgs <- getMessages
@@ -967,7 +970,7 @@ postAppointmentStaffR = do
               setTitleI MsgServices
               idFormAssignment <- newIdent
               idFabNext <- newIdent
-              $(widgetFile "appointments/assignments/assignments")
+              $(widgetFile "appointments/assignments")
 
 
 getAppointmentStaffR :: Handler Html
@@ -991,7 +994,7 @@ getAppointmentStaffR = do
         setTitleI MsgStaff
         idFormAssignment <- newIdent
         idFabNext <- newIdent
-        $(widgetFile "appointments/assignments/assignments")
+        $(widgetFile "appointments/assignments")
 
 
 formAssignments :: Maybe [BusinessId] -> Maybe [WorkspaceId] -> Maybe [ServiceId] -> Maybe [Text]
@@ -1004,6 +1007,9 @@ formAssignments bids wids sids roles aid extra = do
             `innerJoin` table @Service `on` (\(x :& _ :& s) -> x ^. AssignmentService ==. s ^. ServiceId)
             `innerJoin` table @Workspace `on` (\(_ :& _ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
             `innerJoin` table @Business `on` (\(_ :& _ :& _ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)
+
+        where_ $ s ^. ServiceAvailable ==. val True
+        
         case roles of
           Just xs@(_:_) -> where_ $ x ^. AssignmentRole `in_` valList xs
           _otherwise -> where_ $ val True
@@ -1070,7 +1076,7 @@ $else
             $with (Entity _ (Business _ bname),Entity _ (Workspace _ wname _ _ _)) <- (business,workspace)
               \ (#{bname} - #{wname})
           <div slot=supporting-text>
-            $with (Entity _ (Workspace _ _ _ _ currency),Entity _ (Service _ name _ price)) <- (workspace,service)
+            $with (Entity _ (Workspace _ _ _ _ currency),Entity _ (Service _ name _ price _ _)) <- (workspace,service)
               #{name} (
               <span.currency data-value=#{price} data-currency=#{currency}>
                 #{show price} #{currency}

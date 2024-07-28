@@ -34,7 +34,7 @@ import Model
       )
     , Business (Business, businessOwner, businessName)
     , Workspace (Workspace, workspaceBusiness, workspaceName, workspaceAddress)
-    , Service (Service, serviceWorkspace, serviceName, serviceDescr)
+    , Service (Service, serviceWorkspace, serviceName, serviceDescr, serviceAvailable, serviceDuration)
     , Staff (Staff, staffName, staffAccount, staffMobile, staffPhone)
     , Assignment (Assignment, assignmentService, assignmentStaff, assignmentTime)
     , Workspace (workspaceTzo, workspaceCurrency)
@@ -59,6 +59,10 @@ fillDemoEn appSettings = do
 
     now <- liftIO getCurrentTime
     let today = utctDay now
+    
+    let oneHour = nominalDay / 24
+    let halfHour = oneHour / 2
+    let quarterHour = halfHour / 2
     
     pass1 <- liftIO $ saltPass "marylopez"
     let user1 = User { userEmail = "marylopez@xmail.edu"
@@ -198,6 +202,8 @@ fillDemoEn appSettings = do
                            , serviceName = "Leisure travel"
                            , serviceDescr = Just "Travel as you like"
                            , servicePrice = 10000
+                           , serviceAvailable = True
+                           , serviceDuration = oneHour
                            }
 
     s1 <- insert service1
@@ -206,6 +212,8 @@ fillDemoEn appSettings = do
                            , serviceName = "Italia travel"
                            , serviceDescr = Just "Italian joy"
                            , servicePrice = 20000
+                           , serviceAvailable = True
+                           , serviceDuration = oneHour
                            }
 
     s2 <- insert service2
@@ -214,6 +222,8 @@ fillDemoEn appSettings = do
                            , serviceName = "Hello Paris"
                            , serviceDescr = Just "France awaits"
                            , servicePrice = 25000
+                           , serviceAvailable = True
+                           , serviceDuration = oneHour
                            }
 
     s3 <- insert service3
@@ -261,6 +271,8 @@ fillDemoEn appSettings = do
                              , serviceName = "Leisure travel"
                              , serviceDescr = Just "Travel as you like"
                              , servicePrice = 10000
+                             , serviceAvailable = True
+                             , serviceDuration = oneHour
                              }
 
     s211 <- insert service211
@@ -269,6 +281,8 @@ fillDemoEn appSettings = do
                              , serviceName = "Italia travel"
                              , serviceDescr = Just "Italian joy"
                              , servicePrice = 20000
+                             , serviceAvailable = True
+                             , serviceDuration = oneHour
                              }
 
     s212 <- insert service212
@@ -277,6 +291,8 @@ fillDemoEn appSettings = do
                              , serviceName = "Hello Paris"
                              , serviceDescr = Just "France awaits"
                              , servicePrice = 25000
+                             , serviceAvailable = True
+                             , serviceDuration = oneHour
                              }
 
     s213 <- insert service213
@@ -294,6 +310,8 @@ fillDemoEn appSettings = do
                              , serviceName = "Leisure travel"
                              , serviceDescr = Just "Travel as you like"
                              , servicePrice = 10000
+                             , serviceAvailable = True
+                             , serviceDuration = oneHour
                              }
 
     s221 <- insert service221
@@ -302,6 +320,8 @@ fillDemoEn appSettings = do
                              , serviceName = "Italia travel"
                              , serviceDescr = Just "Italian joy"
                              , servicePrice = 20000
+                             , serviceAvailable = True
+                             , serviceDuration = oneHour
                              }
 
     s222 <- insert service222
@@ -310,6 +330,8 @@ fillDemoEn appSettings = do
                              , serviceName = "Hello Paris"
                              , serviceDescr = Just "France awaits"
                              , servicePrice = 25000
+                             , serviceAvailable = True
+                             , serviceDuration = oneHour
                              }
 
     s223 <- insert service223
@@ -319,10 +341,6 @@ fillDemoEn appSettings = do
                              }
 
     b31 <- insert business3
-    
-    let oneHour = nominalDay / 24
-    let halfHour = oneHour / 2
-    let quarterHour = halfHour / 2
 
     let employee1 = Staff { staffName = fromMaybe (userEmail user1) (userName user1)
                           , staffAccount = Just usr1

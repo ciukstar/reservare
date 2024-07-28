@@ -31,6 +31,8 @@ Service
     name Text
     descr Textarea Maybe
     price Int
+    available Bool
+    duration NominalDiffTime
     UniqueService workspace name
     deriving Eq
 

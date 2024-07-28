@@ -50,7 +50,7 @@
     <fieldset>
       <legend>_{MsgService}
       <dl>
-        $with Entity _ (Service _ name _ price) <- service
+        $with Entity _ (Service _ name _ price _ duration) <- service
           <dt.md-typescale-label-large>_{MsgTheName}
           <dd.md-typescale-body-medium>
             #{name}
@@ -59,6 +59,10 @@
           $with (Entity _ (Workspace _ _ _ _ currency),price) <- (workspace,show price)
             <dd.md-typescale-body-medium.currency data-value=#{price} data-currency=#{currency}>
               #{price} #{currency}
+
+          <dt.md-typescale-label-large>_{MsgDuration}
+          <dd.md-typescale-body-medium>
+            #{show duration}
 
         <dt.md-typescale-label-large>_{MsgPaymentMethod}
         <dd.md-typescale-body-medium>

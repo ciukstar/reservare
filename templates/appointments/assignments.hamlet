@@ -9,10 +9,10 @@
 
 <main>
 
-  ^{widgetBanner msgs}
-
   <form method=get action=@?{(AppointmentStaffR,stati)} enctype=#{et0} ##{idFormSearch}>
     ^{fw0}
+
+  ^{widgetBanner msgs}
   
   <form method=post action=@{AppointmentStaffR} enctype=#{et} ##{idFormAssignment}>
     ^{fw}
