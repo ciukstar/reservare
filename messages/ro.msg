@@ -1,3 +1,13 @@
+SearchEngineOptimization: Optimizare motor de căutare
+Booking: Rezervare
+Schedule: Orarul de lucru
+BasicEntities: Entităţile de bază
+SecretKey: Cheie secretă
+PublicKey: Cheie publică
+PaymentGateway: Gateway de plată
+ClientSecret: Secretul clientului
+ClientId: Id-ul clientului
+Username: Nume de utilizator
 Available: Disponibil
 Duration: Durată
 PaymentIntent: Intenția de plată
@@ -184,3 +194,15 @@ Doc001 appname href: <a href=#{href} target=_blank>„#{appname}”</a> permite 
 Doc002 href: <a href=#{href} target=_blank>Depozitul de proiect</a> pe GitHub.
 
 Doc003 href: Vă rugăm să rețineți că aplicația care rulează în prezent este o aplicație demonstrativă. Orice acțiune este permisă și încurajată. <a href=#{href} target=_blank>Raportați erori</a> pe GitHub.
+
+Doc004: Un cont de superutilizator este definit în momentul implementării. Superutilizatorul gestionează alți utilizatori și acordă sau revocă privilegii de administrator anumitor utilizatori.
+
+Doc005: Integrare cu API-uri externe
+
+Doc006 href1 href2: Un utilizator nou se poate <a href=#{href1} target=_blank>înscrie</a> folosind un cont Google existent sau folosind o adresă de e-mail verificată. <a href=#{href2} target=_blank>API-ul Gmail</a> este folosit ca intermediar pentru a trimite linkuri de verificare către căsuța de e-mail a utilizatorului.
+
+Doc007: Un utilizator poate primi rolul de administrator de un superutilizator sau de un alt administrator. Numai utilizatorii cu rol de administrator au acces la datele administrative.
+
+Doc008 href: Pentru a simula o plată reușită, utilizați carduri de test din <a href=#{href}>lista următoare</a>.
+
+Doc009 href: Pentru a simula plățile pe care emitentul le refuză, utilizați carduri de testare din <a href=#{href}>următoarea listă</a>.

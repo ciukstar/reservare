@@ -1,3 +1,14 @@
+
+SearchEngineOptimization: Search Engine Optimization
+Booking: Booking
+Schedule: Schedule
+BasicEntities: Basic Entities
+SecretKey: Secret key
+PublicKey: Public key
+PaymentGateway: Payment gateway
+ClientSecret: Client secret
+ClientId: Client id
+Username: Username
 Available: Available
 Duration: Duration
 PaymentIntent: Payment intent
@@ -184,3 +195,15 @@ Doc001 appname@Text href@Text: <a href=#{href} target=_blank>“#{appname}”</a
 Doc002 href@Text: <a href=#{href} target=_blank>Project repository</a> on GitHub.
 
 Doc003 href@Text: Please note that the application currently running is a demo application. Any actions are allowed and encouraged. <a href=#{href} target=_blank>Report issues</a> on GitHub.
+
+Doc004: A superuser account is defined at deployment time. The superuser manages other users and grants or revokes administrator privileges to specific users.
+
+Doc005: Integration with external APIs
+
+Doc006 href1@Text href2@Text: A new user can <a href=#{href1} target=_blank>sign up</a> using an existing Google account or using a verified email address. <a href=#{href2} target=_blank>Gmail API</a> is used as an intermediary to send verification links to the user's inbox.
+
+Doc007: A user can be grated the administrator role by a superuser or by another administrator. Only users with the administrator role have access to administrative data.
+
+Doc008 href@Text: To simulate a successful payment, use test cards from the <a href=#{href}>following list</a>.
+
+Doc009 href@Text: To simulate payments that the issuer declines, use test cards from the <a href=#{href}>following list</a>.

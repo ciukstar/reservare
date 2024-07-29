@@ -36,6 +36,11 @@ import Yesod.Default.Config2       (applyEnvValue, configSettingsYml)
 import Yesod.Default.Util          (WidgetFileSettings, widgetFileNoReload,
                                     widgetFileReload)
 
+data Seo = Seo { seoGoogleSiteVerification :: Maybe Text
+               , seoMsvalidate :: Maybe Text
+               , seoYandexVerification :: Maybe Text
+               }
+
 data Superuser = Superuser { superuserUsername :: Text
                            , superuserPassword :: Text
                            }
@@ -95,11 +100,21 @@ data AppSettings = AppSettings
     -- ^ Google API config
     , appStripeConf             :: StripeConf
     -- ^ Stripe API config
+    , appSeo                     :: Seo
+    -- ^ Search Engine Optimization
 
     , appAuthDummyLogin         :: Bool
     -- ^ Indicate if auth dummy login should be enabled.
     }
 
+
+instance FromJSON Seo where
+    parseJSON :: Value -> Parser Seo
+    parseJSON = withObject "Seo" $ \o -> do
+        seoGoogleSiteVerification <- o .: "google-site-verification"
+        seoMsvalidate <- o .: "msvalidate"
+        seoYandexVerification <- o .: "yandex-verification"
+        return Seo {..}
 
 instance FromJSON Superuser where
     parseJSON :: Value -> Parser Superuser
@@ -172,6 +187,8 @@ instance FromJSON AppSettings where
         appGoogleApiConf          <- o .: "google-api"
         appGcloudConf             <- o .: "gcloud"
         appStripeConf             <- o .: "stripe"
+
+        appSeo                    <- o .: "seo"
 
         appAuthDummyLogin         <- o .:? "auth-dummy-login"      .!= dev
 

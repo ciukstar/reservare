@@ -1,3 +1,14 @@
+
+SearchEngineOptimization: Optimisation du moteur de recherche
+Booking: Réservation
+Schedule: Horaire de travail
+BasicEntities: Entités de base
+SecretKey: Clé secrète
+PublicKey: Clé publique
+PaymentGateway: Passerelle de paiement
+ClientSecret: Secret client
+ClientId: Identifiant client
+Username: Nom d'utilisateur
 Available: Disponible
 Duration: Durée
 PaymentIntent: L'intention de paiement
@@ -184,3 +195,15 @@ Doc001 appname href: <a href=#{href} target=_blank>« #{appname} »</a> permet
 Doc002 href: <a href=#{href} target=_blank>Le référentiel du projet</a> sur GitHub.
 
 Doc003 href: Veuillez noter que l'application actuellement en cours d'exécution est une application de démonstration. Toutes les actions sont autorisées et encouragées. <a href=#{href} target=_blank>Signalez les bugs</a> sur GitHub.
+
+Doc004: Un compte superutilisateur est défini au moment du déploiement. Le superutilisateur gère les autres utilisateurs et accorde ou révoque les privilèges d'administrateur à des utilisateurs spécifiques.
+
+Doc005: Intégration avec des API externes
+
+Doc006 href1 href2: Un nouvel utilisateur peut <a href=#{href1} target=_blank>s'inscrire</a> en utilisant un compte Google existant ou en utilisant une adresse e-mail vérifiée. <a href=#{href2} target=_blank>L'API Gmail</a> est utilisée comme intermédiaire pour envoyer des liens de vérification vers la boîte de réception de l'utilisateur.
+
+Doc007: Un utilisateur peut se voir attribuer le rôle d'administrateur par un superutilisateur ou par un autre administrateur. Seuls les utilisateurs disposant du rôle d'administrateur ont accès aux données administratives.
+
+Doc008 href: Pour simuler un paiement réussi, utilisez les cartes de test de la <a href=#{href}>liste suivante</a>.
+
+Doc009 href: Pour simuler les paiements refusés par l'émetteur, utilisez les cartes de test de la <a href=#{href}>liste suivante</a>.

@@ -55,6 +55,11 @@ stripe:
   pk: "_env:YESOD_STRIPE_PK:???"
   sk: "_env:YESOD_STRIPE_SK:???"
 
+seo:
+  google-site-verification: "_env:YESOD_GOOGLE_SITE_VERIFICATION"
+  msvalidate:               "_env:YESOD_MS_VALIDATE"
+  yandex-verification:      "_env:YESOD_YANDEX_VERIFICATION"
+
 
 copyright: Insert copyright statement here
 #analytics: UA-YOURCODE

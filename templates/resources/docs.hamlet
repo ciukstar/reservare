@@ -19,7 +19,7 @@
 
     <h2.md-typescale-headline-small>
       _{MsgOverview}
-    <p.md-typescale-body-medium>
+    <p.md-typescale-body-large>
       #{t $ MsgDoc001 (m MsgAppName) (r HomeR)}
 
   <section>
@@ -33,6 +33,118 @@
   <section>
     <h2.md-typescale-headline-medium>_{MsgMakeAnAppointment}
     <img src=@{StaticR img_Reservare_Make_Appointment_SMD_svg} alt=_{MsgStateMachineDiagram} loading=lazy>
+
+
+  <section>
+    <h2.md-typescale-headline-medium>_{MsgSuperuser}
+    <dl>
+
+      <dt.md-typescale-label-large>_{MsgUsername}
+      <dd.md-typescale-body-small>
+        <code>&dollar;YESOD_SUPERUSER_USERNAME
+
+      <dt.md-typescale-label-large>_{MsgPassword}
+      <dd.md-typescale-body-small>
+        <code>&dollar;YESOD_SUPERUSER_PASSWORD
+
+    <p.md-typescale-body-medium>_{MsgDoc004}
+
+  <section>
+    <h2.md-typescale-headline-medium>_{MsgDoc005}
+    <ul>
+      <li.md-typescale-body-large>
+        _{MsgEmail}:
+        <a href="https://developers.google.com/gmail/api/guides" target=_blank>Gmail API
+        <dl>
+          <dt.md-typescale-label-large>
+            _{MsgClientId}
+          <dd.md-typescale-body-small>
+            <code>&dollar;YESOD_GOOGLE_CLIENT_ID
+
+          <dt.md-typescale-label-large>
+            _{MsgClientSecret}
+          <dd.md-typescale-body-small>
+            <code>&dollar;YESOD_GOOGLE_CLIENT_SECRET
+            
+      <li.md-typescale-body-large>
+        _{MsgPaymentGateway}:
+        <a href="https://stripe.com" target=_blank>Stripe
+        <dl>
+          <dt.md-typescale-label-large>
+            _{MsgPublicKey}
+          <dd.md-typescale-body-small>
+            <code>&dollar;YESOD_STRIPE_PK
+
+          <dt.md-typescale-label-large>
+            _{MsgSecretKey}
+          <dd.md-typescale-body-small>
+            <code>&dollar;YESOD_STRIPE_SK
+            
+        <p>
+          #{t $ MsgDoc008 "https://stripe.com/docs/testing?testing-method=card-numbers#cards"}
+        <p>
+          #{t $ MsgDoc009 "https://stripe.com/docs/testing?testing-method=card-numbers#declined-payments"}
+
+  <section>
+    <h2.md-typescale-headline-medium>_{MsgSearchEngineOptimization}
+    <ul>
+      <li.md-typescale-body-large>
+        <a href="https://search.google.com/search-console" target=_blank>Google SEO
+        <div>
+          <code.md-typescale-body-small>&dollar;YESOD_GOOGLE_SITE_VERIFICATION
+      <li.md-typescale-body-large>
+        <a href="https://www.bing.com/webmasters" target=_blank>Bing SEO
+        <div>
+          <code.md-typescale-body-small>&dollar;YESOD_MS_VALIDATE
+      <li.md-typescale-body-large>
+        <a href="https://webmaster.yandex.com/welcome" target=_blank>Yandex SEO
+        <div>
+          <code.md-typescale-body-small>&dollar;YESOD_YANDEX_VERIFICATION
+
+  <section>
+    <h2.md-typescale-headline-medium>_{MsgBasicEntities}
+
+  <section>
+    <h3.md-typescale-headline-small>_{MsgUser}
+    <p>
+      #{t $ MsgDoc006 (r $ AuthR LoginR) "https://developers.google.com/gmail/api/guides"}
+    <p>
+      _{MsgDoc007}
+
+  <section>
+    <h3.md-typescale-headline-small>_{MsgBusiness}
+    <p>
+      ...
+
+  <section>
+    <h3.md-typescale-headline-small>_{MsgWorkspace}
+    <p>
+      ...
+
+  <section>
+    <h3.md-typescale-headline-small>_{MsgService}
+    <p>
+      ...
+
+  <section>
+    <h3.md-typescale-headline-small>_{MsgStaff}
+    <p>
+      ...
+
+  <section>
+    <h3.md-typescale-headline-small>_{MsgServiceAssignment}
+    <p>
+      ...
+
+  <section>
+    <h3.md-typescale-headline-small>_{MsgSchedule}
+    <p>
+      ...
+
+  <section>
+    <h3.md-typescale-headline-small>_{MsgBooking}
+    <p>
+      ...
 
   <section>
     <h2.md-typescale-headline-medium>_{MsgErDiagram}
