@@ -20,7 +20,10 @@ module Handler.Booking
   ) where
 
 
-import Control.Lens ((^?), (?~))
+import Control.Exception.Safe
+    (tryAny, SomeException (SomeException), Exception (fromException))
+import Control.Lens ((^?), (?~), to)
+import qualified Control.Lens as L ((^.))
 import Control.Monad (when, unless, forM_)
 
 import Data.Aeson (object, (.=))
@@ -78,7 +81,8 @@ import Foundation
       , MsgPrice, MsgMobile, MsgPhone, MsgLocation, MsgAddress, MsgFullName
       , MsgTheAppointment, MsgTheName, MsgUnpaid, MsgPaid, MsgUnknown
       , MsgMicrocopyPayNow, MsgMicrocopyPayAtVenue, MsgMicrocopySelectPayNow
-      , MsgMicrocopySelectPayAtVenue, MsgError, MsgCanceled, MsgPaymentIntent, MsgDuration
+      , MsgMicrocopySelectPayAtVenue, MsgError, MsgCanceled, MsgPaymentIntent
+      , MsgDuration
       )
     )
 
@@ -113,6 +117,10 @@ import Model
       )
     )
 
+import Network.HTTP.Client
+    ( HttpExceptionContent(StatusCodeException)
+    , HttpException (HttpExceptionRequest)
+    )
 import Network.Wreq
     ( postWith, responseBody, auth, defaults, basicAuth, getWith
     , FormParam ((:=))
@@ -137,12 +145,12 @@ import Yesod.Auth (maybeAuth, Route (LoginR))
 import Yesod.Core.Handler
     ( getMessages, newIdent, getYesod, getUrlRender, addMessageI
     , getRequest, YesodRequest (reqGetParams), redirect
-    , getMessageRender, setUltDestCurrent, setUltDest
+    , getMessageRender, setUltDestCurrent, setUltDest, addMessage
     )
 import Yesod.Core
     ( Yesod(defaultLayout), returnJson, MonadIO (liftIO), whamlet
     , addScriptRemote, MonadHandler (liftHandler), handlerToWidget
-    , SomeMessage (SomeMessage)
+    , SomeMessage (SomeMessage), toHtml
     )
 import Yesod.Core.Types (HandlerFor)
 import Yesod.Core.Widget (setTitleI, toWidget)
@@ -209,21 +217,35 @@ postBookPaymentIntentR bid cents currency = do
     let api = unpack endpointStripePaymentIntents
     sk <- encodeUtf8 . stripeConfSk . appStripeConf . appSettings <$> getYesod
     let opts = defaults & auth ?~ basicAuth sk ""
-    r <- liftIO $ postWith opts api [ "amount" := cents
-                                    , "currency" := currency
-                                    , "payment_method_types[]" := ("card" :: Text)
-                                    , "payment_method_types[]" := ("paypal" :: Text)
-                                    ]
+    response <- liftIO $ tryAny $ postWith opts api [ "amount" := cents
+                                                    , "currency" := currency
+                                                    , "payment_method_types[]" := ("card" :: Text)
+                                                    , "payment_method_types[]" := ("paypal" :: Text)
+                                                    ]
 
-    let intent = r ^? responseBody . key "id" . _String
+    case response of
+      Left e@(SomeException _) -> case fromException e of
+        Just (HttpExceptionRequest _ (StatusCodeException _ bs)) -> do
+            addMessage statusError (bs L.^. key "error" . key "message" . _String . to toHtml)
+            returnJson $ object [ "status" .= ("error" :: Text)
+                                , "message" .= (bs L.^. key "error" . key "message" . _String)
+                                ]
 
-    runDB $ update $ \x -> do
-        set x [BookIntent =. val intent]
-        where_ $ x ^. BookId ==. val bid
+        _otherwise -> returnJson $ object [ "status" .= ("error" :: Text)
+                                          , "message" .= ("Unhandled error" :: Text)
+                                          ]
+            
+      Right r -> do
+          let intent = r ^? responseBody . key "id" . _String
 
-    returnJson $ object [ "paymentIntentId" .= intent
-                        , "clientSecret"    .= (r ^? responseBody . key "client_secret")
-                        ]
+          runDB $ update $ \x -> do
+              set x [BookIntent =. val intent]
+              where_ $ x ^. BookId ==. val bid
+
+          returnJson $ object [ "status" .= ("ok" :: Text)
+                              , "paymentIntentId" .= intent
+                              , "clientSecret"    .= (r ^? responseBody . key "client_secret")
+                              ]
 
 
 getBookPayCompletionR :: BookId -> Handler Html

@@ -61,6 +61,9 @@ dependencies:
 - email-validate
 - yesod-persistent
 - transformers
+- safe-exceptions
+- http-client
+- yesod-sitemap
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.

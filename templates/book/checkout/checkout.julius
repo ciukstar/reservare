@@ -43,29 +43,34 @@ async function initialize() {
     body: JSON.stringify({ items })
   });
   
-  const { paymentIntentId, clientSecret } = await response.json();
-  
-  const appearance = { theme: 'stripe' };
-  
-  elements = stripe.elements({ appearance, clientSecret });
+  const { status, message, paymentIntentId, clientSecret } = await response.json();
 
-  const paymentElementOptions = { layout: "tabs" };
+  if ("ok" === status) {
+    
+    const appearance = { theme: 'stripe' };
+    
+    elements = stripe.elements({ appearance, clientSecret });
 
-  const paymentElement = elements.create("payment", paymentElementOptions);
-  paymentElement.mount("##{rawJS idElementPayment}");
+    const paymentElementOptions = { layout: "tabs" };
 
-  [ document.getElementById(#{idButtonCancelPayment}),
-    document.getElementById(#{idButtonBack})
-  ].forEach(function (x) {
-    x.addEventListener("click",function (e) {
-      const r = fetch(`@{BookPaymentIntentCancelR bid}?pi=${paymentIntentId}`, {
-        method: "POST",
-        headers: { "Cotent-Type": "application/x-www-form-urlencoded" }
-      }).then(function (result) {
-        window.location.href = '@?{(BookPaymentR,(:) ("pid",pack $ show PayNow) stati)}';
+    const paymentElement = elements.create("payment", paymentElementOptions);
+    paymentElement.mount("##{rawJS idElementPayment}");
+
+    [ document.getElementById(#{idButtonCancelPayment}),
+      document.getElementById(#{idButtonBack})
+    ].forEach(function (x) {
+      x.addEventListener("click",function (e) {
+        const r = fetch(`@{BookPaymentIntentCancelR bid}?pi=${paymentIntentId}`, {
+          method: "POST",
+          headers: { "Cotent-Type": "application/x-www-form-urlencoded" }
+        }).then(function (result) {
+          window.location.href = '@?{(BookPaymentR,(:) ("pid",pack $ show PayNow) stati)}';
+        });
       });
     });
-  });
+  } else {
+    showMessage(message);
+  }
   
   setLoading(false);
 }

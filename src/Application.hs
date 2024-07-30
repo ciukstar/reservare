@@ -146,7 +146,7 @@ import Handler.Data.Tokens
     , postTokensGoogleapisClearR
     )
 
-import Handler.Common ( getFaviconR, getRobotsR )
+import Handler.Common ( getFaviconR, getRobotsR, getSitemapR )
 
 import Yesod.Auth.Email (saltPass)
 
