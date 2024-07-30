@@ -68,11 +68,24 @@ async function initialize() {
         });
       });
     });
+  
+    setLoading(false);
+    
   } else {
+    
     showMessage(message);
+    document.getElementById(#{idElementPayment}).remove();
+    
+    [ document.getElementById(#{idButtonCancelPayment}),
+      document.getElementById(#{idButtonBack})
+    ].forEach(function (x) {
+      x.addEventListener("click",function (e) {
+        window.location.href = '@?{(BookPaymentR,(:) ("pid",pack $ show PayNow) stati)}';
+      });
+    });
+      
   }
   
-  setLoading(false);
 }
 
 async function handleSubmit(e) {

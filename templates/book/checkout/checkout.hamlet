@@ -1,6 +1,6 @@
 
 <header.background>
-  <md-icon-button type=button aria-label=_{MsgBack} ##{idButtonBack}>
+  <md-icon-button type=link href=@?{(BookPaymentR, (:) ("pid",pack $ show PayNow) stati)} aria-label=_{MsgBack} ##{idButtonBack}>
     <md-icon>arrow_back
 
   <span.md-typescale-title-large>

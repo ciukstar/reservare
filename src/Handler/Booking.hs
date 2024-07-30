@@ -22,7 +22,7 @@ module Handler.Booking
 
 import Control.Exception.Safe
     (tryAny, SomeException (SomeException), Exception (fromException))
-import Control.Lens ((^?), (?~), to)
+import Control.Lens ((^?), (?~))
 import qualified Control.Lens as L ((^.))
 import Control.Monad (when, unless, forM_)
 
@@ -145,12 +145,12 @@ import Yesod.Auth (maybeAuth, Route (LoginR))
 import Yesod.Core.Handler
     ( getMessages, newIdent, getYesod, getUrlRender, addMessageI
     , getRequest, YesodRequest (reqGetParams), redirect
-    , getMessageRender, setUltDestCurrent, setUltDest, addMessage
+    , getMessageRender, setUltDestCurrent, setUltDest
     )
 import Yesod.Core
     ( Yesod(defaultLayout), returnJson, MonadIO (liftIO), whamlet
     , addScriptRemote, MonadHandler (liftHandler), handlerToWidget
-    , SomeMessage (SomeMessage), toHtml
+    , SomeMessage (SomeMessage)
     )
 import Yesod.Core.Types (HandlerFor)
 import Yesod.Core.Widget (setTitleI, toWidget)
@@ -226,14 +226,14 @@ postBookPaymentIntentR bid cents currency = do
     case response of
       Left e@(SomeException _) -> case fromException e of
         Just (HttpExceptionRequest _ (StatusCodeException _ bs)) -> do
-            addMessage statusError (bs L.^. key "error" . key "message" . _String . to toHtml)
             returnJson $ object [ "status" .= ("error" :: Text)
                                 , "message" .= (bs L.^. key "error" . key "message" . _String)
                                 ]
 
-        _otherwise -> returnJson $ object [ "status" .= ("error" :: Text)
-                                          , "message" .= ("Unhandled error" :: Text)
-                                          ]
+        _otherwise -> do
+            returnJson $ object [ "status" .= ("error" :: Text)
+                                , "message" .= ("Unhandled error" :: Text)
+                                ]
             
       Right r -> do
           let intent = r ^? responseBody . key "id" . _String
