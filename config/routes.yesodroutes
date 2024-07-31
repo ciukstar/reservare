@@ -100,7 +100,13 @@
     /staff/#StaffId           EmployeeR     GET POST
     /staff                    StaffR        GET POST
 
-    
+
+    /bids/#BusinessId/wids/#WorkspaceId/options/#PayOptionId/form/dele PayOptionDeleR POST
+    /bids/#BusinessId/wids/#WorkspaceId/options/#PayOptionId/form/edit PayOptionEditR GET
+    /bids/#BusinessId/wids/#WorkspaceId/options/new/form               PayOptionNewR  GET
+    /bids/#BusinessId/wids/#WorkspaceId/options/#PayOptionId           PayOptionR     GET POST
+    /bids/#BusinessId/wids/#WorkspaceId/options                        PayOptionsR    GET POST
+
     /businesses/#BusinessId/workspaces/#WorkspaceId/#Day/slots/#WorkingHoursId/form/dele DataWorkingSlotDeleR POST
     /businesses/#BusinessId/workspaces/#WorkspaceId/#Day/slots/#WorkingHoursId/form/edit DataWorkingSlotEditR GET
     /businesses/#BusinessId/workspaces/#WorkspaceId/#Day/slots/new/form                  DataWorkingSlotNewR  GET

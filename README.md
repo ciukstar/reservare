@@ -75,6 +75,9 @@ A user can be grated the administrator role by a superuser or by another adminis
 ### Workspace
 ...
 
+### Payment option
+...
+
 ### Service
 ...
 

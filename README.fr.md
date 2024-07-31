@@ -74,6 +74,9 @@ Un utilisateur peut se voir attribuer le rôle d'administrateur par un superutil
 ### Espace de travail
 ...
 
+### Modalité de paiement
+...
+
 ### Service
 ...
 

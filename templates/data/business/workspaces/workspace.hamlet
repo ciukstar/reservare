@@ -41,6 +41,10 @@
       <a href=@{DataR $ DataWorkingHoursR bid wid month}>
       _{MsgWorkingHours}
       
+    <md-primary-tab #idTabPayOptions aria-cotrols=idPanelPayOptions onclick="this.querySelector('a[href]').click()">
+      <a href=@{DataR $ PayOptionsR bid wid}>
+      _{MsgPayOptions}
+      
 
   <div ##{idPanelDetails} role=tabpanel aria-labelledby=#{idTabDetails}>
 
@@ -79,3 +83,5 @@
     ^{widgetSnackbar msgs}
 
   <div #idPanelWorkingHours role=tabpanel aria-labelledby=idTabWorkingHours hidden>
+
+  <div #idPanelPayOptions role=tabpanel aria-labelledby=idTabPayOptions hidden>

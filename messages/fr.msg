@@ -1,4 +1,10 @@
-
+YooKassa: YooKassa
+Stripe: Stripe
+Type: Type
+PayOption: Modalité de paiement
+PaymentOption: Modalité de paiement
+PayOptions: Options de paiement
+PaymentOptions: Options de paiement
 SearchEngineOptimization: Optimisation du moteur de recherche
 Booking: Réservation
 Schedule: Horaire de travail

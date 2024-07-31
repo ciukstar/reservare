@@ -1,4 +1,10 @@
-
+YooKassa: ЮKassa
+Stripe: Stripe
+Type: Тип
+PayOption: Вариант оплаты
+PaymentOption: Вариант оплаты
+PayOptions: Варианты оплаты
+PaymentOptions: Варианты оплаты
 SearchEngineOptimization: Поисковая оптимизация
 Booking: Бронирование
 Schedule: График работы

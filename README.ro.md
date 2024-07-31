@@ -71,6 +71,9 @@ Un utilizator poate primi rolul de administrator de un superutilizator sau de un
 ### Spațiu de lucru
 ...
 
+### Opțiune de plată
+...
+
 ### Serviciu
 ...
 

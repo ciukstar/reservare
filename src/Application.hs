@@ -136,6 +136,13 @@ import Handler.Data.Business
     , getDataWorkingSlotR, postDataWorkingSlotR
     , getDataWorkingSlotEditR
     , postDataWorkingSlotDeleR
+    , getPayOptionsR
+    , postPayOptionsR
+    , getPayOptionR
+    , postPayOptionR
+    , getPayOptionNewR
+    , getPayOptionEditR
+    , postPayOptionDeleR
     )
 
 import Handler.Data.Users

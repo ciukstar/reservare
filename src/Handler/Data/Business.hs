@@ -27,6 +27,13 @@ module Handler.Data.Business
   , postDataWorkingSlotDeleR
   , postDataWorkingSlotsR
   , postDataWorkingSlotR
+  , getPayOptionsR
+  , postPayOptionsR
+  , getPayOptionR
+  , postPayOptionR
+  , getPayOptionNewR
+  , getPayOptionEditR
+  , postPayOptionDeleR
   ) where
 
 import qualified Data.Map as M (Map, fromListWith, member, notMember, lookup)
@@ -63,6 +70,7 @@ import Foundation
       , DataWorkspaceEditR, DataWorkspaceDeleR, DataWorkingHoursR
       , DataWorkingSlotsR, DataWorkingSlotNewR, DataWorkingSlotR
       , DataWorkingSlotEditR, DataWorkingSlotDeleR
+      , PayOptionsR, PayOptionR, PayOptionNewR, PayOptionEditR, PayOptionDeleR
       )
     , AppMessage
       ( MsgBusinesses, MsgThereAreNoDataYet, MsgYouMightWantToAddAFew
@@ -72,11 +80,13 @@ import Foundation
       , MsgDetails, MsgWorkspaces, MsgAddress, MsgWorkspace, MsgAlreadyExists
       , MsgCurrency, MsgTimeZone, MsgWorkingHours, MsgStartTime, MsgEndTime
       , MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
-      , MsgDay, MsgSymbolHour, MsgSymbolMinute
+      , MsgDay, MsgSymbolHour, MsgSymbolMinute, MsgPaymentOptions, MsgPayOptions
+      , MsgPaymentOption, MsgPayNow, MsgPayAtVenue, MsgType, MsgYooKassa
+      , MsgStripe, MsgDescription, MsgPaymentGateway, MsgPayOption
       )
     )
 
-import Material3 (md3selectField, md3mreq, md3textField, md3textareaField, md3timeField)
+import Material3 (md3selectField, md3mreq, md3textField, md3textareaField, md3timeField, md3mopt)
 
 import Model
     ( statusError, statusSuccess
@@ -87,10 +97,14 @@ import Model
       ( Workspace, workspaceName, workspaceAddress, workspaceCurrency, workspaceTzo
       )
     , WorkingHoursId, WorkingHours (WorkingHours, workingHoursStart, workingHoursEnd)
+    , PayOptionId
+    , PayOption (PayOption, payOptionType, payOptionName, payOptionDescr, payOptionGateway)
+    , PayMethod (PayNow, PayAtVenue), PayGateway (PayGatewayStripe, PayGatewayYookassa)
     , EntityField
       ( UserName, UserId, BusinessId, BusinessOwner, WorkspaceId
       , WorkspaceBusiness, BusinessName, WorkspaceName, WorkingHoursWorkspace
-      , WorkingHoursDay, WorkingHoursId
+      , WorkingHoursDay, WorkingHoursId, PayOptionWorkspace, PayOptionId, PayOptionType
+      , PayOptionName
       )
     )
 
@@ -111,11 +125,196 @@ import Yesod.Core.Handler (newIdent)
 import Yesod.Core.Widget (setTitleI)
 import Yesod.Form
     ( Field, FieldSettings (FieldSettings, fsName, fsLabel, fsTooltip, fsId, fsAttrs)
-    , FieldView (fvInput), FormResult (FormSuccess)
+    , FieldView (fvInput), FormResult (FormSuccess), Textarea (Textarea)
     )
 import Yesod.Form.Functions (generateFormPost, runFormPost, checkM)
 import Yesod.Form.Fields (optionsPairs)
 import Yesod.Persist.Core (runDB)
+
+
+postPayOptionDeleR :: BusinessId -> WorkspaceId -> PayOptionId -> Handler Html
+postPayOptionDeleR bid wid oid = do
+    
+    ((fr,_),_) <- runFormPost formPayOptionDelete
+    case fr of
+      FormSuccess () -> do
+          runDB $ delete oid
+          addMessageI statusSuccess MsgRecordDeleted
+          redirect $ DataR $ PayOptionsR bid wid
+      _otherwise -> do
+          addMessageI statusError MsgInvalidFormData
+          redirect $ DataR $ PayOptionR bid wid oid
+
+
+formPayOptionDelete :: Form ()
+formPayOptionDelete extra = return (pure (), [whamlet|#{extra}|])
+
+
+getPayOptionEditR :: BusinessId -> WorkspaceId -> PayOptionId -> Handler Html
+getPayOptionEditR bid wid oid = do
+
+    option <- runDB $ selectOne $ do
+        x <- from $ table @PayOption
+        where_ $ x ^. PayOptionId ==. val oid
+        return x
+        
+    (fw,et) <- generateFormPost $ formPayOption wid option
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgPaymentOption
+        idFormPayOption <- newIdent
+        $(widgetFile "data/business/workspaces/pay/edit")
+
+
+getPayOptionNewR :: BusinessId -> WorkspaceId -> Handler Html
+getPayOptionNewR bid wid = do
+    (fw,et) <- generateFormPost $ formPayOption wid Nothing
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgPaymentOption
+        idFormPayOption <- newIdent
+        $(widgetFile "data/business/workspaces/pay/new")
+
+
+formPayOption :: WorkspaceId -> Maybe (Entity PayOption) -> Form PayOption
+formPayOption wid option extra = do
+
+    msgr <- getMessageRender
+    
+    (typeR,typeV) <- md3mreq (md3selectField (optionsPairs types)) FieldSettings
+        { fsLabel = SomeMessage MsgType
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgType)]
+        } (payOptionType . entityVal <$> option)
+    
+    (nameR,nameV) <- md3mreq (uniqueNameField wid typeR) FieldSettings
+        { fsLabel = SomeMessage MsgTheName
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgTheName)]
+        } (payOptionName . entityVal <$> option)
+    
+    (gateR,gateV) <- md3mopt (md3selectField (optionsPairs gates)) FieldSettings
+        { fsLabel = SomeMessage MsgPaymentGateway
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgPaymentGateway)]
+        } (payOptionGateway . entityVal <$> option)
+    
+    (descrR,descrV) <- md3mopt md3textareaField FieldSettings
+        { fsLabel = SomeMessage MsgDescription
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgDescription)]
+        } (payOptionDescr . entityVal <$> option)
+    
+    let r = PayOption wid <$> typeR <*> nameR <*> gateR <*> descrR
+    let w = [whamlet|
+                    #{extra}
+                    ^{fvInput typeV}
+                    ^{fvInput nameV}
+                    ^{fvInput gateV}
+                    ^{fvInput descrV}
+                    |]
+    return (r,w)
+  where
+      types = [(MsgPayNow,PayNow),(MsgPayAtVenue,PayAtVenue)]
+      gates = [(MsgStripe,PayGatewayStripe),(MsgYooKassa,PayGatewayYookassa)]
+
+      uniqueNameField :: WorkspaceId -> FormResult PayMethod -> Field Handler Text
+      uniqueNameField wid' typ = checkM (uniqueName wid' typ) md3textField
+
+      uniqueName :: WorkspaceId -> FormResult PayMethod -> Text -> Handler (Either AppMessage Text)
+      uniqueName wid' typ name = do
+          x <- runDB $ selectOne $ do
+              x <- from $ table @PayOption
+              where_ $ x ^. PayOptionWorkspace ==. val wid'
+              case typ of
+                FormSuccess typ' -> where_ $ x ^. PayOptionType ==. val typ'
+                _otherwise -> where_ $ val True
+              where_ $ x ^. PayOptionName ==. val name
+              return x
+          return $ case x of
+            Nothing -> Right name
+            Just (Entity oid _) -> case option of
+              Nothing -> Left MsgAlreadyExists
+              Just (Entity oid' _) | oid == oid' -> Right name
+                                   | otherwise -> Left MsgAlreadyExists
+
+
+postPayOptionR :: BusinessId -> WorkspaceId -> PayOptionId -> Handler Html
+postPayOptionR bid wid oid = do
+
+    option <- runDB $ selectOne $ do
+        x <- from $ table @PayOption
+        where_ $ x ^. PayOptionId ==. val oid
+        return x
+        
+    ((fr,fw),et) <- runFormPost $ formPayOption wid option
+    case fr of
+      FormSuccess r -> do
+          runDB $ replace oid r
+          addMessageI statusSuccess MsgRecordEdited
+          redirect $ DataR $ PayOptionR bid wid oid
+      _otherwise -> do
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgPaymentOption
+              idFormPayOption <- newIdent
+              $(widgetFile "data/business/workspaces/pay/edit")
+
+
+getPayOptionR :: BusinessId -> WorkspaceId -> PayOptionId -> Handler Html
+getPayOptionR bid wid oid = do
+
+    option <- runDB $ selectOne $ do
+        x :& w :& b <- from $ table @PayOption
+            `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. PayOptionWorkspace ==. w ^. WorkspaceId)
+            `innerJoin` table @Business `on` (\(_ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)
+        where_ $ x ^. PayOptionId ==. val oid
+        return (x,w,b)
+
+    (fw2,et2) <- generateFormPost formPayOptionDelete
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgPaymentOption
+        $(widgetFile "data/business/workspaces/pay/option")
+
+
+postPayOptionsR :: BusinessId -> WorkspaceId -> Handler Html
+postPayOptionsR bid wid = do
+    ((fr,fw),et) <- runFormPost $ formPayOption wid Nothing
+    case fr of
+      FormSuccess r -> do
+          runDB $ insert_ r
+          addMessageI statusSuccess MsgRecordAdded
+          redirect $ DataR $ PayOptionsR bid wid
+      _otherwise -> do
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgPaymentOption
+              idFormPayOption <- newIdent
+              $(widgetFile "data/business/workspaces/pay/new")
+
+
+getPayOptionsR :: BusinessId -> WorkspaceId -> Handler Html
+getPayOptionsR bid wid = do
+
+    month <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
+    
+    options <- runDB $ select $ do
+        x <- from $ table @PayOption
+        where_ $ x ^. PayOptionWorkspace ==. val wid
+        orderBy [asc (x ^. PayOptionId)]
+        return x
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgPaymentOptions
+        idTabPayOptions <- newIdent
+        idPanelPayOptions <- newIdent
+        idFabAdd <- newIdent
+        $(widgetFile "data/business/workspaces/pay/options")
 
 
 postDataWorkingSlotDeleR :: BusinessId -> WorkspaceId -> Day -> WorkingHoursId -> Handler Html

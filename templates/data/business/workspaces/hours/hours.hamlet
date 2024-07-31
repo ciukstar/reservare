@@ -1,6 +1,6 @@
 
 <header>
-  <md-icon-button href=@{DataR $ DataWorkspaceR bid wid} aria-label=_{MsgBack}>
+  <md-icon-button href=@{DataR $ DataWorkspacesR bid} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
   <span.md-typescale-title-large>
@@ -10,9 +10,7 @@
 
   <md-tabs>
   
-    <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails
-      onclick="this.querySelector('a[href]').click()">
-      
+    <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails onclick="this.querySelector('a[href]').click()">
       <a href=@{DataR $ DataWorkspaceR bid wid}>
       _{MsgDetails}
       
@@ -21,6 +19,10 @@
       
       <a href=@{DataR $ DataWorkingHoursR bid wid month}>
       _{MsgWorkingHours}
+      
+    <md-primary-tab #idTabPayOptions aria-cotrols=idPanelPayOptions onclick="this.querySelector('a[href]').click()">
+      <a href=@{DataR $ PayOptionsR bid wid}>
+      _{MsgPayOptions}
       
 
   <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
@@ -70,3 +72,5 @@
               <div>
 
     ^{widgetSnackbar msgs}
+
+  <div #idPanelPayOptions role=tabpanel aria-labelledby=idTabPayOptions hidden>

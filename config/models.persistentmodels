@@ -48,13 +48,21 @@ WorkingHours
     start TimeOfDay
     end TimeOfDay
 
+PayOption
+    workspace WorkspaceId OnDeleteCascade
+    type PayMethod
+    name Text
+    gateway PayGateway Maybe
+    descr Textarea Maybe
+    UniquePayOption workspace type name
+
 Workspace
     business BusinessId OnDeleteCascade
     name Text
     address Textarea
     tzo TimeZone
     currency Text
-    UiqueWorkspace business name
+    UniqueWorkspace business name
 
 Business
     owner UserId OnDeleteCascade

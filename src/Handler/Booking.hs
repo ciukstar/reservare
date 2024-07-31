@@ -196,10 +196,6 @@ getBookCheckoutYookassaR bid = do
                             ]
                    )
 
-    liftIO $ print "-------------------------->"
-    liftIO $ print result
-    liftIO $ print "<--------------------------"
-
     let confirmationToken = result L.^. responseBody . key "confirmation" . key "confirmation_token" . _String
     
     defaultLayout $ do

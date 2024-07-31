@@ -264,7 +264,13 @@ instance Yesod App where
     isAuthorized (DataR (EmployeeR _)) _ = isAdmin
     isAuthorized r@(DataR StaffR) _ = setUltDest r >> isAdmin
 
-
+    
+    isAuthorized (DataR (PayOptionDeleR _ _ _)) _ = isAdmin
+    isAuthorized (DataR (PayOptionEditR _ _ _)) _ = isAdmin
+    isAuthorized (DataR (PayOptionNewR _ _)) _ = isAdmin
+    isAuthorized (DataR (PayOptionR _ _ _)) _ = isAdmin
+    isAuthorized (DataR (PayOptionsR _ _)) _ = isAdmin
+    
     isAuthorized (DataR (DataWorkingSlotDeleR _ _ _ _)) _ = isAdmin
     isAuthorized (DataR (DataWorkingSlotEditR _ _ _ _)) _ = isAdmin
     isAuthorized (DataR (DataWorkingSlotR _ _ _ _)) _ = isAdmin
@@ -278,6 +284,7 @@ instance Yesod App where
     isAuthorized (DataR (DataWorkspaceNewR _)) _ = isAdmin
     isAuthorized (DataR (DataWorkspacesR _)) _ = isAdmin
 
+    
     isAuthorized (DataR (DataBusinessDeleR _)) _ = isAdmin
     isAuthorized (DataR (DataBusinessEditR _)) _ = isAdmin
     isAuthorized (DataR (DataBusinessR _)) _ = isAdmin

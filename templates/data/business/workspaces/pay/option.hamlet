@@ -1,0 +1,71 @@
+
+<header>
+  <md-icon-button href=@{DataR $ PayOptionsR bid wid} aria-label=_{MsgBack}>
+    <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgPayOption}
+
+  <span #headerEnd>
+    <md-icon-button type=button aria-label=_{MsgDele} onclick="document.getElementById('idDialogDelete').show()">
+      <md-icon>delete
+    <md-icon-button href=@{DataR $ PayOptionEditR bid wid oid} aria-label=_{MsgEdit}>
+      <md-icon>edit
+
+<md-dialog #idDialogDelete>
+  <div slot=headline>
+    _{MsgConfirmPlease}
+  <div slot=content>
+    _{MsgDeleteAreYouSure}
+  <div slot=actions>
+    <md-text-button type=button onclick="document.getElementById('idDialogDelete').close()">
+      _{MsgCancel}
+    <form slot=content method=post action=@{DataR $ PayOptionDeleR bid wid oid} enctype=#{et2}>
+      ^{fw2}
+      <md-filled-button type=submit>
+        _{MsgDele}
+
+<main>
+
+  ^{widgetBanner msgs}
+
+  $maybe (Entity _ (PayOption _ typ name gate descr),workspace,business) <- option
+    <dl>
+
+      <dt.md-typescale-label-large scope=row>_{MsgType}
+      <dd.md-typescale-body-medium>
+        $case typ
+          $of PayAtVenue
+            _{MsgPayAtVenue}
+          $of PayNow
+            _{MsgPayNow}
+
+      <dt.md-typescale-label-large scope=row>_{MsgTheName}
+      <dd.md-typescale-body-medium>
+        #{name}
+
+      $maybe gate <- gate
+        <dt.md-typescale-label-large scope=row>_{MsgPaymentGateway}
+        <dd.md-typescale-body-medium>
+          $case gate
+            $of PayGatewayStripe
+              _{MsgStripe}
+            $of PayGatewayYookassa
+              _{MsgYooKassa}
+
+      $maybe Textarea descr <- descr
+        <dt.md-typescale-label-large scope=row>_{MsgDescription}
+        <dd.md-typescale-body-medium>
+          #{descr}
+
+      <dt.md-typescale-label-large scope=row>_{MsgWorkspace}
+      <dd.md-typescale-body-medium>
+        $with Entity _ (Workspace _ name _ _ _) <- workspace
+          #{name}
+
+      <dt.md-typescale-label-large scope=row>_{MsgBusiness}
+      <dd.md-typescale-body-medium>
+        $with Entity _ (Business _ name) <- business
+          #{name}
+
+  ^{widgetSnackbar msgs}

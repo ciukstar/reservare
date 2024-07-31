@@ -14,6 +14,7 @@ import Foundation
       , MsgEmail, MsgPaymentGateway, MsgPublicKey, MsgSecretKey, MsgBasicEntities
       , MsgUser, MsgBusiness, MsgWorkspace, MsgService, MsgStaff, MsgSchedule
       , MsgBooking, MsgServiceAssignment, MsgSearchEngineOptimization
+      , MsgPaymentOption
       , MsgDoc001, MsgDoc002, MsgDoc003, MsgDoc004, MsgDoc005, MsgDoc006
       , MsgDoc007, MsgDoc008, MsgDoc009
       )

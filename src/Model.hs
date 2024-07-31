@@ -34,6 +34,11 @@ import Text.Printf (printf, PrintfType)
 import Text.Read (readMaybe)
 
 
+data PayGateway = PayGatewayStripe | PayGatewayYookassa
+    deriving (Show, Read, Eq, Ord)
+derivePersistField "PayGateway"
+
+
 data PayStatus = PayStatusUnpaid | PayStatusPaid | PayStatusCanceled | PayStatusError | PayStatusUnknown
     deriving (Show, Read, Eq, Ord)
 derivePersistField "PayStatus"

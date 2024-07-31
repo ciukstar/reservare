@@ -1,4 +1,10 @@
-
+YooKassa: YooKassa
+Stripe: Stripe
+Type: Type
+PayOption: Pay option
+PaymentOption: Payment option
+PayOptions: Pay options
+PaymentOptions: Payment options
 SearchEngineOptimization: Search Engine Optimization
 Booking: Booking
 Schedule: Schedule

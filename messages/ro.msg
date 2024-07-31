@@ -1,3 +1,10 @@
+YooKassa: YooKassa
+Stripe: Stripe
+Type: Tip
+PayOption: Opțiune de plată
+PaymentOption: Opțiune de plată
+PayOptions: Opțiuni de plată
+PaymentOptions: Opțiuni de plată
 SearchEngineOptimization: Optimizare motor de căutare
 Booking: Rezervare
 Schedule: Orarul de lucru
