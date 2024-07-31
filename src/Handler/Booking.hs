@@ -17,16 +17,17 @@ module Handler.Booking
   , postBookPaymentIntentCancelR
   , getBookPayAtVenueCompletionR
   , getBookDetailsR
+  , getBookCheckoutYookassaR
   ) where
 
 
 import Control.Exception.Safe
     (tryAny, SomeException (SomeException), Exception (fromException))
-import Control.Lens ((^?), (?~))
+import Control.Lens ((^?), (?~), (.~))
 import qualified Control.Lens as L ((^.))
 import Control.Monad (when, unless, forM_)
 
-import Data.Aeson (object, (.=))
+import Data.Aeson (object, (.=), Value (String))
 import Data.Aeson.Lens (key, AsValue (_String))
 import Data.Aeson.Text (encodeToLazyText)
 import qualified Data.Aeson as A (Value)
@@ -47,6 +48,8 @@ import Data.Time
     )
 import Data.Time.Calendar.Month (addMonths, pattern YearMonth, Month)
 import Data.Time.LocalTime (utcToLocalTime, utc, localTimeToUTC)
+import Data.UUID (toASCIIBytes)
+import Data.UUID.V4 (nextRandom)
 
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, asc, innerJoin, on, in_
@@ -123,14 +126,14 @@ import Network.HTTP.Client
     )
 import Network.Wreq
     ( postWith, responseBody, auth, defaults, basicAuth, getWith
-    , FormParam ((:=))
+    , FormParam ((:=)), header
     )
 
 import Safe (headMay)
 
 import Settings
     ( widgetFile, StripeConf (stripeConfPk, stripeConfSk)
-    , AppSettings (appStripeConf)
+    , AppSettings (appStripeConf, appYookassaConf), YookassaConf (yookassaConfShopId, yookassaConfSecret)
     )
 
 import Text.Cassius (cassius)
@@ -167,6 +170,43 @@ import Yesod.Form.Fields
     )
 import Yesod.Form.Functions (generateFormPost, mreq, runFormPost)
 import Yesod.Persist.Core (YesodPersist(runDB))
+
+
+getBookCheckoutYookassaR :: BookId -> Handler Html
+getBookCheckoutYookassaR bid = do
+
+    yookassa <- appYookassaConf . appSettings <$> getYesod 
+    
+    let endpoint = "https://api.yookassa.ru/v3/payments"
+    let shopid = encodeUtf8 $ yookassaConfShopId yookassa
+    let secret = encodeUtf8 $ yookassaConfSecret yookassa
+
+    idempotenceKey <- liftIO nextRandom
+    
+    result <- liftIO $ postWith
+        ( defaults & auth ?~ basicAuth shopid secret
+          & header "Idempotence-Key" .~ [toASCIIBytes idempotenceKey]
+          & header "Content-Type" .~ ["application/json"]
+        ) endpoint ( object [ "amount" .= object [ "value" .= String "2.00"
+                                                 , "currency" .= String "RUB"
+                                                 ]
+                            , "confirmation" .= object [ "type" .= String "embedded" ]
+                            , "capture" .= True
+                            , "description" .= String "Order No. 72"
+                            ]
+                   )
+
+    liftIO $ print "-------------------------->"
+    liftIO $ print result
+    liftIO $ print "<--------------------------"
+
+    let confirmationToken = result L.^. responseBody . key "confirmation" . key "confirmation_token" . _String
+    
+    defaultLayout $ do
+        setTitleI MsgCheckout
+        idPaymentForm <- newIdent
+        addScriptRemote "https://yookassa.ru/checkout-widget/v1/checkout-widget.js"
+        $(widgetFile "book/checkout/yookassa/checkout")
 
 
 getBookDetailsR :: BookId -> Handler Html

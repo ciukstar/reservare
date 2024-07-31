@@ -64,6 +64,7 @@ dependencies:
 - safe-exceptions
 - http-client
 - yesod-sitemap
+- uuid
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.

@@ -55,6 +55,10 @@ stripe:
   pk: "_env:YESOD_STRIPE_PK:???"
   sk: "_env:YESOD_STRIPE_SK:???"
 
+yookassa:
+  shopid: "_env:YESOD_YOOKASSA_SHOP_ID:???"
+  secret: "_env:YESOD_YOOKASSA_SECRET_KEY:???"
+
 seo:
   google-site-verification: "_env:YESOD_GOOGLE_SITE_VERIFICATION"
   msvalidate:               "_env:YESOD_MS_VALIDATE"

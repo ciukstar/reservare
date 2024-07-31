@@ -56,6 +56,10 @@ data StripeConf = StripeConf { stripeConfPk :: Text
                              , stripeConfSk :: Text
                              }
 
+data YookassaConf = YookassaConf { yookassaConfShopId :: Text
+                                 , yookassaConfSecret :: Text
+                                 }
+
 -- | Runtime settings to configure this application. These settings can be
 -- loaded from various sources: defaults, environment variables, config files,
 -- theoretically even a database.
@@ -100,6 +104,8 @@ data AppSettings = AppSettings
     -- ^ Google API config
     , appStripeConf             :: StripeConf
     -- ^ Stripe API config
+    , appYookassaConf           :: YookassaConf
+    -- ^ Yookassa API config
     , appSeo                     :: Seo
     -- ^ Search Engine Optimization
 
@@ -147,6 +153,14 @@ instance FromJSON StripeConf where
         return StripeConf {..}
 
 
+instance FromJSON YookassaConf where
+    parseJSON :: Value -> Parser YookassaConf
+    parseJSON = withObject "YookassaConf" $ \o -> do
+        yookassaConfShopId <- o .: "shopid"
+        yookassaConfSecret <- o .: "secret"
+        return YookassaConf {..}
+
+
 instance FromJSON ConnectionPoolConfig where
     parseJSON :: Value -> Parser ConnectionPoolConfig
     parseJSON = withObject "ConnectionPoolConfig" $ \o -> do
@@ -187,6 +201,7 @@ instance FromJSON AppSettings where
         appGoogleApiConf          <- o .: "google-api"
         appGcloudConf             <- o .: "gcloud"
         appStripeConf             <- o .: "stripe"
+        appYookassaConf           <- o .: "yookassa"
 
         appSeo                    <- o .: "seo"
 

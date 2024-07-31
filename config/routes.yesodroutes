@@ -14,6 +14,8 @@
 /appointment/staff                            AppointmentStaffR                GET POST
 
 
+/books/#BookId/checkout/yookassa       BookCheckoutYookassaR     GET
+
 /books/#BookId/details                 BookDetailsR              GET
 /books/#BookId/pay/at/venue/completion BookPayAtVenueCompletionR GET
 /books/#BookId/pay/cancel              BookPaymentIntentCancelR  POST

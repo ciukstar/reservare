@@ -1,0 +1,10 @@
+
+const checkout = new window.YooMoneyCheckoutWidget({
+  confirmation_token: #{confirmationToken},
+  return_url: '@{BookDetailsR bid}',
+  error_callback: function(error) {
+    console.log(error)
+  }
+});
+
+checkout.render(#{idPaymentForm});
