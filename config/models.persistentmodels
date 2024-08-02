@@ -54,6 +54,7 @@ PayOption
     name Text
     gateway PayGateway Maybe
     descr Textarea Maybe
+    icon Text Maybe
     UniquePayOption workspace type name
 
 Workspace

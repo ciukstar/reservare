@@ -34,7 +34,10 @@ import Model
       )
     , Business (Business, businessOwner, businessName)
     , Workspace (Workspace, workspaceBusiness, workspaceName, workspaceAddress)
-    , Service (Service, serviceWorkspace, serviceName, serviceDescr, serviceAvailable, serviceDuration)
+    , Service
+      ( Service, serviceWorkspace, serviceName, serviceDescr, serviceAvailable
+      , serviceDuration
+      )
     , Staff (Staff, staffName, staffAccount, staffMobile, staffPhone)
     , Assignment (Assignment, assignmentService, assignmentStaff, assignmentTime)
     , Workspace (workspaceTzo, workspaceCurrency)
@@ -45,6 +48,12 @@ import Model
       ( WorkingHours, workingHoursWorkspace, workingHoursDay
       , workingHoursStart, workingHoursEnd
       )
+    , PayOption
+      ( payOptionWorkspace, payOptionType, payOptionName, payOptionGateway, payOptionDescr
+      , payOptionIcon, PayOption
+      )
+    , PayMethod (PayNow, PayAtVenue)
+    , PayGateway (PayGatewayStripe)
     )
 
 import Settings (AppSettings)
@@ -163,42 +172,58 @@ fillDemoFr appSettings = do
 
     b1 <- insert business1
 
-    let workspace1 = Workspace { workspaceBusiness = b1
-                               , workspaceName = "BJ & Cie Centrale"
-                               , workspaceAddress = "7 étage, 1967 Route De Longchamp, 58718 Lens"
-                               , workspaceTzo = utc
-                               , workspaceCurrency = "EUR"
-                               }
+    let workspace11 = Workspace { workspaceBusiness = b1
+                                , workspaceName = "BJ & Cie Centrale"
+                                , workspaceAddress = "7 étage, 1967 Route De Longchamp, 58718 Lens"
+                                , workspaceTzo = utc
+                                , workspaceCurrency = "EUR"
+                                }
 
-    w1 <- insert workspace1
+    w11 <- insert workspace11
 
     let (y,m,_) = toGregorian today
 
     forM_ [periodFirstDay (YearMonth y m) .. periodLastDay (YearMonth y m)] $ \day -> do
         unless (Friday == dayOfWeek day || Saturday == dayOfWeek day || Sunday == dayOfWeek day) $ do
-            insert_ WorkingHours { workingHoursWorkspace = w1
+            insert_ WorkingHours { workingHoursWorkspace = w11
                                  , workingHoursDay = day
                                  , workingHoursStart = TimeOfDay 9 0 0
                                  , workingHoursEnd = TimeOfDay 13 0 0
                                  }
-            insert_ WorkingHours { workingHoursWorkspace = w1
+            insert_ WorkingHours { workingHoursWorkspace = w11
                                  , workingHoursDay = day
                                  , workingHoursStart = TimeOfDay 14 0 0
                                  , workingHoursEnd = TimeOfDay 18 0 0
                                  }
         when (Friday == dayOfWeek day) $ do
-            insert_ WorkingHours { workingHoursWorkspace = w1
+            insert_ WorkingHours { workingHoursWorkspace = w11
                                  , workingHoursDay = day
                                  , workingHoursStart = TimeOfDay 10 30 0
                                  , workingHoursEnd = TimeOfDay 13 0 0
                                  }
-            insert_ WorkingHours { workingHoursWorkspace = w1
+            insert_ WorkingHours { workingHoursWorkspace = w11
                                  , workingHoursDay = day
                                  , workingHoursStart = TimeOfDay 14 0 0
                                  , workingHoursEnd = TimeOfDay 17 45 0
                                  }
 
-    let service1 = Service { serviceWorkspace = w1
+    insert_ PayOption { payOptionWorkspace = w11
+                      , payOptionType = PayNow
+                      , payOptionName = "Payez maintenant"
+                      , payOptionGateway = Just PayGatewayStripe
+                      , payOptionDescr = Just "Payer avec une carte de crédit ou PayPal"
+                      , payOptionIcon = Just "credit_card"
+                      }
+
+    insert_ PayOption { payOptionWorkspace = w11
+                      , payOptionType = PayAtVenue
+                      , payOptionName = "Payer sur place"
+                      , payOptionGateway = Nothing
+                      , payOptionDescr = Just "Payer après la prestation du service"
+                      , payOptionIcon = Just "point_of_sale"
+                      }
+
+    let service1 = Service { serviceWorkspace = w11
                            , serviceName = "Voyages d'agrément"
                            , serviceDescr = Just "Voyagez comme vous le souhaitez"
                            , servicePrice = 10000
@@ -208,7 +233,7 @@ fillDemoFr appSettings = do
 
     s1 <- insert service1
 
-    let service2 = Service { serviceWorkspace = w1
+    let service2 = Service { serviceWorkspace = w11
                            , serviceName = "Voyage Italie"
                            , serviceDescr = Just "La joie italienne"
                            , servicePrice = 20000
@@ -218,7 +243,7 @@ fillDemoFr appSettings = do
 
     s2 <- insert service2
 
-    let service3 = Service { serviceWorkspace = w1
+    let service3 = Service { serviceWorkspace = w11
                            , serviceName = "Bonjour Paris"
                            , serviceDescr = Just "La France attend"
                            , servicePrice = 25000
@@ -267,6 +292,22 @@ fillDemoFr appSettings = do
                                  , workingHoursEnd = TimeOfDay 17 45 0
                                  }
 
+    insert_ PayOption { payOptionWorkspace = w21
+                      , payOptionType = PayNow
+                      , payOptionName = "Payez maintenant"
+                      , payOptionGateway = Just PayGatewayStripe
+                      , payOptionDescr = Just "Payer avec une carte de crédit ou PayPal"
+                      , payOptionIcon = Just "credit_card"
+                      }
+
+    insert_ PayOption { payOptionWorkspace = w21
+                      , payOptionType = PayAtVenue
+                      , payOptionName = "Payer sur place"
+                      , payOptionGateway = Nothing
+                      , payOptionDescr = Just "Payer après la prestation du service"
+                      , payOptionIcon = Just "point_of_sale"
+                      }
+
     let service211 = Service { serviceWorkspace = w21
                              , serviceName = "Voyages d'agrément"
                              , serviceDescr = Just "Voyagez comme vous le souhaitez"
@@ -305,6 +346,46 @@ fillDemoFr appSettings = do
                                 }
 
     w22 <- insert workspace22
+
+    forM_ [periodFirstDay (YearMonth y m) .. periodLastDay (YearMonth y m)] $ \day -> do
+        unless (Friday == dayOfWeek day || Saturday == dayOfWeek day || Sunday == dayOfWeek day) $ do
+            insert_ WorkingHours { workingHoursWorkspace = w22
+                                 , workingHoursDay = day
+                                 , workingHoursStart = TimeOfDay 9 0 0
+                                 , workingHoursEnd = TimeOfDay 13 0 0
+                                 }
+            insert_ WorkingHours { workingHoursWorkspace = w22
+                                 , workingHoursDay = day
+                                 , workingHoursStart = TimeOfDay 14 0 0
+                                 , workingHoursEnd = TimeOfDay 18 0 0
+                                 }
+        when (Friday == dayOfWeek day) $ do
+            insert_ WorkingHours { workingHoursWorkspace = w22
+                                 , workingHoursDay = day
+                                 , workingHoursStart = TimeOfDay 10 30 0
+                                 , workingHoursEnd = TimeOfDay 13 0 0
+                                 }
+            insert_ WorkingHours { workingHoursWorkspace = w22
+                                 , workingHoursDay = day
+                                 , workingHoursStart = TimeOfDay 14 0 0
+                                 , workingHoursEnd = TimeOfDay 17 45 0
+                                 }
+
+    insert_ PayOption { payOptionWorkspace = w22
+                      , payOptionType = PayNow
+                      , payOptionName = "Payez maintenant"
+                      , payOptionGateway = Just PayGatewayStripe
+                      , payOptionDescr = Just "Payer avec une carte de crédit ou PayPal"
+                      , payOptionIcon = Just "credit_card"
+                      }
+
+    insert_ PayOption { payOptionWorkspace = w22
+                      , payOptionType = PayAtVenue
+                      , payOptionName = "Payer sur place"
+                      , payOptionGateway = Nothing
+                      , payOptionDescr = Just "Payer après la prestation du service"
+                      , payOptionIcon = Just "point_of_sale"
+                      }
 
     let service221 = Service { serviceWorkspace = w22
                              , serviceName = "Voyages d'agrément"

@@ -1,3 +1,5 @@
+PaymentGatewayNotSpecified: Passerelle de paiement non spécifiée
+Icon: Icône
 YooKassa: YooKassa
 Stripe: Stripe
 Type: Type

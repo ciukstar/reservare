@@ -29,9 +29,13 @@
 
   ^{widgetBanner msgs}
 
-  $maybe (Entity _ (PayOption _ typ name gate descr),workspace,business) <- option
+  $maybe (Entity _ (PayOption _ typ name gate descr icon),workspace,business) <- option
     <dl>
-
+      $maybe icon <- icon
+        <dt.md-typescale-label-large scope=row>_{MsgIcon}
+        <dd.md-typescale-body-medium>
+          <md-icon>#{icon}
+ 
       <dt.md-typescale-label-large scope=row>_{MsgType}
       <dd.md-typescale-body-medium>
         $case typ

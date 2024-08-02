@@ -1,3 +1,5 @@
+PaymentGatewayNotSpecified: Платежный шлюз не указан
+Icon: Значок
 YooKassa: ЮKassa
 Stripe: Stripe
 Type: Тип

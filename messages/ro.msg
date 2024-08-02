@@ -1,3 +1,5 @@
+PaymentGatewayNotSpecified: Poarta de plată nu este specificată
+Icon: Pictogramă
 YooKassa: YooKassa
 Stripe: Stripe
 Type: Tip

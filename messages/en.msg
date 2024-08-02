@@ -1,3 +1,5 @@
+PaymentGatewayNotSpecified: Payment gateway not specified
+Icon: Icon
 YooKassa: YooKassa
 Stripe: Stripe
 Type: Type

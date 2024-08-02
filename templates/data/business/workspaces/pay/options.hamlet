@@ -42,15 +42,26 @@
             _{MsgYouMightWantToAddAFew}
     $else
       <md-list>
-        $forall Entity oid (PayOption _ typ name gate _) <- options
+        $forall Entity oid (PayOption _ typ name gate _ icon) <- options
           <md-list-item type=link href=@{DataR $ PayOptionR bid wid oid}>
+            <div slot=start>
+              $maybe icon <- icon 
+                <md-icon>#{icon}
             <div slot=headline>
               #{name}
             <div slot=supporting-text>
-              #{show typ}
-            <div slot=supporting-text>
-              $maybe gate <- gate 
-                #{show gate}
+              $case typ
+                $of PayAtVenue
+                  _{MsgPayAtVenue}
+                $of PayNow
+                  _{MsgPayNow}
+            $maybe gate <- gate
+              <div slot=supporting-text>
+                $case gate
+                  $of PayGatewayStripe
+                    _{MsgStripe}
+                  $of PayGatewayYookassa
+                    _{MsgYooKassa}
             <md-icon slot=end>arrow_forward_ios
           <md-divider>
 

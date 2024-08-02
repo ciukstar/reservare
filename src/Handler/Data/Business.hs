@@ -82,7 +82,7 @@ import Foundation
       , MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
       , MsgDay, MsgSymbolHour, MsgSymbolMinute, MsgPaymentOptions, MsgPayOptions
       , MsgPaymentOption, MsgPayNow, MsgPayAtVenue, MsgType, MsgYooKassa
-      , MsgStripe, MsgDescription, MsgPaymentGateway, MsgPayOption
+      , MsgStripe, MsgDescription, MsgPaymentGateway, MsgPayOption, MsgIcon
       )
     )
 
@@ -98,7 +98,7 @@ import Model
       )
     , WorkingHoursId, WorkingHours (WorkingHours, workingHoursStart, workingHoursEnd)
     , PayOptionId
-    , PayOption (PayOption, payOptionType, payOptionName, payOptionDescr, payOptionGateway)
+    , PayOption (PayOption, payOptionType, payOptionName, payOptionDescr, payOptionGateway, payOptionIcon)
     , PayMethod (PayNow, PayAtVenue), PayGateway (PayGatewayStripe, PayGatewayYookassa)
     , EntityField
       ( UserName, UserId, BusinessId, BusinessOwner, WorkspaceId
@@ -207,13 +207,20 @@ formPayOption wid option extra = do
         , fsAttrs = [("label", msgr MsgDescription)]
         } (payOptionDescr . entityVal <$> option)
     
-    let r = PayOption wid <$> typeR <*> nameR <*> gateR <*> descrR
+    (iconR,iconV) <- md3mopt md3textField FieldSettings
+        { fsLabel = SomeMessage MsgIcon
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgIcon)]
+        } (payOptionIcon . entityVal <$> option)
+    
+    let r = PayOption wid <$> typeR <*> nameR <*> gateR <*> descrR <*> iconR
     let w = [whamlet|
                     #{extra}
                     ^{fvInput typeV}
                     ^{fvInput nameV}
                     ^{fvInput gateV}
                     ^{fvInput descrV}
+                    ^{fvInput iconV}
                     |]
     return (r,w)
   where
