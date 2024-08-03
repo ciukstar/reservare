@@ -140,7 +140,7 @@ async function checkStatus() {
 }
 
 function showMessage(messageText) {
-  const banner = document.getElementById(#{idBannerStripe})
+  const banner = document.getElementById(#{idBannerStripe});
   banner.textContent = messageText;
   banner.style.display = 'block';
   

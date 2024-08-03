@@ -18,8 +18,7 @@ main
     ##{idBannerStripe}
         display: none
         align-self: stretch
-        padding: 1rem
-        
+        padding: 1rem 
 
     ##{idSectionPriceTag}
         margin: 1rem 1rem

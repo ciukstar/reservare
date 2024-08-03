@@ -101,6 +101,8 @@ share [mkPersist sqlSettings, mkMigrate "migrateAll"]
     $(persistFileWith lowerCaseSettings "config/models.persistentmodels")
 
 
+endpointYookassa :: Text
+endpointYookassa = "https://api.yookassa.ru/v3/payments"
 
 endpointStripePaymentIntentCancel :: PrintfType r => r
 endpointStripePaymentIntentCancel = printf $ unpack (endpointStripePaymentIntents <> "/%s/cancel")

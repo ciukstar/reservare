@@ -100,7 +100,7 @@ import Model
     , BookId
     , Book
       ( Book, bookService, bookStaff, bookAppointment, bookPayMethod
-      , bookStatus, bookMessage, bookCustomer, bookIntent
+      , bookStatus, bookCustomer
       )
     , PayStatus
       ( PayStatusUnpaid, PayStatusPaid, PayStatusCanceled, PayStatusError
@@ -112,8 +112,8 @@ import Model
       , BusinessName, WorkspaceName, ServiceId, AssignmentService
       , AssignmentSlotInterval, ScheduleAssignment, AssignmentId
       , ScheduleDay, BookId, BookService, BookStaff, BookStatus
-      , BookMessage, BookIntent, AssignmentRole, ServiceAvailable
-      )
+      , AssignmentRole, ServiceAvailable
+      ), Payment (Payment, paymentBook, paymentOption, paymentTime, paymentAmount, paymentCurrency, paymentIdetifier, paymentStatus, paymentError)
     )
 
 
@@ -205,7 +205,7 @@ postAppointmentPaymentIntentCancelR bid = do
     _ <- liftIO $ postWith (defaults & auth ?~ basicAuth sk BS.empty) api BS.empty
 
     runDB $ update $ \x -> do
-        set x [BookStatus =. val PayStatusCanceled, BookIntent =. just (val intent)]
+        set x [BookStatus =. val PayStatusCanceled]
         where_ $ x ^. BookId ==. val bid
         
     addMessageI statusSuccess MsgPaymentIntentCancelled
@@ -238,10 +238,6 @@ postAppointmentPaymentIntentR bid cents currency = do
       Right r -> do
           let intent = r ^? responseBody . key "id" . _String
 
-          runDB $ update $ \x -> do
-              set x [BookIntent =. val intent]
-              where_ $ x ^. BookId ==. val bid
-
           returnJson $ object [ "status" .= ("ok" :: Text)
                               , "paymentIntentId" .= intent
                               , "clientSecret"    .= (r ^? responseBody . key "client_secret")
@@ -265,17 +261,39 @@ getAppointmentPayCompletionR bid = do
     result <- case r ^? responseBody . key "status" . _String of
       Just s@"succeeded" -> do
           runDB $ update $ \x -> do
-              set x [BookStatus =. val PayStatusPaid, BookMessage =. val (Just s)]
+              set x [BookStatus =. val PayStatusPaid]
               where_ $ x ^. BookId ==. val bid
+              {--
+          runDB $ insert_ $ Payment { paymentBook = bid
+                                    , paymentOption = oid
+                                    , paymentTime = now
+                                    , paymentAmount = a
+                                    , paymentCurrency = amountCurrency
+                                    , paymentIdetifier = intent
+                                    , paymentStatus = s
+                                    , paymentError = Nothing
+                                    }
+              --}
           return $ msgr MsgYourBookingHasBeenCreatedSuccessfully
       Just s -> do
           runDB $ update $ \x -> do
-              set x [BookStatus =. val PayStatusError, BookMessage =. val (Just s)]
+              set x [BookStatus =. val PayStatusError]
               where_ $ x ^. BookId ==. val bid
+              {--
+          runDB $ insert_ $ Payment { paymentBook = bid
+                                    , paymentOption = oid
+                                    , paymentTime = now
+                                    , paymentAmount = a
+                                    , paymentCurrency = amountCurrency
+                                    , paymentIdetifier = intent
+                                    , paymentStatus = s
+                                    , paymentError = Just s
+                                    }
+--}
           return s
       Nothing -> do
           runDB $ update $ \x -> do
-              set x [BookStatus =. val PayStatusUnknown, BookMessage =. val (Just $ msgr MsgUnknown)]
+              set x [BookStatus =. val PayStatusUnknown]
               where_ $ x ^. BookId ==. val bid
           return $ msgr MsgSomethingWentWrong
 
@@ -346,8 +364,6 @@ postAppointmentPaymentR = do
 
     ((fr,fw),et) <- runFormPost $ formPayment aid eid sid tid pid
 
-    msgr <- getMessageRender 
-
     user <- maybeAuth
     
     case (fr,user) of
@@ -367,8 +383,6 @@ postAppointmentPaymentR = do
                                        , bookAppointment = tid'
                                        , bookPayMethod = pid'
                                        , bookStatus = PayStatusUnpaid
-                                       , bookMessage = Just (msgr MsgUnpaid)
-                                       , bookIntent = Nothing
                                        }
           redirect (AppointmentCheckoutR bid, stati)
           
@@ -379,8 +393,6 @@ postAppointmentPaymentR = do
                                        , bookAppointment = tid'
                                        , bookPayMethod = pid'
                                        , bookStatus = PayStatusUnpaid
-                                       , bookMessage = Just (msgr MsgUnpaid)
-                                       , bookIntent = Nothing
                                        }          
           redirect $ AppointmentPayAtVenueCompletionR bid
           
