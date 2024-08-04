@@ -23,12 +23,12 @@ module Handler.Booking
 
 import Control.Exception.Safe
     (tryAny, SomeException (SomeException), Exception (fromException))
-import Control.Lens ((^?), (?~), (.~))
+import Control.Lens ((^?), (?~), (.~), to)
 import qualified Control.Lens as L ((^.))
 import Control.Monad (when, unless, forM_)
 
 import Data.Aeson (object, (.=), Value (String, Number))
-import Data.Aeson.Lens (key, AsValue (_String))
+import Data.Aeson.Lens (key, AsValue (_String), AsNumber (_Integer, _Double))
 import Data.Aeson.Text (encodeToLazyText)
 import qualified Data.Aeson as A (Value)
 import Data.Bifunctor (Bifunctor(first))
@@ -85,7 +85,7 @@ import Foundation
       , MsgTheAppointment, MsgTheName, MsgUnpaid, MsgPaid, MsgUnknown
       , MsgError, MsgCanceled, MsgPaymentIntent
       , MsgDuration, MsgPaymentGatewayNotSpecified, MsgInvalidArguments
-      , MsgYooKassa
+      , MsgYooKassa, MsgUnhandledError, MsgStripe, MsgInvalidPaymentAmount
       )
     )
 
@@ -241,19 +241,17 @@ getBookCheckoutYookassaR bid oid = do
                 
                 let paymentId = r L.^. responseBody . key "id" . _String
                 let status = r L.^. responseBody . key "status" . _String
-                let amountValue = r L.^. responseBody . key "amount" . key "value" . _String
+                let amountValue = r ^? responseBody . key "amount" . key "value" . _Double . to (*100) . to truncate
                 let amountCurrency = r L.^. responseBody . key "amount" . key "currency" . _String
                 let token = r L.^. responseBody . key "confirmation" . key "confirmation_token" . _String
-
-                let amount = readMaybe $ unpack amountValue :: Maybe Double 
                 
-                case truncate . (* 100) <$> amount of
+                case amountValue of
                   Nothing -> invalidArgsI [MsgInvalidArguments]
-                  Just a -> do
+                  Just amount -> do
                     runDB $ insert_ $ Payment { paymentBook = bid
                                               , paymentOption = oid
                                               , paymentTime = now
-                                              , paymentAmount = a
+                                              , paymentAmount = amount
                                               , paymentCurrency = amountCurrency
                                               , paymentIdetifier = paymentId
                                               , paymentStatus = status
@@ -345,45 +343,99 @@ postBookPaymentIntentR bid cents currency = do
                               ]
 
 
-getBookPayCompletionR :: BookId -> Handler Html
-getBookPayCompletionR bid = do
+getBookPayCompletionR :: BookId -> PayOptionId -> Handler Html
+getBookPayCompletionR bid oid = do
 
     intent <- runInputGet $ ireq textField "payment_intent"
     _ <- runInputGet $ ireq textField "payment_intent_client_secret"
     _ <- runInputGet $ ireq textField "redirect_status"
 
     sk <- encodeUtf8 . stripeConfSk . appStripeConf . appSettings <$> getYesod
-    let api = endpointStripePaymentIntents <> "/" <> intent
+    let endpoint = endpointStripePaymentIntents <> "/" <> intent
     let opts = defaults & auth ?~ basicAuth sk ""
-    r <- liftIO $ getWith opts (unpack api)
+    response <- liftIO $ tryAny $ getWith opts (unpack endpoint)
 
-    msgr <- getMessageRender
+    case response of
+      Left e@(SomeException _) -> case fromException e of
+        Just (HttpExceptionRequest _ (StatusCodeException _ bs)) -> do
+            addMessage statusError (bs L.^. key "error" . key "message" . _String . to toHtml)
+            msgs <- getMessages
+            defaultLayout $ do
+                setTitleI MsgCheckout
+                $(widgetFile "book/checkout/stripe/error")
 
-    result <- case r ^? responseBody . key "status" . _String of
-      Just s@"succeeded" -> do
-          runDB $ update $ \x -> do
-              set x [BookStatus =. val PayStatusPaid]
-              where_ $ x ^. BookId ==. val bid
-          return $ msgr MsgYourBookingHasBeenCreatedSuccessfully
-      Just s -> do
-          runDB $ update $ \x -> do
-              set x [BookStatus =. val PayStatusError]
-              where_ $ x ^. BookId ==. val bid
-          return s
-      Nothing -> do
-          runDB $ update $ \x -> do
-              set x [BookStatus =. val PayStatusUnknown]
-              where_ $ x ^. BookId ==. val bid
-          return $ msgr MsgSomethingWentWrong
+        _otherwise -> do
+            addMessageI statusError MsgUnhandledError
+            msgs <- getMessages
+            defaultLayout $ do
+                setTitleI MsgCheckout
+                $(widgetFile "book/checkout/stripe/error")
+            
+      Right r -> case r ^? responseBody . key "status" . _String of
+        Just s@"succeeded" -> do
+            
+            let intentId = r L.^. responseBody . key "id" . _String
+            let amountValue = r ^? responseBody . key "amount" . _Integer . to fromIntegral
+            let currency = r L.^. responseBody . key "currency" . _String
 
-    msgs <- getMessages
-    defaultLayout $ do
-        setTitleI MsgPaymentStatus
-        $(widgetFile "book/completion/completion")
+            case amountValue of
+              Nothing -> do
+                runDB $ update $ \x -> do
+                    set x [BookStatus =. val PayStatusError]
+                    where_ $ x ^. BookId ==. val bid
+
+                addMessageI statusError MsgInvalidPaymentAmount
+                msgs <- getMessages
+                defaultLayout $ do
+                    setTitleI MsgStripe
+                    $(widgetFile "book/checkout/stripe/error")
+              Just amount -> do
+                now <- liftIO getCurrentTime
+
+                runDB $ update $ \x -> do
+                    set x [BookStatus =. val PayStatusPaid]
+                    where_ $ x ^. BookId ==. val bid
+                runDB $ insert_ $ Payment { paymentBook = bid
+                                          , paymentOption = oid
+                                          , paymentTime = now
+                                          , paymentAmount = amount
+                                          , paymentCurrency = currency
+                                          , paymentIdetifier = intentId
+                                          , paymentStatus = s
+                                          , paymentError = Nothing
+                                          }
+
+                addMessageI statusSuccess MsgYourBookingHasBeenCreatedSuccessfully
+                msgs <- getMessages
+                defaultLayout $ do
+                    setTitleI MsgPaymentStatus
+                    $(widgetFile "book/completion/completion")
+
+        Just s -> do
+            runDB $ update $ \x -> do
+                set x [BookStatus =. val PayStatusError]
+                where_ $ x ^. BookId ==. val bid
+                
+            addMessage statusError (toHtml s)
+            msgs <- getMessages
+            defaultLayout $ do
+                setTitleI MsgStripe
+                $(widgetFile "book/checkout/stripe/error")
+                
+        Nothing -> do
+            runDB $ update $ \x -> do
+                set x [BookStatus =. val PayStatusUnknown]
+                where_ $ x ^. BookId ==. val bid
+                
+            addMessageI statusError MsgSomethingWentWrong
+            msgs <- getMessages
+            defaultLayout $ do
+                setTitleI MsgStripe
+                $(widgetFile "book/checkout/stripe/error")
 
 
-getBookCheckoutR :: BookId -> Handler Html
-getBookCheckoutR bid = do
+getBookCheckoutR :: BookId -> PayOptionId -> Handler Html
+getBookCheckoutR bid oid = do
 
     stati <- reqGetParams <$> getRequest
 
@@ -411,7 +463,7 @@ getBookCheckoutR bid = do
           rndr <- getUrlRender
 
           let confirmParams = encodeToLazyText $ object
-                  [ "return_url"    .= (rndr $ BookPayCompletionR bid :: Text)
+                  [ "return_url"    .= (rndr $ BookPayCompletionR bid oid :: Text)
                   , "receipt_email" .= email
                   ]
 
@@ -479,11 +531,12 @@ postBookPaymentR = do
                                              , bookPayMethod = pid'
                                              , bookStatus = PayStatusUnpaid
                                              }
-                redirect ( BookCheckoutR bid, [ ("sid", pack $ show $ fromSqlKey sid')
-                                              , ("eid", pack $ show $ fromSqlKey eid')
-                                              , ("tid", pack $ show (utcToLocalTime utc tid'))
-                                              , ("oid", pack $ show $ fromSqlKey oid')
-                                              ]
+                       
+                redirect ( BookCheckoutR bid oid', [ ("sid", pack $ show $ fromSqlKey sid')
+                                                   , ("eid", pack $ show $ fromSqlKey eid')
+                                                   , ("tid", pack $ show (utcToLocalTime utc tid'))
+                                                   , ("oid", pack $ show $ fromSqlKey oid')
+                                                   ]
                          )
             Just (Entity _ (PayOption _ pid'@PayNow _ (Just PayGatewayYookassa) _ _)) -> do
                 bid <- runDB $ insert $ Book { bookCustomer = uid

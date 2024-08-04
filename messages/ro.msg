@@ -1,3 +1,5 @@
+InvalidPaymentAmount: Sumă de plată nevalidă
+UnhandledError: Eroare nerezolvată
 PaymentGatewayNotSpecified: Poarta de plată nu este specificată
 Icon: Pictogramă
 YooKassa: YooKassa

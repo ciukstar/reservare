@@ -14,7 +14,7 @@
   <figure>
     <md-icon>task_alt
     <figcaption.md-typescale-title-medium>
-      #{result}.
+      _{MsgYourBookingHasBeenCreatedSuccessfully}
 
   <md-filled-tonal-button type=link href=@{BookDetailsR bid}>
     _{MsgViewBookingDetails}

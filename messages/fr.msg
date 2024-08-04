@@ -1,3 +1,5 @@
+InvalidPaymentAmount: Montant du paiement incorrect
+UnhandledError: Erreur non gérée
 PaymentGatewayNotSpecified: Passerelle de paiement non spécifiée
 Icon: Icône
 YooKassa: YooKassa

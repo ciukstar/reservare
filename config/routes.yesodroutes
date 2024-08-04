@@ -20,8 +20,8 @@
 /books/#BookId/pay/at/venue/completion BookPayAtVenueCompletionR GET
 /books/#BookId/pay/cancel              BookPaymentIntentCancelR  POST
 /books/#BookId/pay/intent/#Int/#Text   BookPaymentIntentR        POST
-/books/#BookId/completion              BookPayCompletionR        GET
-/books/#BookId/checkout                BookCheckoutR             GET
+/books/#BookId/#PayOptionId/completion BookPayCompletionR        GET
+/books/#BookId/#PayOptionId/checkout   BookCheckoutR             GET
 /book/payment                          BookPaymentR              GET POST
 /book/timing/#Day/slots                BookTimeSlotsR            GET POST
 /book/timing/#Month                    BookTimingR               GET POST

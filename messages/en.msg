@@ -1,3 +1,5 @@
+InvalidPaymentAmount: Invalid payment amount
+UnhandledError: Unhandled error
 PaymentGatewayNotSpecified: Payment gateway not specified
 Icon: Icon
 YooKassa: YooKassa

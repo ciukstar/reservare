@@ -1,3 +1,5 @@
+InvalidPaymentAmount: Неверная сумма платежа
+UnhandledError: Необработанная ошибка
 PaymentGatewayNotSpecified: Платежный шлюз не указан
 Icon: Значок
 YooKassa: ЮKassa
