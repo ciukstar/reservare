@@ -31,7 +31,7 @@ import Data.Aeson (object, (.=), Value (String, Number))
 import Data.Aeson.Lens (key, AsValue (_String), AsNumber (_Integer, _Double))
 import Data.Aeson.Text (encodeToLazyText)
 import qualified Data.Aeson as A (Value)
-import Data.Bifunctor (Bifunctor(first))
+import Data.Bifunctor (Bifunctor(first,bimap))
 import qualified Data.ByteString as BS (empty)
 import Data.Foldable (find)
 import Data.Function ((&))
@@ -53,9 +53,9 @@ import Data.UUID.V4 (nextRandom)
 
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, asc, innerJoin, on, in_
-    , (^.), (==.), (:&)((:&)), (=.)
+    , (^.), (==.), (:&)((:&))
     , toSqlKey, val, where_, selectOne, Value (unValue), between, valList
-    , update, set, just, subSelectList
+    , just, subSelectList
     )
 import Database.Persist (Entity (Entity), entityKey, insert, insert_)
 import Database.Persist.Sql (fromSqlKey)
@@ -71,7 +71,7 @@ import Foundation
     , AppMessage
       ( MsgServices, MsgNext, MsgServices, MsgThereAreNoDataYet
       , MsgBack, MsgStaff, MsgBusiness, MsgWorkspace, MsgAppointmentTime
-      , MsgPaymentMethod, MsgPayNow, MsgPayAtVenue, MsgCheckout
+      , MsgPaymentMethod, MsgCheckout
       , MsgPaymentAmount, MsgCancel, MsgPay, MsgPaymentIntentCancelled
       , MsgSomethingWentWrong, MsgPaymentStatus, MsgReturnToHomePage
       , MsgYourBookingHasBeenCreatedSuccessfully, MsgViewBookingDetails
@@ -82,8 +82,7 @@ import Foundation
       , MsgPrevious, MsgNoServicesWereFoundForSearchTerms, MsgInvalidFormData
       , MsgEmployeeWorkScheduleForThisMonthNotSetYet, MsgBookingDetails
       , MsgPrice, MsgMobile, MsgPhone, MsgLocation, MsgAddress, MsgFullName
-      , MsgTheAppointment, MsgTheName, MsgUnpaid, MsgPaid, MsgUnknown
-      , MsgError, MsgCanceled, MsgPaymentIntent
+      , MsgTheAppointment, MsgTheName
       , MsgDuration, MsgPaymentGatewayNotSpecified, MsgInvalidArguments
       , MsgYooKassa, MsgUnhandledError, MsgStripe, MsgInvalidPaymentAmount
       )
@@ -104,12 +103,8 @@ import Model
     , Schedule (Schedule)
     , BookId
     , Book
-      ( Book, bookService, bookStaff, bookAppointment, bookPayMethod
-      , bookStatus, bookCustomer
-      )
-    , PayStatus
-      ( PayStatusUnpaid, PayStatusPaid, PayStatusCanceled, PayStatusError
-      , PayStatusUnknown
+      ( Book, bookService, bookStaff, bookAppointment
+      , bookCustomer, bookCharge, bookCurrency
       )
     , Payment
       ( Payment, paymentBook, paymentOption, paymentTime, paymentAmount
@@ -122,9 +117,9 @@ import Model
       , BusinessId, ServiceName, AssignmentStaff, StaffId, StaffName
       , BusinessName, WorkspaceName, ServiceId, AssignmentService
       , AssignmentSlotInterval, ScheduleAssignment, AssignmentId
-      , ScheduleDay, BookId, BookService, BookStaff, BookStatus
+      , ScheduleDay, BookId, BookService, BookStaff
       , ServiceAvailable, PayOptionWorkspace
-      , PayOptionId
+      , PayOptionId, ServicePrice, WorkspaceCurrency
       )
     )
 
@@ -302,10 +297,6 @@ postBookPaymentIntentCancelR bid = do
     let api = endpointStripePaymentIntentCancel intent
     sk <- encodeUtf8 . stripeConfSk . appStripeConf . appSettings <$> getYesod
     _ <- liftIO $ postWith (defaults & auth ?~ basicAuth sk BS.empty) api BS.empty
-
-    runDB $ update $ \x -> do
-        set x [BookStatus =. val PayStatusCanceled]
-        where_ $ x ^. BookId ==. val bid
             
     addMessageI statusSuccess MsgPaymentIntentCancelled
     redirect (BookPaymentR,stati)
@@ -380,10 +371,6 @@ getBookPayCompletionR bid oid = do
 
             case amountValue of
               Nothing -> do
-                runDB $ update $ \x -> do
-                    set x [BookStatus =. val PayStatusError]
-                    where_ $ x ^. BookId ==. val bid
-
                 addMessageI statusError MsgInvalidPaymentAmount
                 msgs <- getMessages
                 defaultLayout $ do
@@ -392,9 +379,6 @@ getBookPayCompletionR bid oid = do
               Just amount -> do
                 now <- liftIO getCurrentTime
 
-                runDB $ update $ \x -> do
-                    set x [BookStatus =. val PayStatusPaid]
-                    where_ $ x ^. BookId ==. val bid
                 runDB $ insert_ $ Payment { paymentBook = bid
                                           , paymentOption = oid
                                           , paymentTime = now
@@ -412,9 +396,6 @@ getBookPayCompletionR bid oid = do
                     $(widgetFile "book/completion/completion")
 
         Just s -> do
-            runDB $ update $ \x -> do
-                set x [BookStatus =. val PayStatusError]
-                where_ $ x ^. BookId ==. val bid
                 
             addMessage statusError (toHtml s)
             msgs <- getMessages
@@ -422,11 +403,7 @@ getBookPayCompletionR bid oid = do
                 setTitleI MsgStripe
                 $(widgetFile "book/checkout/stripe/error")
                 
-        Nothing -> do
-            runDB $ update $ \x -> do
-                set x [BookStatus =. val PayStatusUnknown]
-                where_ $ x ^. BookId ==. val bid
-                
+        Nothing -> do                
             addMessageI statusError MsgSomethingWentWrong
             msgs <- getMessages
             defaultLayout $ do
@@ -523,13 +500,20 @@ postBookPaymentR = do
                     idFormPayment <- newIdent
                     idFabNext <- newIdent
                     $(widgetFile "book/payment/payment")
-            Just (Entity _ (PayOption _ pid'@PayNow _ (Just PayGatewayStripe) _ _)) -> do
+            Just (Entity _ (PayOption _ PayNow _ (Just PayGatewayStripe) _ _)) -> do
+
+                (charge,currency) <- maybe (0,"USD") (bimap unValue unValue) <$> runDB ( selectOne $ do
+                    x :& w <- from $ table @Service
+                        `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
+                    where_ $ x ^. ServiceId ==. val sid'
+                    return (x ^. ServicePrice, w ^. WorkspaceCurrency) )
+                    
                 bid <- runDB $ insert $ Book { bookCustomer = uid
                                              , bookService = sid'
                                              , bookStaff = eid'
                                              , bookAppointment = tid'
-                                             , bookPayMethod = pid'
-                                             , bookStatus = PayStatusUnpaid
+                                             , bookCharge = charge
+                                             , bookCurrency = currency
                                              }
                        
                 redirect ( BookCheckoutR bid oid', [ ("sid", pack $ show $ fromSqlKey sid')
@@ -538,13 +522,20 @@ postBookPaymentR = do
                                                    , ("oid", pack $ show $ fromSqlKey oid')
                                                    ]
                          )
-            Just (Entity _ (PayOption _ pid'@PayNow _ (Just PayGatewayYookassa) _ _)) -> do
+            Just (Entity _ (PayOption _ PayNow _ (Just PayGatewayYookassa) _ _)) -> do
+
+                (charge,currency) <- maybe (0,"USD") (bimap unValue unValue) <$> runDB ( selectOne $ do
+                    x :& w <- from $ table @Service
+                        `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
+                    where_ $ x ^. ServiceId ==. val sid'
+                    return (x ^. ServicePrice, w ^. WorkspaceCurrency) )
+                    
                 bid <- runDB $ insert $ Book { bookCustomer = uid
                                              , bookService = sid'
                                              , bookStaff = eid'
                                              , bookAppointment = tid'
-                                             , bookPayMethod = pid'
-                                             , bookStatus = PayStatusUnpaid
+                                             , bookCharge = charge
+                                             , bookCurrency = currency
                                              }
                 redirect ( BookCheckoutYookassaR bid oid', [ ("sid", pack $ show $ fromSqlKey sid')
                                                            , ("eid", pack $ show $ fromSqlKey eid')
@@ -561,14 +552,21 @@ postBookPaymentR = do
                     idFabNext <- newIdent
                     $(widgetFile "book/payment/payment")
                     
-            Just (Entity _ (PayOption _ pid'@PayAtVenue _ _ _ _)) -> do
+            Just (Entity _ (PayOption _ PayAtVenue _ _ _ _)) -> do
+
+                (charge,currency) <- maybe (0,"USD") (bimap unValue unValue) <$> runDB ( selectOne $ do
+                    x :& w <- from $ table @Service
+                        `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
+                    where_ $ x ^. ServiceId ==. val sid'
+                    return (x ^. ServicePrice, w ^. WorkspaceCurrency) )
+                   
                 bid <- runDB $ insert $ Book { bookCustomer = uid
-                                       , bookService = sid'
-                                       , bookStaff = eid'
-                                       , bookAppointment = tid'
-                                       , bookPayMethod = pid'
-                                       , bookStatus = PayStatusUnpaid
-                                       }          
+                                             , bookService = sid'
+                                             , bookStaff = eid'
+                                             , bookAppointment = tid'
+                                             , bookCharge = charge
+                                             , bookCurrency = currency
+                                             }
                 redirect $ BookPayAtVenueCompletionR bid
           
       (FormFailure errs, _) -> do

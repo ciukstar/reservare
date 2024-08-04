@@ -11,7 +11,7 @@
 
   ^{widgetBanner msgs}
 
-  $maybe (Entity _ (Book _ _ _ time payMethod status),(service,(workspace,employee))) <- book
+  $maybe (Entity _ (Book _ _ _ time charge currency),(service,(workspace,employee))) <- book
     <fieldset>
       <legend>_{MsgTheAppointment}
       <dl>
@@ -63,28 +63,6 @@
           <dt.md-typescale-label-large>_{MsgDuration}
           <dd.md-typescale-body-medium>
             #{show duration}
-
-        <dt.md-typescale-label-large>_{MsgPaymentMethod}
-        <dd.md-typescale-body-medium>
-          $case payMethod
-            $of PayAtVenue
-              _{MsgPayAtVenue}
-            $of PayNow
-              _{MsgPayNow}
-
-        <dt.md-typescale-label-large>_{MsgPaymentStatus}
-        <dd.md-typescale-body-medium>
-          $case status
-            $of PayStatusUnpaid
-              _{MsgUnpaid}
-            $of PayStatusPaid
-              _{MsgPaid}
-            $of PayStatusCanceled
-              _{MsgCanceled}
-            $of PayStatusError
-              _{MsgError}
-            $of PayStatusUnknown
-              _{MsgUnknown}
 
   $nothing
     <figure>

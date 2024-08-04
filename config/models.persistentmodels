@@ -16,8 +16,8 @@ Book
     service ServiceId OnDeleteCascade
     staff StaffId OnDeleteCascade
     appointment UTCTime
-    payMethod PayMethod
-    status PayStatus
+    charge Int
+    currency Text
 
 Schedule
     assignment AssignmentId OnDeleteCascade

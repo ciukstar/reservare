@@ -28,7 +28,7 @@ import Data.Aeson (object, (.=))
 import Data.Aeson.Lens (key, AsValue (_String))
 import Data.Aeson.Text (encodeToLazyText)
 import qualified Data.Aeson as A (Value)
-import Data.Bifunctor (Bifunctor(first))
+import Data.Bifunctor (Bifunctor(first,bimap))
 import qualified Data.ByteString as BS (empty)
 import Data.Foldable (find)
 import Data.Function ((&))
@@ -48,9 +48,9 @@ import Data.Time.LocalTime (utcToLocalTime, utc, localTimeToUTC)
 
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, asc, innerJoin, on, in_
-    , (^.), (==.), (:&)((:&)), (=.)
+    , (^.), (==.), (:&)((:&))
     , toSqlKey, val, where_, selectOne, Value (unValue), between, valList
-    , update, set, just, distinct
+    , distinct
     )
 import Database.Persist (Entity (Entity), entityKey, insert)
 import Database.Persist.Sql (fromSqlKey)
@@ -78,10 +78,10 @@ import Foundation
       , MsgPrevious, MsgInvalidFormData
       , MsgEmployeeWorkScheduleForThisMonthNotSetYet, MsgBookingDetails
       , MsgPrice, MsgMobile, MsgPhone, MsgLocation, MsgAddress, MsgFullName
-      , MsgTheAppointment, MsgTheName, MsgUnpaid, MsgPaid, MsgUnknown
+      , MsgTheAppointment, MsgTheName
       , MsgMicrocopyPayNow, MsgMicrocopyPayAtVenue, MsgMicrocopySelectPayNow
-      , MsgMicrocopySelectPayAtVenue, MsgError, MsgServiceAssignment
-      , MsgCanceled, MsgPaymentIntent, MsgRole, MsgDuration
+      , MsgMicrocopySelectPayAtVenue, MsgServiceAssignment
+      , MsgRole, MsgDuration
       )
     )
 
@@ -99,21 +99,16 @@ import Model
     , Schedule (Schedule)
     , BookId
     , Book
-      ( Book, bookService, bookStaff, bookAppointment, bookPayMethod
-      , bookStatus, bookCustomer
-      )
-    , PayStatus
-      ( PayStatusUnpaid, PayStatusPaid, PayStatusCanceled, PayStatusError
-      , PayStatusUnknown
+      ( Book, bookService, bookStaff, bookAppointment, bookCustomer, bookCharge, bookCurrency
       )
     , EntityField
       ( ServiceWorkspace, WorkspaceId, WorkspaceBusiness
       , BusinessId, ServiceName, AssignmentStaff, StaffId, StaffName
       , BusinessName, WorkspaceName, ServiceId, AssignmentService
       , AssignmentSlotInterval, ScheduleAssignment, AssignmentId
-      , ScheduleDay, BookId, BookService, BookStaff, BookStatus
-      , AssignmentRole, ServiceAvailable
-      ), Payment (Payment, paymentBook, paymentOption, paymentTime, paymentAmount, paymentCurrency, paymentIdetifier, paymentStatus, paymentError)
+      , ScheduleDay, BookId, BookService, BookStaff
+      , AssignmentRole, ServiceAvailable, ServicePrice, WorkspaceCurrency
+      )
     )
 
 
@@ -197,23 +192,19 @@ getAppointmentPayAtVenueCompletionR bid = do
 
 
 postAppointmentPaymentIntentCancelR :: BookId -> Handler ()
-postAppointmentPaymentIntentCancelR bid = do
+postAppointmentPaymentIntentCancelR _bid = do
     stati <- reqGetParams <$> getRequest
     intent <- runInputGet $ ireq textField "pi"
     let api = endpointStripePaymentIntentCancel intent
     sk <- encodeUtf8 . stripeConfSk . appStripeConf . appSettings <$> getYesod
     _ <- liftIO $ postWith (defaults & auth ?~ basicAuth sk BS.empty) api BS.empty
-
-    runDB $ update $ \x -> do
-        set x [BookStatus =. val PayStatusCanceled]
-        where_ $ x ^. BookId ==. val bid
         
     addMessageI statusSuccess MsgPaymentIntentCancelled
     redirect (AppointmentPaymentR, stati)
 
 
 postAppointmentPaymentIntentR :: BookId -> Int -> Text -> Handler A.Value
-postAppointmentPaymentIntentR bid cents currency = do
+postAppointmentPaymentIntentR _bid cents currency = do
     let api = unpack endpointStripePaymentIntents
     sk <- encodeUtf8 . stripeConfSk . appStripeConf . appSettings <$> getYesod
     let opts = defaults & auth ?~ basicAuth sk ""
@@ -259,43 +250,9 @@ getAppointmentPayCompletionR bid = do
     msgr <- getMessageRender
 
     result <- case r ^? responseBody . key "status" . _String of
-      Just s@"succeeded" -> do
-          runDB $ update $ \x -> do
-              set x [BookStatus =. val PayStatusPaid]
-              where_ $ x ^. BookId ==. val bid
-              {--
-          runDB $ insert_ $ Payment { paymentBook = bid
-                                    , paymentOption = oid
-                                    , paymentTime = now
-                                    , paymentAmount = a
-                                    , paymentCurrency = amountCurrency
-                                    , paymentIdetifier = intent
-                                    , paymentStatus = s
-                                    , paymentError = Nothing
-                                    }
-              --}
-          return $ msgr MsgYourBookingHasBeenCreatedSuccessfully
-      Just s -> do
-          runDB $ update $ \x -> do
-              set x [BookStatus =. val PayStatusError]
-              where_ $ x ^. BookId ==. val bid
-              {--
-          runDB $ insert_ $ Payment { paymentBook = bid
-                                    , paymentOption = oid
-                                    , paymentTime = now
-                                    , paymentAmount = a
-                                    , paymentCurrency = amountCurrency
-                                    , paymentIdetifier = intent
-                                    , paymentStatus = s
-                                    , paymentError = Just s
-                                    }
---}
-          return s
-      Nothing -> do
-          runDB $ update $ \x -> do
-              set x [BookStatus =. val PayStatusUnknown]
-              where_ $ x ^. BookId ==. val bid
-          return $ msgr MsgSomethingWentWrong
+      Just "succeeded" -> return $ msgr MsgYourBookingHasBeenCreatedSuccessfully
+      Just s -> return s
+      Nothing -> return $ msgr MsgSomethingWentWrong
 
     msgs <- getMessages
     defaultLayout $ do
@@ -376,23 +333,37 @@ postAppointmentPaymentR = do
                      )
           redirect $ AuthR LoginR
           
-      (FormSuccess (_,eid',sid',tid',pid'@PayNow), Just (Entity uid _)) -> do
+      (FormSuccess (_,eid',sid',tid',PayNow), Just (Entity uid _)) -> do
+          
+          (charge,currency) <- maybe (0,"USD") (bimap unValue unValue) <$> runDB ( selectOne $ do
+              x :& w <- from $ table @Service
+                  `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
+              where_ $ x ^. ServiceId ==. val sid'
+              return (x ^. ServicePrice, w ^. WorkspaceCurrency) )
+              
           bid <- runDB $ insert $ Book { bookCustomer = uid
                                        , bookService = sid'
                                        , bookStaff = eid'
                                        , bookAppointment = tid'
-                                       , bookPayMethod = pid'
-                                       , bookStatus = PayStatusUnpaid
+                                       , bookCharge = charge
+                                       , bookCurrency = currency
                                        }
           redirect (AppointmentCheckoutR bid, stati)
           
-      (FormSuccess (_,eid',sid',tid',pid'@PayAtVenue), Just (Entity uid _)) -> do
+      (FormSuccess (_,eid',sid',tid',PayAtVenue), Just (Entity uid _)) -> do
+          
+          (charge,currency) <- maybe (0,"USD") (bimap unValue unValue) <$> runDB ( selectOne $ do
+              x :& w <- from $ table @Service
+                  `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
+              where_ $ x ^. ServiceId ==. val sid'
+              return (x ^. ServicePrice, w ^. WorkspaceCurrency) )
+              
           bid <- runDB $ insert $ Book { bookCustomer = uid
                                        , bookService = sid'
                                        , bookStaff = eid'
                                        , bookAppointment = tid'
-                                       , bookPayMethod = pid'
-                                       , bookStatus = PayStatusUnpaid
+                                       , bookCharge = charge
+                                       , bookCurrency = currency
                                        }          
           redirect $ AppointmentPayAtVenueCompletionR bid
           
