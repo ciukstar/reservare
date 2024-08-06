@@ -45,10 +45,6 @@ import Network.Wai.Middleware.RequestLogger
     ( Destination (Logger), IPAddrSource (..), OutputFormat (..)
     , destination, mkRequestLogger, outputFormat
     )
-    
-import System.Environment.Blank (getEnv)
-import System.Log.FastLogger
-    ( defaultBufSize, newStdoutLoggerSet, toLogStr )
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
@@ -58,7 +54,7 @@ import Handler.Appointments
     , getAppointmentTimingR, postAppointmentTimingR
     , getAppointmentTimeSlotsR, postAppointmentTimeSlotsR
     , getAppointmentPaymentR, postAppointmentPaymentR
-    , getAppointmentCheckoutR, getAppointmentPayCompletionR
+    , getAppointmentPayCompletionR
     , postAppointmentPaymentIntentR, postAppointmentPaymentIntentCancelR
     , getAppointmentPayAtVenueCompletionR
     , getAppointmentDetailsR
@@ -70,10 +66,8 @@ import Handler.Booking
     , getBookTimingR, postBookTimingR
     , getBookTimeSlotsR, postBookTimeSlotsR
     , getBookPaymentR, postBookPaymentR
-    , getBookCheckoutR, getBookPayCompletionR, postBookPaymentIntentR
-    , postBookPaymentIntentCancelR, getBookPayAtVenueCompletionR
+    , getBookPayAtVenueCompletionR
     , getBookDetailsR
-    , getBookCheckoutYookassaR
     )
 
 import Handler.Accounts
@@ -156,7 +150,17 @@ import Handler.Data.Tokens
 
 import Handler.Common ( getFaviconR, getRobotsR, getSitemapR )
 
+import Stripe ()
+import Stripe.Data (Stripe(Stripe))
+    
+import System.Environment.Blank (getEnv)
+import System.Log.FastLogger
+    ( defaultBufSize, newStdoutLoggerSet, toLogStr )
+    
 import Yesod.Auth.Email (saltPass)
+
+import Yookassa ()
+import Yookassa.Data (Yookassa(Yookassa))
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
@@ -176,6 +180,9 @@ makeFoundation appSettings = do
     appStatic <-
         (if appMutableStatic appSettings then staticDevel else static)
         (appStaticDir appSettings)
+
+    let getStripe = Stripe
+    let getYookassa = Yookassa
 
     -- We need a log function to create a connection pool. We need a connection
     -- pool to create our foundation. And we need our foundation to get a

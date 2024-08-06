@@ -4,13 +4,15 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE InstanceSigs #-}
 
 module Handler.Appointments
   ( getAppointmentStaffR, postAppointmentStaffR
   , getAppointmentTimingR, postAppointmentTimingR
   , getAppointmentTimeSlotsR, postAppointmentTimeSlotsR
   , getAppointmentPaymentR, postAppointmentPaymentR
-  , getAppointmentCheckoutR, getAppointmentPayCompletionR
+  , getAppointmentPayCompletionR
   , getAppointmentPayAtVenueCompletionR
   , postAppointmentPaymentIntentR
   , postAppointmentPaymentIntentCancelR
@@ -26,7 +28,6 @@ import Control.Monad (when, unless, forM_)
 
 import Data.Aeson (object, (.=))
 import Data.Aeson.Lens (key, AsValue (_String))
-import Data.Aeson.Text (encodeToLazyText)
 import qualified Data.Aeson as A (Value)
 import Data.Bifunctor (Bifunctor(first,bimap))
 import qualified Data.ByteString as BS (empty)
@@ -34,7 +35,6 @@ import Data.Foldable (find)
 import Data.Function ((&))
 import qualified Data.Map as M (member, Map, fromListWith)
 import Data.Maybe (fromMaybe)
-import Data.Monoid (Sum(Sum, getSum))
 import Data.Text (pack, Text, unpack)
 import Data.Text.Encoding (encodeUtf8)
 import Data.Time
@@ -50,7 +50,7 @@ import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, asc, innerJoin, on, in_
     , (^.), (==.), (:&)((:&))
     , toSqlKey, val, where_, selectOne, Value (unValue), between, valList
-    , distinct
+    , distinct, subSelectList, just
     )
 import Database.Persist (Entity (Entity), entityKey, insert)
 import Database.Persist.Sql (fromSqlKey)
@@ -58,16 +58,16 @@ import Database.Persist.Sql (fromSqlKey)
 import Foundation
     ( Handler, Form, App (appSettings)
     , Route
-      ( AuthR, HomeR, AppointmentCheckoutR
+      ( AuthR, HomeR
       , AppointmentPayCompletionR, AppointmentPaymentIntentR
       , AppointmentPaymentIntentCancelR, AppointmentPayAtVenueCompletionR
       , AppointmentStaffR, AppointmentTimingR, AppointmentTimeSlotsR
-      , AppointmentPaymentR, AppointmentDetailsR
+      , AppointmentPaymentR, AppointmentDetailsR, StripeR
       )
     , AppMessage
       ( MsgServices, MsgNext, MsgServices, MsgThereAreNoDataYet
       , MsgBack, MsgStaff, MsgBusiness, MsgWorkspace, MsgAppointmentTime
-      , MsgPaymentMethod, MsgPayNow, MsgPayAtVenue, MsgCheckout
+      , MsgPaymentMethod, MsgCheckout
       , MsgPaymentAmount, MsgCancel, MsgPay, MsgPaymentIntentCancelled
       , MsgSomethingWentWrong, MsgPaymentStatus, MsgReturnToHomePage
       , MsgYourBookingHasBeenCreatedSuccessfully, MsgViewBookingDetails
@@ -78,9 +78,7 @@ import Foundation
       , MsgPrevious, MsgInvalidFormData
       , MsgEmployeeWorkScheduleForThisMonthNotSetYet, MsgBookingDetails
       , MsgPrice, MsgMobile, MsgPhone, MsgLocation, MsgAddress, MsgFullName
-      , MsgTheAppointment, MsgTheName
-      , MsgMicrocopyPayNow, MsgMicrocopyPayAtVenue, MsgMicrocopySelectPayNow
-      , MsgMicrocopySelectPayAtVenue, MsgServiceAssignment
+      , MsgTheAppointment, MsgTheName, MsgServiceAssignment
       , MsgRole, MsgDuration
       )
     )
@@ -98,8 +96,10 @@ import Model
     , User (User), PayMethod (PayNow, PayAtVenue)
     , Schedule (Schedule)
     , BookId
+    , PayOptionId, PayOption (PayOption)
     , Book
-      ( Book, bookService, bookStaff, bookAppointment, bookCustomer, bookCharge, bookCurrency
+      ( Book, bookService, bookStaff, bookAppointment, bookCustomer
+      , bookCharge, bookCurrency
       )
     , EntityField
       ( ServiceWorkspace, WorkspaceId, WorkspaceBusiness
@@ -107,8 +107,8 @@ import Model
       , BusinessName, WorkspaceName, ServiceId, AssignmentService
       , AssignmentSlotInterval, ScheduleAssignment, AssignmentId
       , ScheduleDay, BookId, BookService, BookStaff
-      , AssignmentRole, ServiceAvailable, ServicePrice, WorkspaceCurrency
-      )
+      , AssignmentRole, ServiceAvailable, ServicePrice, WorkspaceCurrency, PayOptionId, PayOptionWorkspace
+      ), PayGateway (PayGatewayStripe, PayGatewayYookassa)
     )
 
 
@@ -162,6 +162,7 @@ import Yesod.Form.Fields
     )
 import Yesod.Form.Functions (generateFormPost, mreq, runFormPost)
 import Yesod.Persist.Core (YesodPersist(runDB))
+import Stripe.Data (Route(CheckoutR))
 
 
 getAppointmentDetailsR :: BookId -> Handler Html
@@ -260,53 +261,6 @@ getAppointmentPayCompletionR bid = do
         $(widgetFile "appointments/completion/completion")
 
 
-getAppointmentCheckoutR :: BookId -> Handler Html
-getAppointmentCheckoutR bid = do
-
-    stati <- reqGetParams <$> getRequest
-
-    user <- maybeAuth
-    case user of
-      Nothing -> do
-          setUltDestCurrent
-          redirect $ AuthR LoginR
-      Just (Entity _ (User email _ _ _ _ _ _ _)) -> do
-
-          pk <- stripeConfPk . appStripeConf . appSettings <$> getYesod
-
-          services <- runDB ( select $ do
-              x :& s :& w <- from $ table @Book
-                  `innerJoin` table @Service `on` (\(x :& s) -> x ^. BookService ==. s ^. ServiceId)
-                  `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
-              where_ $ x ^. BookId ==. val bid
-              where_ $ s ^. ServiceAvailable ==. val True
-              return (s,w) )
-
-          let items = (\(Entity _ (Service _ name _ _ _ _),_) -> object ["id" .= name]) <$> services
-          let cents = getSum $ mconcat $ (\(Entity _ (Service _ _ _ price _ _),_) -> Sum price) <$> services
-          let currency = maybe "USD" (\(_, Entity _ (Workspace _ _ _ _ c)) -> c) (headMay services)
-
-          rndr <- getUrlRender
-
-          let confirmParams = encodeToLazyText $ object
-                  [ "return_url"    .= (rndr $ AppointmentPayCompletionR bid :: Text)
-                  , "receipt_email" .= email
-                  ]
-
-          msgs <- getMessages
-          defaultLayout $ do
-              setTitleI MsgCheckout
-              idButtonBack <- newIdent
-              idBannerStripe <- newIdent
-              idSectionPriceTag <- newIdent
-              idFormPayment <- newIdent
-              idElementPayment <- newIdent
-              idButtonSubmitPayment <- newIdent
-              idButtonCancelPayment <- newIdent
-              addScriptRemote scriptRemoteStripe
-              $(widgetFile "appointments/checkout/checkout")
-
-
 postAppointmentPaymentR :: Handler Html
 postAppointmentPaymentR = do
     stati <- reqGetParams <$> getRequest
@@ -314,12 +268,12 @@ postAppointmentPaymentR = do
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
-    pid <- (readMaybe . unpack =<<) <$> runInputGet ( iopt textField "pid" )
+    oid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "oid" )
 
     today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
     let month = maybe today ((\(y,m,_) -> YearMonth y m) . toGregorian . utctDay) tid
 
-    ((fr,fw),et) <- runFormPost $ formPayment aid eid sid tid pid
+    ((fr,fw),et) <- runFormPost $ formPayment aid eid sid tid oid
 
     user <- maybeAuth
     
@@ -333,39 +287,47 @@ postAppointmentPaymentR = do
                      )
           redirect $ AuthR LoginR
           
-      (FormSuccess (_,eid',sid',tid',PayNow), Just (Entity uid _)) -> do
-          
-          (charge,currency) <- maybe (0,"USD") (bimap unValue unValue) <$> runDB ( selectOne $ do
+      (FormSuccess (_,eid',sid',tid',oid'), Just (Entity uid _)) -> do
+
+          charge' <- (bimap unValue unValue <$>) <$> runDB ( selectOne $ do
               x :& w <- from $ table @Service
                   `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
               where_ $ x ^. ServiceId ==. val sid'
               return (x ^. ServicePrice, w ^. WorkspaceCurrency) )
-              
-          bid <- runDB $ insert $ Book { bookCustomer = uid
-                                       , bookService = sid'
-                                       , bookStaff = eid'
-                                       , bookAppointment = tid'
-                                       , bookCharge = charge
-                                       , bookCurrency = currency
-                                       }
-          redirect (AppointmentCheckoutR bid, stati)
           
-      (FormSuccess (_,eid',sid',tid',PayAtVenue), Just (Entity uid _)) -> do
+          option' <- runDB $ selectOne $ do
+              x <- from $ table @PayOption
+              where_ $ x ^. PayOptionId ==. val oid'
+              return x
           
-          (charge,currency) <- maybe (0,"USD") (bimap unValue unValue) <$> runDB ( selectOne $ do
-              x :& w <- from $ table @Service
-                  `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
-              where_ $ x ^. ServiceId ==. val sid'
-              return (x ^. ServicePrice, w ^. WorkspaceCurrency) )
-              
-          bid <- runDB $ insert $ Book { bookCustomer = uid
-                                       , bookService = sid'
-                                       , bookStaff = eid'
-                                       , bookAppointment = tid'
-                                       , bookCharge = charge
-                                       , bookCurrency = currency
-                                       }          
-          redirect $ AppointmentPayAtVenueCompletionR bid
+          case (charge',option') of
+            (Just (charge,currency),Just (Entity _ (PayOption _ PayNow _ (Just PayGatewayStripe) _ _))) -> do
+                bid <- runDB $ insert $ Book { bookCustomer = uid
+                                             , bookService = sid'
+                                             , bookStaff = eid'
+                                             , bookAppointment = tid'
+                                             , bookCharge = charge
+                                             , bookCurrency = currency
+                                             }
+                setUltDestCurrent
+                redirect ( StripeR $ CheckoutR bid oid', [ ("sid", pack $ show $ fromSqlKey sid')
+                                                         , ("eid", pack $ show $ fromSqlKey eid')
+                                                         , ("tid", pack $ show (utcToLocalTime utc tid'))
+                                                         , ("oid", pack $ show $ fromSqlKey oid')
+                                                         ]
+                         )
+                    
+            (Just (charge,currency),Just (Entity _ (PayOption _ PayNow _ (Just PayGatewayYookassa) _ _))) -> do
+                bid <- runDB $ insert $ Book { bookCustomer = uid
+                                             , bookService = sid'
+                                             , bookStaff = eid'
+                                             , bookAppointment = tid'
+                                             , bookCharge = charge
+                                             , bookCurrency = currency
+                                             }
+                redirect $ AppointmentPayAtVenueCompletionR bid
+                
+            otherwise -> undefined
           
       (FormFailure errs, _) -> do
           forM_ errs $ \err -> addMessageI statusError err
@@ -408,9 +370,9 @@ getAppointmentPaymentR = do
         $(widgetFile "appointments/payment/payment")
 
 
-formPayment :: Maybe AssignmentId -> Maybe StaffId -> Maybe ServiceId -> Maybe UTCTime -> Maybe PayMethod
-            -> Form (AssignmentId,StaffId,ServiceId,UTCTime,PayMethod)
-formPayment aid eid sid time method extra = do
+formPayment :: Maybe AssignmentId -> Maybe StaffId -> Maybe ServiceId -> Maybe UTCTime -> Maybe PayOptionId
+            -> Form (AssignmentId,StaffId,ServiceId,UTCTime,PayOptionId)
+formPayment aid eid sid time option extra = do
 
     msgr <- getMessageRender
 
@@ -438,48 +400,58 @@ formPayment aid eid sid time method extra = do
         , fsAttrs = [("label", msgr MsgAppointmentTime),("hidden","hidden")]
         } (utcToLocalTime utc <$> time)
 
-    let methods = [ ((MsgPayNow,PayNow),("credit_card",(MsgMicrocopyPayNow,MsgMicrocopySelectPayNow)))
-                  , ((MsgPayAtVenue,PayAtVenue),("point_of_sale",(MsgMicrocopyPayAtVenue,MsgMicrocopySelectPayAtVenue)))
-                  ]
+    options <- liftHandler $ runDB $ select $ do
+        x <- from $ table @PayOption
+        where_ $ x ^. PayOptionWorkspace `in_` subSelectList
+            ( do
+                  s <- from $ table @Service
+                  where_ $ just (s ^. ServiceId) ==. val sid
+                  return $ s ^. ServiceWorkspace
+            )
+        return x
 
-    (methodR,methodV) <- md3mreq (md3radioFieldList methods) "" method
+    (optionR,optionV) <- md3mreq (md3radioFieldList options) "" option
 
-    let r = (,,,,) <$> assignmentR <*> staffR <*> serviceR <*> (localTimeToUTC utc <$> timeR) <*> methodR
+    let r = (,,,,) <$> assignmentR <*> staffR <*> serviceR <*> (localTimeToUTC utc <$> timeR) <*> optionR
     let w = [whamlet|
                     #{extra}
                     ^{fvInput assignmentV}
                     ^{fvInput staffV}
                     ^{fvInput serviceV}
                     ^{fvInput timeV}
-                    ^{fvInput methodV}
+                    ^{fvInput optionV}
                     |]
 
     return (r,w)
 
   where
 
-      md3radioFieldList :: [((AppMessage,PayMethod),(Text,(AppMessage,AppMessage)))] -> Field (HandlerFor App) PayMethod
-      md3radioFieldList methods = (radioField (optionsPairs (fst <$> methods)))
+      pairs (Entity oid' (PayOption _ _ name _ _ _)) = (name, oid')
+      
+      md3radioFieldList :: [Entity PayOption] -> Field (HandlerFor App) PayOptionId
+      md3radioFieldList options = (radioField (optionsPairs (pairs <$> options)))
           { fieldView = \theId name attrs x isReq -> do
 
-                opts <- zip [1 :: Int ..] . olOptions <$> handlerToWidget (optionsPairs (fst <$> methods))
+                opts <- zip [1 :: Int ..] . olOptions <$> handlerToWidget (optionsPairs (pairs <$> options))
 
                 let sel (Left _) _ = False
                     sel (Right y) opt = optionInternalValue opt == y
 
-                let findMethod opt = find (\((_,m),_) -> m == optionInternalValue opt)
+                let findOption opt = find (\(Entity oid _) -> oid == optionInternalValue opt)
 
                 [whamlet|
 <md-list ##{theId} *{attrs}>
   $forall (i,opt) <- opts
-    $maybe ((label,_),(icon,(micro,title))) <- findMethod opt methods
-      <md-list-item type=button onclick="this.querySelector('md-radio').click()" title=_{title}>
-        <md-icon slot=start>
-          #{icon}
+    $maybe Entity _ (PayOption _ _ oname _ descr icon) <- findOption opt options
+      <md-list-item type=button onclick="this.querySelector('md-radio').click()">
+        $maybe icon <- icon
+          <md-icon slot=start>
+            #{icon}
         <div slot=headline>
-          _{label}
-        <div slot=supporting-text>
-          _{micro}
+          #{oname}
+        $maybe descr <- descr
+          <div slot=supporting-text>
+            #{descr}
         <div slot=end>
           <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
             :sel x opt:checked touch-target=wrapper>

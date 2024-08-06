@@ -1,0 +1,40 @@
+
+<header.background>
+  <md-icon-button type=link href=#{ult} aria-label=_{MsgBack} ##{idButtonBack}>
+    <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgCheckout}
+
+<main>
+
+  <div.error role=banner ##{idBannerStripe}>
+
+  $forall (_,msg) <- filter ((==) statusError . fst) msgs
+    <div.app-banner.error.body-medium>
+      #{msg}
+
+  <section ##{idSectionPriceTag}>
+    <h4.hint>_{MsgPaymentAmount}
+    <div.currency data-value=#{cents} data-currency=#{currency}>
+      #{currency}#{cents}
+
+  <form ##{idFormPayment}>
+  
+    <div ##{idElementPayment}>
+      <md-circular-progress indeterminate>
+          
+    <md-filled-button ##{idButtonSubmitPayment} disabled type=submit>
+      <div.spinner.hidden #spinner>
+      <span #button-text>_{MsgPay}
+
+  <md-text-button ##{idButtonCancelPayment} type=button>
+    _{MsgCancel}
+
+  $forall (status,msg) <- filter ((/=) statusError . fst) msgs
+    <aside.app-snackbar.shape-small.elevation-1
+      :status == statusSuccess:.primary-container :status /= statusSuccess:.error-container>
+      <md-elevation>
+      <span.body-medium>#{msg}
+      <md-icon-button type=button>
+        <md-icon>close

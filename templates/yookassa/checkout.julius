@@ -1,0 +1,26 @@
+
+Array.from(
+  document.querySelectorAll('.currency[data-value][data-currency]')
+).forEach(function (x) {
+  x.textContent = Intl.NumberFormat(navigator.language, {
+    style: 'currency',
+    currency: x.dataset.currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+    useGrouping: true
+  }).format(x.dataset.value / 100);
+});
+
+const checkout = new window.YooMoneyCheckoutWidget({
+  confirmation_token: #{token},
+  return_url: '@{bookDetailsR}',
+  error_callback: function (error) {
+    
+    const banner = document.getElementById(#{idBannerYookassa});
+    banner.textContent = messageText;
+    banner.style.display = 'block';
+    
+  }
+});
+
+checkout.render(#{idPaymentForm});

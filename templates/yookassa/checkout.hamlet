@@ -1,0 +1,33 @@
+
+<header.background>
+  <md-icon-button type=link href=#{ult} aria-label=_{MsgBack}>
+    <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgCheckout}
+
+<main>
+
+  $forall (_,msg) <- filter ((==) statusError . fst) msgs
+    <div.app-banner.error.body-medium>
+      #{msg}
+
+  <div.error role=banner ##{idBannerYookassa}>
+
+  <section ##{idSectionPriceTag}>
+    <h4.hint>_{MsgPaymentAmount}
+    <div.currency data-value=#{cents} data-currency=#{currency}>
+      #{currency}#{cents}
+      
+  <div ##{idPaymentForm}>
+
+  <md-text-button type=link href=#{ult}>
+    _{MsgCancel}
+
+  $forall (status,msg) <- filter ((/=) statusError . fst) msgs
+    <aside.app-snackbar.shape-small.elevation-1
+      :status == statusSuccess:.primary-container :status /= statusSuccess:.error-container>
+      <md-elevation>
+      <span.body-medium>#{msg}
+      <md-icon-button type=button>
+        <md-icon>close

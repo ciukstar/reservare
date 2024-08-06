@@ -51,6 +51,15 @@ import qualified Network.Wreq as W (get, responseHeader, responseBody)
 import Network.Wreq (defaults, auth, oauth2Bearer, postWith, post, FormParam ((:=)))
 import qualified Network.Wreq.Lens as WL
 
+import Stripe.Data
+    ( Stripe, StripeMessage, defaultStripeMessage, englishStripeMessage
+    , frenchStripeMessage, romanianStripeMessage, russianStripeMessage
+    , YesodStripe
+      ( getUserEmail, getStripeConfPk, getStripeConfSk, getHomeR
+      , getBookDetailsR
+      )
+    )
+
 import System.Directory (doesFileExist)
 import System.IO (readFile')
 
@@ -99,6 +108,7 @@ import Yesod.Form.I18n.French (frenchFormMessage)
 import Yesod.Form.I18n.Romanian (romanianFormMessage)
 import Yesod.Form.I18n.Russian (russianFormMessage)
 import Data.Time.Calendar.Month (Month)
+import Yookassa.Data (YesodYookassa (getHomeR, getYookassaConfShopId, getBookDetailsR, getYookassaConfSecret), YookassaMessage, defaultYookassaMessage, englishYookassaMessage, frenchYookassaMessage, romanianYookassaMessage, russianYookassaMessage, Yookassa)
 
 
 -- | The foundation datatype for your application. This can be a good place to
@@ -111,6 +121,8 @@ data App = App
     , appConnPool    :: ConnectionPool -- ^ Database connection pool.
     , appHttpManager :: Manager
     , appLogger      :: Logger
+    , getStripe      :: Stripe
+    , getYookassa    :: Yookassa
     }
 
 mkMessage "App" "messages" "en"
@@ -183,8 +195,9 @@ instance Yesod App where
 
 
     isAuthorized :: Route App -> Bool -> Handler AuthResult
-
-
+    
+    isAuthorized (YookassaR _) _ = isAuthenticated
+    isAuthorized (StripeR _) _ = isAuthenticated
     
     isAuthorized r@(AppointmentDetailsR _) _ = setUltDest r >> return Authorized
     
@@ -193,22 +206,13 @@ instance Yesod App where
     isAuthorized r@(AppointmentPaymentIntentCancelR _) _ = setUltDest r >> return Authorized
     isAuthorized r@(AppointmentPaymentIntentR _ _ _) _ = setUltDest r >> return Authorized
     isAuthorized r@(AppointmentPayCompletionR _) _ = setUltDest r >> return Authorized
-    isAuthorized r@(AppointmentCheckoutR _) _ = setUltDest r >> return Authorized
     isAuthorized r@AppointmentPaymentR _ = setUltDest r >> return Authorized
     isAuthorized r@(AppointmentTimeSlotsR _) _ = setUltDest r >> return Authorized
     isAuthorized r@(AppointmentTimingR _) _ = setUltDest r >> return Authorized
     isAuthorized r@AppointmentStaffR _ = setUltDest r >> return Authorized
-
-
-    
-    isAuthorized (BookCheckoutYookassaR _ _) _ = isAuthenticated
-    
+        
     isAuthorized (BookDetailsR _) _ = isAuthenticated
     isAuthorized (BookPayAtVenueCompletionR _) _ = isAuthenticated
-    isAuthorized (BookPaymentIntentCancelR _) _ = isAuthenticated
-    isAuthorized (BookPaymentIntentR _ _ _) _ = isAuthenticated
-    isAuthorized (BookPayCompletionR _ _) _ = isAuthenticated
-    isAuthorized (BookCheckoutR _ _) _ = isAuthenticated
     isAuthorized r@BookPaymentR _ = setUltDest r >> return Authorized
     isAuthorized r@(BookTimeSlotsR _) _ = setUltDest r >> return Authorized
     isAuthorized r@(BookTimingR _) _ = setUltDest r >> return Authorized
@@ -952,6 +956,60 @@ instance RenderMessage App FormMessage where
 instance HasHttpManager App where
     getHttpManager :: App -> Manager
     getHttpManager = appHttpManager
+
+
+instance RenderMessage App StripeMessage where
+    renderMessage :: App -> [Lang] -> StripeMessage -> Text
+    renderMessage _ [] = defaultStripeMessage
+    renderMessage _ ("en":_) = englishStripeMessage
+    renderMessage _ ("fr":_) = frenchStripeMessage
+    renderMessage _ ("ro":_) = romanianStripeMessage
+    renderMessage _ ("ru":_) = russianStripeMessage
+    renderMessage app (_:xs) = renderMessage app xs
+
+
+instance YesodStripe App where
+    getHomeR :: HandlerFor App (Route App)
+    getHomeR = return HomeR
+    
+    getUserEmail :: HandlerFor App (Maybe Text)
+    getUserEmail = do
+        user <- maybeAuth
+        return $ userEmail . entityVal <$> user
+        
+    getStripeConfPk :: HandlerFor App Text
+    getStripeConfPk = stripeConfPk . appStripeConf . appSettings <$> getYesod
+        
+    getStripeConfSk :: HandlerFor App Text
+    getStripeConfSk = stripeConfSk . appStripeConf . appSettings <$> getYesod
+    
+    getBookDetailsR :: BookId -> HandlerFor App (Route App)
+    getBookDetailsR bid = return $ BookDetailsR bid
+
+
+instance RenderMessage App YookassaMessage where
+    renderMessage :: App -> [Lang] -> YookassaMessage -> Text
+    renderMessage _ [] = defaultYookassaMessage
+    renderMessage _ ("en":_) = englishYookassaMessage
+    renderMessage _ ("fr":_) = frenchYookassaMessage
+    renderMessage _ ("ro":_) = romanianYookassaMessage
+    renderMessage _ ("ru":_) = russianYookassaMessage
+    renderMessage app (_:xs) = renderMessage app xs
+
+
+instance YesodYookassa App where
+    getHomeR :: HandlerFor App (Route App)
+    getHomeR = return HomeR
+    
+    getYookassaConfShopId :: HandlerFor App Text
+    getYookassaConfShopId = yookassaConfShopId . appYookassaConf . appSettings <$> getYesod
+        
+    getYookassaConfSecret :: HandlerFor App Text
+    getYookassaConfSecret = yookassaConfSecret . appYookassaConf . appSettings <$> getYesod
+    
+    getBookDetailsR :: BookId -> HandlerFor App (Route App)
+    getBookDetailsR bid = return $ BookDetailsR bid
+    
 
 unsafeHandler :: App -> Handler a -> IO a
 unsafeHandler = Unsafe.fakeHandlerGetLogger appLogger

@@ -2,26 +2,22 @@
 -- Syntax for this file here: https://www.yesodweb.com/book/routing-and-handlers
 
 
+/yookassa YookassaR Yookassa getYookassa 
+/stripe   StripeR   Stripe   getStripe 
+
 /appointments/#BookId/details                 AppointmentDetailsR              GET
 /appointments/#BookId/pay/at/venue/completion AppointmentPayAtVenueCompletionR GET
 /appointments/#BookId/pay/cancel              AppointmentPaymentIntentCancelR  POST
 /appointments/#BookId/pay/intent/#Int/#Text   AppointmentPaymentIntentR        POST
 /appointments/#BookId/completion              AppointmentPayCompletionR        GET
-/appointments/#BookId/checkout                AppointmentCheckoutR             GET
 /appointment/payment                          AppointmentPaymentR              GET POST
 /appointment/timing/#Day/slots                AppointmentTimeSlotsR            GET POST
 /appointment/timing/#Month                    AppointmentTimingR               GET POST
 /appointment/staff                            AppointmentStaffR                GET POST
 
 
-/books/#BookId/#PayOptionId/checkout/yookassa BookCheckoutYookassaR GET
-
 /books/#BookId/details                 BookDetailsR              GET
 /books/#BookId/pay/at/venue/completion BookPayAtVenueCompletionR GET
-/books/#BookId/pay/cancel              BookPaymentIntentCancelR  POST
-/books/#BookId/pay/intent/#Int/#Text   BookPaymentIntentR        POST
-/books/#BookId/#PayOptionId/completion BookPayCompletionR        GET
-/books/#BookId/#PayOptionId/checkout   BookCheckoutR             GET
 /book/payment                          BookPaymentR              GET POST
 /book/timing/#Day/slots                BookTimeSlotsR            GET POST
 /book/timing/#Month                    BookTimingR               GET POST
