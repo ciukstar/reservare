@@ -19,7 +19,7 @@ import Data.Aeson (object, (.=), Value (String, Number))
 import Data.Aeson.Lens ( AsValue(_String), key)
 import Data.Function ((&))
 import Data.Maybe (fromMaybe)
-import Data.Text (unpack, pack)
+import Data.Text (unpack, pack, Text)
 import Data.Text.Encoding (encodeUtf8)
 import Data.Time.Clock (getCurrentTime)
 import Data.UUID.V4 (nextRandom)
@@ -27,10 +27,11 @@ import Data.UUID (toASCIIBytes)
 
 import Database.Esqueleto.Experimental
     ( selectOne, from, table, innerJoin, on, where_, val
-    , (:&) ((:&)), (^.), (==.)
+    , (:&) ((:&)), (^.), (==.), (=.)
+    , update, set
     )
 import Database.Persist (Entity(Entity))
-import Database.Persist.Sql (SqlBackend, insert_)
+import Database.Persist.Sql (SqlBackend, insert)
 
 import Model
     ( endpointYookassa
@@ -44,8 +45,8 @@ import Model
       )
     , EntityField
       ( BookId, BookService, ServiceId, ServiceWorkspace, WorkspaceId
-      , ServiceAvailable
-      )
+      , ServiceAvailable, PaymentStatus, PaymentId
+      ), PaymentId
     )
 
 import Network.HTTP.Client
@@ -54,24 +55,12 @@ import Network.HTTP.Client
     )
 import Network.Wreq
     ( postWith, responseBody, auth, defaults, basicAuth
-    , header
+    , header, getWith
     )
     
 import Settings (widgetFile)
 
-import Yookassa.Data
-    ( Yookassa, resourcesYookassa
-    , YesodYookassa
-      ( getYookassaConfShopId, getYookassaConfSecret
-      , getBookDetailsR, getHomeR
-      )
-    , Route
-      (CheckoutR)
-    , YookassaMessage
-      ( MsgBack, MsgCheckout, MsgPaymentAmount, MsgCancel
-      , MsgYooKassa, MsgUnhandledError, MsgInvalidPaymentAmount
-      )
-    )
+import Text.Read (readMaybe)
 
 import Yesod.Core
     ( YesodSubDispatch (yesodSubDispatch), Application
@@ -79,11 +68,54 @@ import Yesod.Core
     , MonadHandler (liftHandler), addScriptRemote, setTitleI, newIdent
     , getUrlRender, getMessages
     , MonadIO (liftIO), addMessage, toHtml, addMessageI
-    , lookupSession, invalidArgs, invalidArgsI
+    , lookupSession, invalidArgs, invalidArgsI, getRouteToParent
     )
 import Yesod.Core.Types (YesodSubRunnerEnv)
 import Yesod.Persist.Core (YesodPersist(runDB, YesodPersistBackend))
-import Text.Read (readMaybe)
+
+import Yookassa.Data
+    ( Yookassa, resourcesYookassa
+    , YesodYookassa
+      ( getYookassaConfShopId, getYookassaConfSecret
+      , getBookDetailsR, getHomeR
+      )
+    , Route (CheckoutR, CompletionR)
+    , YookassaMessage
+      ( MsgBack, MsgCheckout, MsgPaymentAmount, MsgCancel
+      , MsgYooKassa, MsgUnhandledError, MsgInvalidPaymentAmount
+      , MsgYourBookingHasBeenCreatedSuccessfully, MsgPaymentStatus
+      , MsgViewBookingDetails, MsgReturnToHomePage, MsgFinish
+      )
+    )
+
+
+getCompletionR :: (YesodYookassa m, YesodPersist m, YesodPersistBackend m ~ SqlBackend)
+               => BookId -> PaymentId -> Text -> SubHandlerFor Yookassa m Html
+getCompletionR bid pid paymentId = do
+
+    shopid <- liftHandler $ encodeUtf8 <$> getYookassaConfShopId
+    secret <- liftHandler $ encodeUtf8 <$> getYookassaConfSecret
+
+    response <- liftIO $ getWith
+              ( defaults & auth ?~ basicAuth shopid secret )
+              ( unpack (endpointYookassa <> "/" <> paymentId) )
+
+    -- Payment status: "pending", "waiting_for_capture", "succeeded", "canceled"
+    let status = response L.^. responseBody . key "status" . _String
+
+    
+    liftHandler $ runDB $ update $ \x -> do
+        set x [PaymentStatus =. val status]
+        where_ $ x ^. PaymentId ==. val pid
+    
+    homeR <- liftHandler getHomeR
+    bookDetailsR <- liftHandler $ getBookDetailsR bid
+
+    addMessageI statusSuccess MsgYourBookingHasBeenCreatedSuccessfully
+    msgs <- getMessages
+    liftHandler $ defaultLayout $ do
+        setTitleI MsgPaymentStatus
+        $(widgetFile "gateways/yookassa/completion")
 
 
 getCheckoutR :: (YesodYookassa m, YesodPersist m, YesodPersistBackend m ~ SqlBackend)
@@ -105,7 +137,7 @@ getCheckoutR bid oid = do
           homeR <- liftHandler getHomeR
           
           shopid <- liftHandler $ encodeUtf8 <$> getYookassaConfShopId
-          secret <- liftHandler $ encodeUtf8 <$> getYookassaConfSecret 
+          secret <- liftHandler $ encodeUtf8 <$> getYookassaConfSecret
 
           idempotenceKey <- liftIO nextRandom
 
@@ -131,14 +163,14 @@ getCheckoutR bid oid = do
                   msgs <- getMessages
                   liftHandler $ defaultLayout $ do
                       setTitleI MsgCheckout 
-                      $(widgetFile "yookassa/error")
+                      $(widgetFile "gateways/yookassa/error")
 
               _otherwise -> do
                   addMessageI statusError MsgUnhandledError
                   msgs <- getMessages
                   liftHandler $ defaultLayout $ do
                       setTitleI MsgCheckout
-                      $(widgetFile "yookassa/error")
+                      $(widgetFile "gateways/yookassa/error")
 
             Right r -> do
                 now <- liftIO getCurrentTime
@@ -152,20 +184,20 @@ getCheckoutR bid oid = do
                 case (truncate . (*100) <$>) . readMaybe @Double . unpack $ amountValue of
                   Nothing -> invalidArgsI [MsgInvalidPaymentAmount]
                   Just amount -> do
-                    liftHandler $ runDB $ insert_ $ Payment { paymentBook = bid
-                                                            , paymentOption = oid
-                                                            , paymentTime = now
-                                                            , paymentAmount = amount
-                                                            , paymentCurrency = amountCurrency
-                                                            , paymentIdetifier = paymentId
-                                                            , paymentStatus = status
-                                                            , paymentError = Nothing
-                                                            }
+                    pid <- liftHandler $ runDB $ insert $ Payment { paymentBook = bid
+                                                                  , paymentOption = oid
+                                                                  , paymentTime = now
+                                                                  , paymentAmount = amount
+                                                                  , paymentCurrency = amountCurrency
+                                                                  , paymentIdetifier = paymentId
+                                                                  , paymentStatus = status
+                                                                  , paymentError = Nothing
+                                                                  }
 
                     msgs <- getMessages
                     rndr <- getUrlRender
                     ult <- fromMaybe (rndr homeR) <$> lookupSession ultDestKey
-                    bookDetailsR <- liftHandler $ getBookDetailsR bid
+                    rtp <- getRouteToParent
                     
                     liftHandler $ defaultLayout $ do
                         setTitleI MsgCheckout
@@ -173,7 +205,7 @@ getCheckoutR bid oid = do
                         idSectionPriceTag <- newIdent
                         idPaymentForm <- newIdent
                         addScriptRemote "https://yookassa.ru/checkout-widget/v1/checkout-widget.js"
-                        $(widgetFile "yookassa/checkout")
+                        $(widgetFile "gateways/yookassa/checkout")
 
 
         

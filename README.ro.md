@@ -50,6 +50,16 @@ Un cont de superutilizator este definit în momentul implementării. Superutiliz
 
   Pentru a simula plățile pe care emitentul le refuză, utilizați carduri de testare din [următoarea listă](https://stripe.com/docs/testing?testing-method=card-numbers#declined-payments).
 
+* Gateway de plată: [YooKassa](https://yookassa.ru/)
+  * ID magazin  
+    ```$YESOD_YOOKASSA_SHOP_ID```
+  * Cheie secretă  
+    ```$YESOD_YOOKASSA_SECRET_KEY```
+
+  Pentru a simula o plată reușită, utilizați carduri de test din [lista următoare](https://yookassa.ru/developers/payment-acceptance/testing-and-going-live/testing#test-bank-card-success).
+
+  Pentru a simula plățile pe care emitentul le refuză, utilizați carduri de testare din [următoarea listă](https://yookassa.ru/developers/payment-acceptance/testing-and-going-live/testing#test-bank-card-cancellation-details).
+
 ## Optimizare motor de căutare
 * Google SEO  
   ```$YESOD_GOOGLE_SITE_VERIFICATION```

@@ -21,6 +21,9 @@ module Application
     , db
     ) where
 
+import AtVenue ()
+import AtVenue.Data (AtVenue(AtVenue))
+
 import Control.Monad.Logger (liftLoc, runLoggingT)
 import Database.Persist.Sqlite
     ( runSqlPool, sqlDatabase, createSqlitePoolWithConfig )
@@ -54,10 +57,6 @@ import Handler.Appointments
     , getAppointmentTimingR, postAppointmentTimingR
     , getAppointmentTimeSlotsR, postAppointmentTimeSlotsR
     , getAppointmentPaymentR, postAppointmentPaymentR
-    , getAppointmentPayCompletionR
-    , postAppointmentPaymentIntentR, postAppointmentPaymentIntentCancelR
-    , getAppointmentPayAtVenueCompletionR
-    , getAppointmentDetailsR
     )
 
 import Handler.Booking
@@ -66,7 +65,6 @@ import Handler.Booking
     , getBookTimingR, postBookTimingR
     , getBookTimeSlotsR, postBookTimeSlotsR
     , getBookPaymentR, postBookPaymentR
-    , getBookPayAtVenueCompletionR
     , getBookDetailsR
     )
 
@@ -181,6 +179,7 @@ makeFoundation appSettings = do
         (if appMutableStatic appSettings then staticDevel else static)
         (appStaticDir appSettings)
 
+    let getAtVenue = AtVenue
     let getStripe = Stripe
     let getYookassa = Yookassa
 

@@ -1,3 +1,7 @@
+ShopId: Идентификатор магазина
+Payments: Платежи
+NoPaymentsHaveBeenMadeYet: Платежи пока не производились
+TotalCharge: Общая стоимость
 InvalidPaymentAmount: Неверная сумма платежа
 UnhandledError: Необработанная ошибка
 PaymentGatewayNotSpecified: Платежный шлюз не указан

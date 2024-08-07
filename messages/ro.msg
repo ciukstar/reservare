@@ -1,3 +1,7 @@
+ShopId: ID magazin
+Payments: Plăți
+NoPaymentsHaveBeenMadeYet: Încă nu au fost efectuate plăți
+TotalCharge: Taxa totală
 InvalidPaymentAmount: Sumă de plată nevalidă
 UnhandledError: Eroare nerezolvată
 PaymentGatewayNotSpecified: Poarta de plată nu este specificată

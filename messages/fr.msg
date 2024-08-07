@@ -1,3 +1,7 @@
+ShopId: ID de la boutique
+Payments: Paiements
+NoPaymentsHaveBeenMadeYet: Aucun paiement n'a encore été effectué
+TotalCharge: Charge totale
 InvalidPaymentAmount: Montant du paiement incorrect
 UnhandledError: Erreur non gérée
 PaymentGatewayNotSpecified: Passerelle de paiement non spécifiée

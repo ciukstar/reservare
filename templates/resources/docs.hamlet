@@ -80,10 +80,29 @@
           <dd.md-typescale-body-small>
             <code>&dollar;YESOD_STRIPE_SK
             
-        <p>
+        <p.md-typescale-body-small>
           #{t $ MsgDoc008 "https://stripe.com/docs/testing?testing-method=card-numbers#cards"}
-        <p>
+        <p.md-typescale-body-small>
           #{t $ MsgDoc009 "https://stripe.com/docs/testing?testing-method=card-numbers#declined-payments"}
+            
+      <li.md-typescale-body-large>
+        _{MsgPaymentGateway}:
+        <a href="https://yookassa.ru" target=_blank>_{MsgYooKassa}
+        <dl>
+          <dt.md-typescale-label-large>
+            _{MsgShopId}
+          <dd.md-typescale-body-small>
+            <code>&dollar;YESOD_YOOKASSA_SHOP_ID
+
+          <dt.md-typescale-label-large>
+            _{MsgSecretKey}
+          <dd.md-typescale-body-small>
+            <code>&dollar;YESOD_YOOKASSA_SECRET_KEY
+            
+        <p.md-typescale-body-small>
+          #{t $ MsgDoc008 "https://yookassa.ru/developers/payment-acceptance/testing-and-going-live/testing#test-bank-card-success"}
+        <p.md-typescale-body-small>
+          #{t $ MsgDoc009 "https://yookassa.ru/developers/payment-acceptance/testing-and-going-live/testing#test-bank-card-cancellation-details"}
 
   <section>
     <h2.md-typescale-headline-medium>_{MsgSearchEngineOptimization}

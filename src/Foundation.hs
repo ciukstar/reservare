@@ -108,7 +108,19 @@ import Yesod.Form.I18n.French (frenchFormMessage)
 import Yesod.Form.I18n.Romanian (romanianFormMessage)
 import Yesod.Form.I18n.Russian (russianFormMessage)
 import Data.Time.Calendar.Month (Month)
-import Yookassa.Data (YesodYookassa (getHomeR, getYookassaConfShopId, getBookDetailsR, getYookassaConfSecret), YookassaMessage, defaultYookassaMessage, englishYookassaMessage, frenchYookassaMessage, romanianYookassaMessage, russianYookassaMessage, Yookassa)
+
+import Yookassa.Data
+    ( YesodYookassa (getHomeR, getYookassaConfShopId, getBookDetailsR, getYookassaConfSecret)
+    , YookassaMessage, Yookassa
+    , defaultYookassaMessage, englishYookassaMessage, frenchYookassaMessage
+    , romanianYookassaMessage, russianYookassaMessage
+    )
+    
+import AtVenue.Data
+    ( AtVenue, AtVenueMessage
+    , YesodAtVenue (getHomeR, getBookDetailsR), defaultAtVenueMessage, englishAtVenueMessage
+    , frenchAtVenueMessage, romanianAtVenueMessage, russianAtVenueMessage
+    )
 
 
 -- | The foundation datatype for your application. This can be a good place to
@@ -121,6 +133,7 @@ data App = App
     , appConnPool    :: ConnectionPool -- ^ Database connection pool.
     , appHttpManager :: Manager
     , appLogger      :: Logger
+    , getAtVenue     :: AtVenue
     , getStripe      :: Stripe
     , getYookassa    :: Yookassa
     }
@@ -198,21 +211,15 @@ instance Yesod App where
     
     isAuthorized (YookassaR _) _ = isAuthenticated
     isAuthorized (StripeR _) _ = isAuthenticated
+    isAuthorized (AtVenueR _) _ = isAuthenticated
     
-    isAuthorized r@(AppointmentDetailsR _) _ = setUltDest r >> return Authorized
     
-    isAuthorized r@(AppointmentPayAtVenueCompletionR _) _ = setUltDest r >> return Authorized
-    
-    isAuthorized r@(AppointmentPaymentIntentCancelR _) _ = setUltDest r >> return Authorized
-    isAuthorized r@(AppointmentPaymentIntentR _ _ _) _ = setUltDest r >> return Authorized
-    isAuthorized r@(AppointmentPayCompletionR _) _ = setUltDest r >> return Authorized
     isAuthorized r@AppointmentPaymentR _ = setUltDest r >> return Authorized
     isAuthorized r@(AppointmentTimeSlotsR _) _ = setUltDest r >> return Authorized
     isAuthorized r@(AppointmentTimingR _) _ = setUltDest r >> return Authorized
     isAuthorized r@AppointmentStaffR _ = setUltDest r >> return Authorized
         
     isAuthorized (BookDetailsR _) _ = isAuthenticated
-    isAuthorized (BookPayAtVenueCompletionR _) _ = isAuthenticated
     isAuthorized r@BookPaymentR _ = setUltDest r >> return Authorized
     isAuthorized r@(BookTimeSlotsR _) _ = setUltDest r >> return Authorized
     isAuthorized r@(BookTimingR _) _ = setUltDest r >> return Authorized
@@ -956,6 +963,24 @@ instance RenderMessage App FormMessage where
 instance HasHttpManager App where
     getHttpManager :: App -> Manager
     getHttpManager = appHttpManager
+
+
+instance RenderMessage App AtVenueMessage where
+    renderMessage :: App -> [Lang] -> AtVenueMessage -> Text
+    renderMessage _ [] = defaultAtVenueMessage
+    renderMessage _ ("en":_) = englishAtVenueMessage
+    renderMessage _ ("fr":_) = frenchAtVenueMessage
+    renderMessage _ ("ro":_) = romanianAtVenueMessage
+    renderMessage _ ("ru":_) = russianAtVenueMessage
+    renderMessage app (_:xs) = renderMessage app xs
+
+
+instance YesodAtVenue App where
+    getHomeR :: HandlerFor App (Route App)
+    getHomeR = return HomeR
+    
+    getBookDetailsR :: BookId -> HandlerFor App (Route App)
+    getBookDetailsR bid = return $ BookDetailsR bid
 
 
 instance RenderMessage App StripeMessage where

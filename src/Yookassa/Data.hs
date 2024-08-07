@@ -9,7 +9,7 @@ module Yookassa.Data where
 
 import Data.Text (Text)
 
-import Model (BookId, PayOptionId)
+import Model (BookId, PayOptionId, PaymentId)
 
 import Yesod.Core
     ( RenderRoute(renderRoute, Route), Yesod, HandlerFor
@@ -23,7 +23,8 @@ data Yookassa = Yookassa
 
 
 mkYesodSubData "Yookassa" [parseRoutes|
-/checkout/#BookId/#PayOptionId CheckoutR GET
+/completion/#BookId/#PaymentId/#Text CompletionR GET
+/checkout/#BookId/#PayOptionId       CheckoutR   GET
 |]
 
 

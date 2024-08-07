@@ -13,10 +13,10 @@ module Handler.Booking
   , getBookTimingR, postBookTimingR
   , getBookTimeSlotsR, postBookTimeSlotsR
   , getBookPaymentR, postBookPaymentR
-  , getBookPayAtVenueCompletionR
   , getBookDetailsR
   ) where
 
+import qualified AtVenue.Data as V (Route(CheckoutR))
 
 import Control.Monad (when, unless, forM_)
 
@@ -47,26 +47,21 @@ import Foundation
     ( Handler, Form, App
     , Route
       ( HomeR, BookServicesR, BookStaffR, BookTimingR, BookTimeSlotsR
-      , BookPaymentR
-      , AuthR, BookPayAtVenueCompletionR
-      , BookDetailsR, StripeR, YookassaR
+      , BookPaymentR, AuthR, StripeR, YookassaR, AtVenueR
       )
     , AppMessage
       ( MsgServices, MsgNext, MsgServices, MsgThereAreNoDataYet
       , MsgBack, MsgStaff, MsgBusiness, MsgWorkspace, MsgAppointmentTime
-      , MsgPaymentMethod
-      , MsgCancel
-      , MsgPaymentStatus, MsgReturnToHomePage
-      , MsgYourBookingHasBeenCreatedSuccessfully, MsgViewBookingDetails
-      , MsgFinish, MsgService, MsgEmployee, MsgSelect, MsgSelectTime
+      , MsgPaymentOption, MsgCancel, MsgPaymentStatus, MsgReturnToHomePage
+      , MsgService, MsgEmployee, MsgSelect, MsgSelectTime
       , MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
       , MsgAppointmentSetFor, MsgSelectAvailableDayAndTimePlease
       , MsgEmployeeScheduleNotGeneratedYet, MsgNoEmployeesAvailableNow
       , MsgPrevious, MsgNoServicesWereFoundForSearchTerms, MsgInvalidFormData
       , MsgEmployeeWorkScheduleForThisMonthNotSetYet, MsgBookingDetails
       , MsgPrice, MsgMobile, MsgPhone, MsgLocation, MsgAddress, MsgFullName
-      , MsgTheAppointment, MsgTheName
-      , MsgDuration, MsgPaymentGatewayNotSpecified
+      , MsgTheAppointment, MsgTheName, MsgDuration, MsgPaymentGatewayNotSpecified
+      , MsgNoPaymentsHaveBeenMadeYet, MsgPayments, MsgTotalCharge
       )
     )
 
@@ -95,8 +90,8 @@ import Model
       , AssignmentSlotInterval, ScheduleAssignment, AssignmentId
       , ScheduleDay, BookId, BookService, BookStaff
       , ServiceAvailable, PayOptionWorkspace
-      , PayOptionId, ServicePrice, WorkspaceCurrency
-      )
+      , PayOptionId, ServicePrice, WorkspaceCurrency, PaymentBook, PaymentOption
+      ), Payment (Payment)
     )
 
 import Settings ( widgetFile )
@@ -152,19 +147,16 @@ getBookDetailsR bid = do
         where_ $ s ^. ServiceAvailable ==. val True
         return (x,(s,(w,e)))
 
+    payments <- runDB $ select $ do
+        x :& o <- from $ table @Payment
+            `innerJoin` table @PayOption `on` (\(x :& o) -> x ^. PaymentOption ==. o ^. PayOptionId)
+        where_ $ x ^. PaymentBook ==. val bid
+        return (x,o)
+
     msgs <- getMessages
     defaultLayout $ do
-        setTitleI MsgPaymentStatus
+        setTitleI MsgPaymentStatus 
         $(widgetFile "book/details/details")
-
-
-getBookPayAtVenueCompletionR :: BookId -> Handler Html
-getBookPayAtVenueCompletionR bid = do
-
-    msgs <- getMessages
-    defaultLayout $ do
-        setTitleI MsgPaymentStatus
-        $(widgetFile "book/completion/venue/completion")
 
 
 postBookPaymentR :: Handler Html
@@ -246,13 +238,13 @@ postBookPaymentR = do
                                              , bookCharge = charge
                                              , bookCurrency = currency
                                              }
-                redirect $ BookPayAtVenueCompletionR bid
+                redirect (AtVenueR $ V.CheckoutR bid oid')
                 
             (_,Just (Entity _ (PayOption _ PayNow _ Nothing _ _))) -> do
                 addMessageI statusError MsgPaymentGatewayNotSpecified
                 msgs <- getMessages
                 defaultLayout $ do
-                    setTitleI MsgPaymentMethod
+                    setTitleI MsgPaymentOption
                     idFormPayment <- newIdent
                     idFabNext <- newIdent
                     $(widgetFile "book/payment/payment")
@@ -261,7 +253,7 @@ postBookPaymentR = do
                 addMessageI statusError MsgInvalidFormData
                 msgs <- getMessages
                 defaultLayout $ do
-                    setTitleI MsgPaymentMethod
+                    setTitleI MsgPaymentOption
                     idFormPayment <- newIdent
                     idFabNext <- newIdent
                     $(widgetFile "book/payment/payment")
@@ -270,7 +262,7 @@ postBookPaymentR = do
           forM_ errs $ \err -> addMessageI statusError err
           msgs <- getMessages
           defaultLayout $ do
-              setTitleI MsgPaymentMethod
+              setTitleI MsgPaymentOption
               idFormPayment <- newIdent
               idFabNext <- newIdent
               $(widgetFile "book/payment/payment")
@@ -279,7 +271,7 @@ postBookPaymentR = do
           addMessageI statusError MsgInvalidFormData
           msgs <- getMessages
           defaultLayout $ do
-              setTitleI MsgPaymentMethod
+              setTitleI MsgPaymentOption
               idFormPayment <- newIdent
               idFabNext <- newIdent
               $(widgetFile "book/payment/payment")
@@ -300,7 +292,7 @@ getBookPaymentR = do
 
     msgs <- getMessages
     defaultLayout $ do
-        setTitleI MsgPaymentMethod
+        setTitleI MsgPaymentOption
         idFormPayment <- newIdent
         idFabNext <- newIdent
         $(widgetFile "book/payment/payment")

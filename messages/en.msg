@@ -1,3 +1,7 @@
+ShopId: Shop ID
+Payments: Payments
+NoPaymentsHaveBeenMadeYet: No payments have been made yet
+TotalCharge: Total charge
 InvalidPaymentAmount: Invalid payment amount
 UnhandledError: Unhandled error
 PaymentGatewayNotSpecified: Payment gateway not specified

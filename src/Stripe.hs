@@ -19,6 +19,7 @@ import Data.Aeson (object, (.=))
 import qualified Data.Aeson as A (Value)
 import Data.Aeson.Lens ( AsValue(_String), key, AsNumber (_Integer))
 import Data.Aeson.Text (encodeToLazyText)
+import qualified Data.ByteString as BS (empty)
 import Data.Function ((&))
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Sum(getSum, Sum))
@@ -28,10 +29,10 @@ import Data.Text.Encoding (encodeUtf8)
 
 import Database.Esqueleto.Experimental
     ( select, from, table, innerJoin, on, where_, val
-    , (:&) ((:&)), (^.), (==.), SqlBackend
+    , (:&) ((:&)), (^.), (==.)
     )
 import Database.Persist (Entity(Entity))
-import Database.Persist.Sql (insert_)
+import Database.Persist.Sql (SqlBackend, insert_)
 
 import Model
     ( endpointStripePaymentIntents, endpointStripePaymentIntentCancel
@@ -94,7 +95,6 @@ import Yesod.Persist.Core (YesodPersist(runDB, YesodPersistBackend))
 import ClassyPrelude (getCurrentTime)
 import Yesod.Form.Input (runInputGet, ireq)
 import Yesod.Form.Fields (textField)
-import qualified Data.ByteString as BS (empty)
 
 
 postCancelR :: (YesodStripe m) => SubHandlerFor Stripe m Html
@@ -133,14 +133,14 @@ getCompletionR bid oid = do
             msgs <- getMessages
             liftHandler $ defaultLayout $ do
                 setTitleI MsgCheckout
-                $(widgetFile "stripe/error")
+                $(widgetFile "gateways/stripe/error")
 
         _otherwise -> do
             addMessageI statusError MsgUnhandledError
             msgs <- getMessages
             liftHandler $ defaultLayout $ do
                 setTitleI MsgCheckout
-                $(widgetFile "stripe/error")
+                $(widgetFile "gateways/stripe/error")
             
       Right r -> case r ^? responseBody . key "status" . _String of
         Just s@"succeeded" -> do
@@ -155,25 +155,25 @@ getCompletionR bid oid = do
                 msgs <- getMessages
                 liftHandler $ defaultLayout $ do
                     setTitleI MsgStripe
-                    $(widgetFile "stripe/error")
+                    $(widgetFile "gateways/stripe/error")
               Just amount -> do
                 now <- liftIO getCurrentTime
 
                 liftHandler $ runDB $ insert_ $ Payment { paymentBook = bid
-                                          , paymentOption = oid
-                                          , paymentTime = now
-                                          , paymentAmount = amount
-                                          , paymentCurrency = currency
-                                          , paymentIdetifier = intentId
-                                          , paymentStatus = s
-                                          , paymentError = Nothing
-                                          }
+                                                        , paymentOption = oid
+                                                        , paymentTime = now
+                                                        , paymentAmount = amount
+                                                        , paymentCurrency = currency
+                                                        , paymentIdetifier = intentId
+                                                        , paymentStatus = s
+                                                        , paymentError = Nothing
+                                                        }
 
                 addMessageI statusSuccess MsgYourBookingHasBeenCreatedSuccessfully
                 msgs <- getMessages
                 liftHandler $ defaultLayout $ do
                     setTitleI MsgPaymentStatus
-                    $(widgetFile "stripe/completion")
+                    $(widgetFile "gateways/stripe/completion")
 
         Just s -> do
                 
@@ -181,14 +181,14 @@ getCompletionR bid oid = do
             msgs <- getMessages
             liftHandler $ defaultLayout $ do
                 setTitleI MsgStripe
-                $(widgetFile "stripe/error")
+                $(widgetFile "gateways/stripe/error")
                 
         Nothing -> do                
             addMessageI statusError MsgSomethingWentWrong
             msgs <- getMessages
             liftHandler $ defaultLayout $ do
                 setTitleI MsgStripe
-                $(widgetFile "stripe/error")
+                $(widgetFile "gateways/stripe/error")
 
 
 postIntentR :: (YesodStripe m) => Int -> Text -> SubHandlerFor Stripe m A.Value
@@ -265,7 +265,7 @@ getCheckoutR bid oid = do
         idButtonSubmitPayment <- newIdent
         idButtonCancelPayment <- newIdent
         addScriptRemote scriptRemoteStripe
-        $(widgetFile "stripe/checkout")
+        $(widgetFile "gateways/stripe/checkout")
 
 
         

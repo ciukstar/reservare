@@ -51,6 +51,16 @@ Un compte superutilisateur est défini au moment du déploiement. Le superutilis
 
   Pour simuler les paiements refusés par l'émetteur, utilisez les cartes de test de la [liste suivante](https://stripe.com/docs/testing?testing-method=card-numbers#declined-payments).
 
+* Passerelle de paiement: [YooKassa](https://yookassa.ru/)
+  * ID de la boutique  
+    ```$YESOD_YOOKASSA_SHOP_ID```
+  * Clé secrète  
+    ```$YESOD_YOOKASSA_SECRET_KEY```
+
+  Pour simuler un paiement réussi, utilisez les cartes de test de la [liste suivante](https://yookassa.ru/developers/payment-acceptance/testing-and-going-live/testing#test-bank-card-success).
+
+  Pour simuler les paiements refusés par l'émetteur, utilisez les cartes de test de la [liste suivante](https://yookassa.ru/developers/payment-acceptance/testing-and-going-live/testing#test-bank-card-cancellation-details).
+
 ## Optimisation du moteur de recherche
 * Google SEO  
   ```$YESOD_GOOGLE_SITE_VERIFICATION```

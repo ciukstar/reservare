@@ -12,31 +12,17 @@ module Handler.Appointments
   , getAppointmentTimingR, postAppointmentTimingR
   , getAppointmentTimeSlotsR, postAppointmentTimeSlotsR
   , getAppointmentPaymentR, postAppointmentPaymentR
-  , getAppointmentPayCompletionR
-  , getAppointmentPayAtVenueCompletionR
-  , postAppointmentPaymentIntentR
-  , postAppointmentPaymentIntentCancelR
-  , getAppointmentDetailsR
   ) where
 
-import Control.Exception.Safe
-    (tryAny, SomeException (SomeException), Exception (fromException))
+import qualified AtVenue.Data as V (Route(CheckoutR))
 
-import Control.Lens ((^?), (?~))
-import qualified Control.Lens as L ((^.))
 import Control.Monad (when, unless, forM_)
 
-import Data.Aeson (object, (.=))
-import Data.Aeson.Lens (key, AsValue (_String))
-import qualified Data.Aeson as A (Value)
 import Data.Bifunctor (Bifunctor(first,bimap))
-import qualified Data.ByteString as BS (empty)
 import Data.Foldable (find)
-import Data.Function ((&))
 import qualified Data.Map as M (member, Map, fromListWith)
 import Data.Maybe (fromMaybe)
 import Data.Text (pack, Text, unpack)
-import Data.Text.Encoding (encodeUtf8)
 import Data.Time
     ( UTCTime (utctDay), weekFirstDay, DayOfWeek (Monday)
     , DayPeriod (periodFirstDay, periodLastDay), addDays, toGregorian
@@ -56,81 +42,58 @@ import Database.Persist (Entity (Entity), entityKey, insert)
 import Database.Persist.Sql (fromSqlKey)
 
 import Foundation
-    ( Handler, Form, App (appSettings)
+    ( Handler, Form, App
     , Route
       ( AuthR, HomeR
-      , AppointmentPayCompletionR, AppointmentPaymentIntentR
-      , AppointmentPaymentIntentCancelR, AppointmentPayAtVenueCompletionR
       , AppointmentStaffR, AppointmentTimingR, AppointmentTimeSlotsR
-      , AppointmentPaymentR, AppointmentDetailsR, StripeR
+      , AppointmentPaymentR, StripeR, YookassaR, AtVenueR
       )
     , AppMessage
       ( MsgServices, MsgNext, MsgServices, MsgThereAreNoDataYet
       , MsgBack, MsgStaff, MsgBusiness, MsgWorkspace, MsgAppointmentTime
-      , MsgPaymentMethod, MsgCheckout
-      , MsgPaymentAmount, MsgCancel, MsgPay, MsgPaymentIntentCancelled
-      , MsgSomethingWentWrong, MsgPaymentStatus, MsgReturnToHomePage
-      , MsgYourBookingHasBeenCreatedSuccessfully, MsgViewBookingDetails
-      , MsgFinish, MsgService, MsgEmployee, MsgSelect, MsgSelectTime
+      , MsgPaymentOption, MsgCancel, MsgService, MsgEmployee, MsgSelect
+      , MsgSelectTime, MsgPaymentGatewayNotSpecified, MsgRole
       , MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
       , MsgAppointmentSetFor, MsgSelectAvailableDayAndTimePlease
       , MsgEmployeeScheduleNotGeneratedYet, MsgNoEmployeesAvailableNow
-      , MsgPrevious, MsgInvalidFormData
-      , MsgEmployeeWorkScheduleForThisMonthNotSetYet, MsgBookingDetails
-      , MsgPrice, MsgMobile, MsgPhone, MsgLocation, MsgAddress, MsgFullName
-      , MsgTheAppointment, MsgTheName, MsgServiceAssignment
-      , MsgRole, MsgDuration
+      , MsgPrevious, MsgInvalidFormData, MsgServiceAssignment
+      , MsgEmployeeWorkScheduleForThisMonthNotSetYet      
       )
     )
 
 import Material3 (md3mreq)
 
 import Model
-    ( statusSuccess, statusError, scriptRemoteStripe
-    , endpointStripePaymentIntents, endpointStripePaymentIntentCancel
+    ( statusError
     , ServiceId, Service(Service)
     , WorkspaceId, Workspace (Workspace)
     , BusinessId, Business (Business)
     , AssignmentId, Assignment (Assignment)
     , StaffId, Staff (Staff)
-    , User (User), PayMethod (PayNow, PayAtVenue)
+    , PayMethod (PayNow, PayAtVenue)
     , Schedule (Schedule)
-    , BookId
     , PayOptionId, PayOption (PayOption)
     , Book
       ( Book, bookService, bookStaff, bookAppointment, bookCustomer
       , bookCharge, bookCurrency
       )
+    , PayGateway (PayGatewayStripe, PayGatewayYookassa)
     , EntityField
       ( ServiceWorkspace, WorkspaceId, WorkspaceBusiness
       , BusinessId, ServiceName, AssignmentStaff, StaffId, StaffName
       , BusinessName, WorkspaceName, ServiceId, AssignmentService
       , AssignmentSlotInterval, ScheduleAssignment, AssignmentId
-      , ScheduleDay, BookId, BookService, BookStaff
-      , AssignmentRole, ServiceAvailable, ServicePrice, WorkspaceCurrency, PayOptionId, PayOptionWorkspace
-      ), PayGateway (PayGatewayStripe, PayGatewayYookassa)
+      , ScheduleDay, PayOptionId, PayOptionWorkspace, AssignmentRole
+      , ServiceAvailable, ServicePrice, WorkspaceCurrency
+      )
     )
 
-
-import Network.HTTP.Client
-    ( HttpExceptionContent(StatusCodeException)
-    , HttpException (HttpExceptionRequest)
-    )
-import Network.Wreq
-    ( postWith, responseBody, auth, defaults, basicAuth, getWith
-    , FormParam ((:=))
-    )
-
-import Safe (headMay)
-
-import Settings
-    ( widgetFile, StripeConf (stripeConfPk, stripeConfSk)
-    , AppSettings (appStripeConf)
-    )
+import Settings (widgetFile)
+    
+import qualified Stripe.Data as S (Route(CheckoutR))
 
 import Text.Cassius (cassius)
 import Text.Hamlet (Html)
-import Text.Julius (rawJS)
 import Text.Read (readMaybe)
 import Text.Shakespeare.I18N (RenderMessage)
 
@@ -138,13 +101,13 @@ import Widgets (widgetSnackbar, widgetBanner)
 
 import Yesod.Auth (maybeAuth, Route (LoginR))
 import Yesod.Core.Handler
-    ( getMessages, newIdent, getYesod, getUrlRender, addMessageI
+    ( getMessages, newIdent, addMessageI
     , getRequest, YesodRequest (reqGetParams), redirect
     , getMessageRender, setUltDestCurrent, setUltDest
     )
 import Yesod.Core
-    ( Yesod(defaultLayout), returnJson, MonadIO (liftIO), whamlet
-    , addScriptRemote, MonadHandler (liftHandler), handlerToWidget
+    ( Yesod(defaultLayout), MonadIO (liftIO), whamlet
+    , MonadHandler (liftHandler), handlerToWidget
     , SomeMessage (SomeMessage)
     )
 import Yesod.Core.Types (HandlerFor)
@@ -155,110 +118,15 @@ import Yesod.Form
     , FieldSettings (fsLabel, fsTooltip, fsId, fsName, fsAttrs, FieldSettings)
     , Option (optionDisplay), checkboxesFieldList, runFormGet, mopt
     )
-import Yesod.Form.Input (runInputGet, ireq, iopt)
+import Yesod.Form.Input (runInputGet, iopt)
 import Yesod.Form.Fields
     ( textField, intField, radioField, optionsPairs, OptionList (olOptions)
     , Option (optionExternalValue, optionInternalValue), datetimeLocalField
     )
 import Yesod.Form.Functions (generateFormPost, mreq, runFormPost)
 import Yesod.Persist.Core (YesodPersist(runDB))
-import Stripe.Data (Route(CheckoutR))
 
-
-getAppointmentDetailsR :: BookId -> Handler Html
-getAppointmentDetailsR bid = do
-
-    book <- runDB $ selectOne $ do
-        x :& s :& w :& e <- from $ table @Book
-            `innerJoin` table @Service `on` (\(x :& s) -> x ^. BookService ==. s ^. ServiceId)
-            `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
-            `innerJoin` table @Staff `on` (\(x :& _ :& _ :& e) -> x ^. BookStaff ==. e ^. StaffId)
-        where_ $ x ^. BookId ==. val bid
-        where_ $ s ^. ServiceAvailable ==. val True
-        return (x,(s,(w,e)))
-
-    msgs <- getMessages
-    defaultLayout $ do
-        setTitleI MsgPaymentStatus
-        $(widgetFile "appointments/details/details")
-
-
-getAppointmentPayAtVenueCompletionR :: BookId -> Handler Html
-getAppointmentPayAtVenueCompletionR bid = do
-
-    msgs <- getMessages
-    defaultLayout $ do
-        setTitleI MsgPaymentStatus
-        $(widgetFile "appointments/completion/venue/completion")
-
-
-postAppointmentPaymentIntentCancelR :: BookId -> Handler ()
-postAppointmentPaymentIntentCancelR _bid = do
-    stati <- reqGetParams <$> getRequest
-    intent <- runInputGet $ ireq textField "pi"
-    let api = endpointStripePaymentIntentCancel intent
-    sk <- encodeUtf8 . stripeConfSk . appStripeConf . appSettings <$> getYesod
-    _ <- liftIO $ postWith (defaults & auth ?~ basicAuth sk BS.empty) api BS.empty
-        
-    addMessageI statusSuccess MsgPaymentIntentCancelled
-    redirect (AppointmentPaymentR, stati)
-
-
-postAppointmentPaymentIntentR :: BookId -> Int -> Text -> Handler A.Value
-postAppointmentPaymentIntentR _bid cents currency = do
-    let api = unpack endpointStripePaymentIntents
-    sk <- encodeUtf8 . stripeConfSk . appStripeConf . appSettings <$> getYesod
-    let opts = defaults & auth ?~ basicAuth sk ""
-    response <- liftIO $ tryAny $ postWith opts api [ "amount" := cents
-                                                    , "currency" := currency
-                                                    , "payment_method_types[]" := ("card" :: Text)
-                                                    , "payment_method_types[]" := ("paypal" :: Text)
-                                                    ]
-
-    case response of
-      Left e@(SomeException _) -> case fromException e of
-        Just (HttpExceptionRequest _ (StatusCodeException _ bs)) -> do
-            returnJson $ object [ "status" .= ("error" :: Text)
-                                , "message" .= (bs L.^. key "error" . key "message" . _String)
-                                ]
-
-        _otherwise -> do
-            returnJson $ object [ "status" .= ("error" :: Text)
-                                , "message" .= ("Unhandled error" :: Text)
-                                ]
-            
-      Right r -> do
-          let intent = r ^? responseBody . key "id" . _String
-
-          returnJson $ object [ "status" .= ("ok" :: Text)
-                              , "paymentIntentId" .= intent
-                              , "clientSecret"    .= (r ^? responseBody . key "client_secret")
-                              ]
-
-
-getAppointmentPayCompletionR :: BookId -> Handler Html
-getAppointmentPayCompletionR bid = do
-
-    intent <- runInputGet $ ireq textField "payment_intent"
-    _ <- runInputGet $ ireq textField "payment_intent_client_secret"
-    _ <- runInputGet $ ireq textField "redirect_status"
-
-    sk <- encodeUtf8 . stripeConfSk . appStripeConf . appSettings <$> getYesod
-    let api = endpointStripePaymentIntents <> "/" <> intent
-    let opts = defaults & auth ?~ basicAuth sk ""
-    r <- liftIO $ getWith opts (unpack api)
-
-    msgr <- getMessageRender
-
-    result <- case r ^? responseBody . key "status" . _String of
-      Just "succeeded" -> return $ msgr MsgYourBookingHasBeenCreatedSuccessfully
-      Just s -> return s
-      Nothing -> return $ msgr MsgSomethingWentWrong
-
-    msgs <- getMessages
-    defaultLayout $ do
-        setTitleI MsgPaymentStatus
-        $(widgetFile "appointments/completion/completion")
+import qualified Yookassa.Data as Y (Route(CheckoutR))
 
 
 postAppointmentPaymentR :: Handler Html
@@ -278,11 +146,11 @@ postAppointmentPaymentR = do
     user <- maybeAuth
     
     case (fr,user) of
-      (FormSuccess (_,eid',sid',tid',pid'), Nothing) -> do
+      (FormSuccess (_,eid',sid',tid',oid'), Nothing) -> do
           setUltDest ( AppointmentPaymentR, [ ("sid", pack $ show $ fromSqlKey sid')
                                             , ("eid", pack $ show $ fromSqlKey eid')
                                             , ("tid", pack $ show (utcToLocalTime utc tid'))
-                                            , ("pid", pack $ show pid')
+                                            , ("oid", pack $ show oid')
                                             ]
                      )
           redirect $ AuthR LoginR
@@ -310,11 +178,11 @@ postAppointmentPaymentR = do
                                              , bookCurrency = currency
                                              }
                 setUltDestCurrent
-                redirect ( StripeR $ CheckoutR bid oid', [ ("sid", pack $ show $ fromSqlKey sid')
-                                                         , ("eid", pack $ show $ fromSqlKey eid')
-                                                         , ("tid", pack $ show (utcToLocalTime utc tid'))
-                                                         , ("oid", pack $ show $ fromSqlKey oid')
-                                                         ]
+                redirect ( StripeR $ S.CheckoutR bid oid', [ ("sid", pack $ show $ fromSqlKey sid')
+                                                           , ("eid", pack $ show $ fromSqlKey eid')
+                                                           , ("tid", pack $ show (utcToLocalTime utc tid'))
+                                                           , ("oid", pack $ show $ fromSqlKey oid')
+                                                           ]
                          )
                     
             (Just (charge,currency),Just (Entity _ (PayOption _ PayNow _ (Just PayGatewayYookassa) _ _))) -> do
@@ -325,15 +193,46 @@ postAppointmentPaymentR = do
                                              , bookCharge = charge
                                              , bookCurrency = currency
                                              }
-                redirect $ AppointmentPayAtVenueCompletionR bid
+                redirect ( YookassaR $ Y.CheckoutR bid oid', [ ("sid", pack $ show $ fromSqlKey sid')
+                                                             , ("eid", pack $ show $ fromSqlKey eid')
+                                                             , ("tid", pack $ show (utcToLocalTime utc tid'))
+                                                             , ("oid", pack $ show $ fromSqlKey oid')
+                                                             ]
+                         )
+                    
+            (Just (charge,currency),Just (Entity _ (PayOption _ PayAtVenue _ _ _ _))) -> do
+                bid <- runDB $ insert $ Book { bookCustomer = uid
+                                             , bookService = sid'
+                                             , bookStaff = eid'
+                                             , bookAppointment = tid'
+                                             , bookCharge = charge
+                                             , bookCurrency = currency
+                                             }
+                redirect (AtVenueR $ V.CheckoutR bid oid')
                 
-            otherwise -> undefined
+            (_,Just (Entity _ (PayOption _ PayNow _ Nothing _ _))) -> do
+                addMessageI statusError MsgPaymentGatewayNotSpecified
+                msgs <- getMessages
+                defaultLayout $ do
+                    setTitleI MsgPaymentOption
+                    idFormPayment <- newIdent
+                    idFabNext <- newIdent
+                    $(widgetFile "appointments/payment/payment")
+                
+            _otherwise -> do
+                addMessageI statusError MsgInvalidFormData
+                msgs <- getMessages
+                defaultLayout $ do
+                    setTitleI MsgPaymentOption
+                    idFormPayment <- newIdent
+                    idFabNext <- newIdent
+                    $(widgetFile "appointments/payment/payment")
           
       (FormFailure errs, _) -> do
           forM_ errs $ \err -> addMessageI statusError err
           msgs <- getMessages
           defaultLayout $ do
-              setTitleI MsgPaymentMethod
+              setTitleI MsgPaymentOption
               idFormPayment <- newIdent
               idFabNext <- newIdent
               $(widgetFile "appointments/payment/payment")
@@ -342,7 +241,7 @@ postAppointmentPaymentR = do
           addMessageI statusError MsgInvalidFormData
           msgs <- getMessages
           defaultLayout $ do
-              setTitleI MsgPaymentMethod
+              setTitleI MsgPaymentOption
               idFormPayment <- newIdent
               idFabNext <- newIdent
               $(widgetFile "appointments/payment/payment")
@@ -355,16 +254,16 @@ getAppointmentPaymentR = do
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
-    pid <- (readMaybe . unpack =<<) <$> runInputGet ( iopt textField "pid" )
+    oid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "oid" )
 
     today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
     let month = maybe today ((\(y,m,_) -> YearMonth y m) . toGregorian . utctDay) tid
 
-    (fw,et) <- generateFormPost $ formPayment aid eid sid tid pid
+    (fw,et) <- generateFormPost $ formPayment aid eid sid tid oid
 
     msgs <- getMessages
     defaultLayout $ do
-        setTitleI MsgPaymentMethod
+        setTitleI MsgPaymentOption
         idFormPayment <- newIdent
         idFabNext <- newIdent
         $(widgetFile "appointments/payment/payment")

@@ -50,6 +50,16 @@
 
   Для имитации платежей, которые отклоняет эмитент, используйте тестовые карты из [следующего списка](https://stripe.com/docs/testing?testing-method=card-numbers#declined-payments).
 
+* Платежный шлюз: [ЮKassa](https://yookassa.ru/)
+  * Идентификатор магазина  
+    ```$YESOD_YOOKASSA_SHOP_ID```
+  * Секретный ключ  
+    ```$YESOD_YOOKASSA_SECRET_KEY```
+
+  Для имитации успешного платежа используйте тестовые карты из [следующего списка](https://yookassa.ru/developers/payment-acceptance/testing-and-going-live/testing#test-bank-card-success).
+
+  Для имитации платежей, от которых эмитент отклоняет, используйте тестовые карты из [следующего списка](https://yookassa.ru/developers/payment-acceptance/testing-and-going-live/testing#test-bank-card-cancellation-details).
+
 ## Поисковая оптимизация
 * Google SEO  
   ```$YESOD_GOOGLE_SITE_VERIFICATION```

@@ -21,6 +21,11 @@ Array.from(
   }).format(x.dataset.value);
 });
 
+Array.from(document.querySelectorAll('.app-snackbar')).forEach(x => {
+  x.querySelector('md-icon-button').onclick = (e) => { x.style.display = 'none'; };
+  setTimeout(() => { x.style.display = 'none'; }, 5000);
+});
+
 // This is your test publishable API key.
 const stripe = Stripe(#{pk});
 

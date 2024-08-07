@@ -3,26 +3,21 @@
 
 
 /yookassa YookassaR Yookassa getYookassa 
-/stripe   StripeR   Stripe   getStripe 
+/stripe   StripeR   Stripe   getStripe
+/atvenue  AtVenueR  AtVenue  getAtVenue
 
-/appointments/#BookId/details                 AppointmentDetailsR              GET
-/appointments/#BookId/pay/at/venue/completion AppointmentPayAtVenueCompletionR GET
-/appointments/#BookId/pay/cancel              AppointmentPaymentIntentCancelR  POST
-/appointments/#BookId/pay/intent/#Int/#Text   AppointmentPaymentIntentR        POST
-/appointments/#BookId/completion              AppointmentPayCompletionR        GET
-/appointment/payment                          AppointmentPaymentR              GET POST
-/appointment/timing/#Day/slots                AppointmentTimeSlotsR            GET POST
-/appointment/timing/#Month                    AppointmentTimingR               GET POST
-/appointment/staff                            AppointmentStaffR                GET POST
+/appointment/payment           AppointmentPaymentR   GET POST
+/appointment/timing/#Day/slots AppointmentTimeSlotsR GET POST
+/appointment/timing/#Month     AppointmentTimingR    GET POST
+/appointment/staff             AppointmentStaffR     GET POST
 
 
-/books/#BookId/details                 BookDetailsR              GET
-/books/#BookId/pay/at/venue/completion BookPayAtVenueCompletionR GET
-/book/payment                          BookPaymentR              GET POST
-/book/timing/#Day/slots                BookTimeSlotsR            GET POST
-/book/timing/#Month                    BookTimingR               GET POST
-/book/staff                            BookStaffR                GET POST
-/book/services                         BookServicesR             GET POST
+/books/#BookId/details  BookDetailsR   GET
+/book/payment           BookPaymentR   GET POST
+/book/timing/#Day/slots BookTimeSlotsR GET POST
+/book/timing/#Month     BookTimingR    GET POST
+/book/staff             BookStaffR     GET POST
+/book/services          BookServicesR  GET POST
 
     
 /users/#UserId/businesses/#BusinessId/workspaces/#WorkspaceId/form/dele WorkspaceDeleR POST

@@ -11,9 +11,14 @@ Array.from(
   }).format(x.dataset.value / 100);
 });
 
+Array.from(document.querySelectorAll('.app-snackbar')).forEach(x => {
+  x.querySelector('md-icon-button').onclick = (e) => { x.style.display = 'none'; };
+  setTimeout(() => { x.style.display = 'none'; }, 5000);
+});
+
 const checkout = new window.YooMoneyCheckoutWidget({
   confirmation_token: #{token},
-  return_url: '@{bookDetailsR}',
+  return_url: '@{rtp $ CompletionR bid pid paymentId}',
   error_callback: function (error) {
     
     const banner = document.getElementById(#{idBannerYookassa});

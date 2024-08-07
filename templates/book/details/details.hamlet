@@ -64,6 +64,37 @@
           <dd.md-typescale-body-medium>
             #{show duration}
 
+    <fieldset>
+      <legend>_{MsgTotalCharge}
+      <span.md-typescale-body-large.currency data-value=#{charge} data-currency=#{currency}>
+        #{charge} #{currency}
+
+    
+    <fieldset>
+      <legend>_{MsgPayments}
+      $if null payments
+        _{MsgNoPaymentsHaveBeenMadeYet}
+      $else
+        $forall (Entity _ (Payment _ _ time amount currency _ status err),Entity _ (PayOption _ typ _ gate _ _)) <- payments
+          <dl>
+            <dt.md-typescale-label-large>
+              $with dt <- show time
+                <time.full-datetime datetime=#{dt}>#{dt}
+                
+            <dd.md-typescale-body-medium>              
+              <span.currency data-value=#{amount} data-currency=#{currency}>
+                #{amount} #{currency}
+              <span>
+                (#{status})
+
+              <md-divider>
+              <div>
+                #{show typ}
+                $maybe gateway <- gate
+                  (#{show gateway}) 
+                $maybe msg <- err
+                  (#{msg})
+
   $nothing
     <figure>
       <span.img>&varnothing;

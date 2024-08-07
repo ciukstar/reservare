@@ -52,6 +52,16 @@ A superuser account is defined at deployment time. The superuser manages other u
   To simulate a successful payment, use test cards from the [following list](https://stripe.com/docs/testing?testing-method=card-numbers#cards).
 
   To simulate payments that the issuer declines, use test cards from the [following list](https://stripe.com/docs/testing?testing-method=card-numbers#declined-payments).
+  
+* Payment gateway: [YooKassa](https://yookassa.ru/)
+  * Shop ID  
+    ```$YESOD_YOOKASSA_SHOP_ID```
+  * Secret key  
+    ```$YESOD_YOOKASSA_SECRET_KEY```
+    
+  To simulate a successful payment, use test cards from the [following list](https://yookassa.ru/developers/payment-acceptance/testing-and-going-live/testing#test-bank-card-success).
+
+  To simulate payments that the issuer declines, use test cards from the [following list](https://yookassa.ru/developers/payment-acceptance/testing-and-going-live/testing#test-bank-card-cancellation-details).
 
 ## Search Engine Optimization
 * Google SEO  
