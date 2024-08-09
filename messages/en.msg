@@ -1,3 +1,6 @@
+WorkspaceWithoutPaymentOptions: Workspace with no payment options
+NoPaymentOptionSpecified: No payment option specified
+PaymentDeclined: Payment declined
 ShopId: Shop ID
 Payments: Payments
 NoPaymentsHaveBeenMadeYet: No payments have been made yet
@@ -221,3 +224,11 @@ Doc007: A user can be grated the administrator role by a superuser or by another
 Doc008 href@Text: To simulate a successful payment, use test cards from the <a href=#{href}>following list</a>.
 
 Doc009 href@Text: To simulate payments that the issuer declines, use test cards from the <a href=#{href}>following list</a>.
+
+Doc010: For each workspace, you can specify one or more payment options by selecting its type, name, and payment gateway.
+
+Doc011: If multiple payment gateways are configured for a workspace, they will be presented as options to the user booking the appointment.
+
+Doc012: If a workspace has only one payment option (payment gateway) set up, then it will be used as the default and thus one less step in the booking process.
+
+Doc013: At least one payment option (payment gateway) must be specified for the workspace. If none are specified, an error will occur when booking.

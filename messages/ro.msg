@@ -1,3 +1,6 @@
+WorkspaceWithoutPaymentOptions: Spațiu de lucru fără opțiuni de plată
+NoPaymentOptionSpecified: Nu a fost specificată nicio opțiune de plată
+PaymentDeclined: Plata a fost refuzată
 ShopId: ID magazin
 Payments: Plăți
 NoPaymentsHaveBeenMadeYet: Încă nu au fost efectuate plăți
@@ -221,3 +224,11 @@ Doc007: Un utilizator poate primi rolul de administrator de un superutilizator s
 Doc008 href: Pentru a simula o plată reușită, utilizați carduri de test din <a href=#{href}>lista următoare</a>.
 
 Doc009 href: Pentru a simula plățile pe care emitentul le refuză, utilizați carduri de testare din <a href=#{href}>următoarea listă</a>.
+
+Doc010: Pentru fiecare spațiu de lucru, puteți specifica una sau mai multe opțiuni de plată selectând tipul, numele și poarta de plată.
+
+Doc011: Dacă sunt configurate mai multe gateway-uri de plată pentru un spațiu de lucru, acestea vor fi prezentate ca opțiuni utilizatorului care rezervă programarea.
+
+Doc012: Dacă un spațiu de lucru are o singură opțiune de plată (gateway de plată) configurată, atunci va fi folosit ca implicit și, prin urmare, un pas mai puțin în procesul de rezervare.
+
+Doc013: Trebuie specificată cel puțin o opțiune de plată (gateway de plată) pentru spațiul de lucru. Dacă nu sunt specificate, va apărea o eroare la rezervare.

@@ -82,7 +82,13 @@ Un utilizator poate primi rolul de administrator de un superutilizator sau de un
 ...
 
 ### Opțiune de plată
-...
+Pentru fiecare spațiu de lucru, puteți specifica una sau mai multe opțiuni de plată selectând tipul, numele și poarta de plată.
+
+Dacă sunt configurate mai multe gateway-uri de plată pentru un spațiu de lucru, acestea vor fi prezentate ca opțiuni utilizatorului care rezervă programarea.
+
+Dacă un spațiu de lucru are o singură opțiune de plată (gateway de plată) configurată, atunci va fi folosit ca implicit și, prin urmare, un pas mai puțin în procesul de rezervare.
+
+Trebuie specificată cel puțin o opțiune de plată (gateway de plată) pentru spațiul de lucru. Dacă nu sunt specificate, va apărea o eroare la rezervare.
 
 ### Serviciu
 ...

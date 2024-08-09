@@ -13,10 +13,41 @@
     <div.app-banner.error.body-medium>
       #{msg}
 
-  <figure>
-    <md-icon>task_alt
-    <figcaption.md-typescale-title-medium>
-      _{MsgYourBookingHasBeenCreatedSuccessfully}
+  $if     "pending"             == status
+    <figure>
+      <md-icon.pending>pending
+      <figcaption>
+        <div.md-typescale-title-medium>
+          _{MsgYourBookingHasBeenCreatedSuccessfully}
+        <div.md-typescale-body-small>
+         <code>#{status} 
+ 
+  $elseif "waiting_for_capture" == status
+    <figure>
+      <md-icon.capture>capture
+      <figcaption>
+        <div.md-typescale-title-medium>
+          _{MsgYourBookingHasBeenCreatedSuccessfully}
+        <div.md-typescale-body-small>
+         <code>#{status}
+         
+  $elseif "succeeded"           == status
+    <figure>
+      <md-icon.succeeded>task_alt
+      <figcaption.md-typescale-title-medium>
+        _{MsgYourBookingHasBeenCreatedSuccessfully}
+ 
+  $elseif "canceled"            == status
+    <figure>
+      <md-icon.canceled>cancel
+      <figcaption.md-typescale-title-medium>
+        _{MsgPaymentDeclined}
+        
+  $else
+    <figure>
+      <md-icon.warning>warning
+      <figcaption.md-typescale-title-medium>
+        _{MsgSomethingWentWrong}
 
   <md-filled-tonal-button type=link href=@{bookDetailsR}>
     _{MsgViewBookingDetails}

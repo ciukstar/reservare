@@ -23,9 +23,9 @@ import qualified Data.ByteString as BS (empty)
 import Data.Function ((&))
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Sum(getSum, Sum))
-
 import Data.Text (Text, unpack)
 import Data.Text.Encoding (encodeUtf8)
+import Data.Time.Clock (getCurrentTime)
 
 import Database.Esqueleto.Experimental
     ( select, from, table, innerJoin, on, where_, val
@@ -82,24 +82,20 @@ import Stripe.Data
 import Text.Julius (rawJS)
 
 import Yesod.Core
-    ( YesodSubDispatch (yesodSubDispatch), Application
+    ( MonadIO (liftIO), YesodSubDispatch (yesodSubDispatch), Application
     , mkYesodSubDispatch, Html, Yesod (defaultLayout), SubHandlerFor
     , MonadHandler (liftHandler), addScriptRemote, setTitleI, newIdent
-    , YesodRequest (reqGetParams), getRequest
-    , getRouteToParent, getUrlRender, getMessages
-    , MonadIO (liftIO), returnJson, addMessage, toHtml, addMessageI
-    , redirectUltDest, lookupSession
+    , getRouteToParent, getUrlRender, getMessages, returnJson, addMessage
+    , toHtml, addMessageI, redirectUltDest, lookupSession
     )
 import Yesod.Core.Types (YesodSubRunnerEnv)
 import Yesod.Persist.Core (YesodPersist(runDB, YesodPersistBackend))
-import ClassyPrelude (getCurrentTime)
 import Yesod.Form.Input (runInputGet, ireq)
 import Yesod.Form.Fields (textField)
 
 
 postCancelR :: (YesodStripe m) => SubHandlerFor Stripe m Html
 postCancelR = do
-    stati <- reqGetParams <$> getRequest
     intent <- runInputGet $ ireq textField "pi"
     homeR <- liftHandler getHomeR
     let endpoint = endpointStripePaymentIntentCancel intent
@@ -226,8 +222,6 @@ postIntentR cents currency = do
 getCheckoutR :: (YesodStripe m, YesodPersist m, YesodPersistBackend m ~ SqlBackend)
              => BookId -> PayOptionId -> SubHandlerFor Stripe m Html
 getCheckoutR bid oid = do
-
-    stati <- reqGetParams <$> getRequest
 
     pk <- liftHandler getStripeConfPk
 

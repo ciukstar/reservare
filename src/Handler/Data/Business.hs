@@ -36,6 +36,8 @@ module Handler.Data.Business
   , postPayOptionDeleR
   ) where
 
+import Data.Bifunctor (first)
+
 import qualified Data.Map as M (Map, fromListWith, member, notMember, lookup)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text, unpack, pack)
@@ -194,12 +196,19 @@ formPayOption wid option extra = do
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgTheName)]
         } (payOptionName . entityVal <$> option)
-    
-    (gateR,gateV) <- md3mopt (md3selectField (optionsPairs gates)) FieldSettings
-        { fsLabel = SomeMessage MsgPaymentGateway
-        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgPaymentGateway)]
-        } (payOptionGateway . entityVal <$> option)
+
+    (gateR,gateV) <- case typeR of
+      FormSuccess PayNow -> first (Just <$>) <$> md3mreq (md3selectField (optionsPairs gates)) FieldSettings
+          { fsLabel = SomeMessage MsgPaymentGateway
+          , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+          , fsAttrs = [("label", msgr MsgPaymentGateway)]
+          } (payOptionGateway . entityVal =<< option)
+          
+      _otherwise -> md3mopt (md3selectField (optionsPairs gates)) FieldSettings
+          { fsLabel = SomeMessage MsgPaymentGateway
+          , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+          , fsAttrs = [("label", msgr MsgPaymentGateway)]
+          } (payOptionGateway . entityVal <$> option)
     
     (descrR,descrV) <- md3mopt md3textareaField FieldSettings
         { fsLabel = SomeMessage MsgDescription
@@ -223,7 +232,8 @@ formPayOption wid option extra = do
                     ^{fvInput iconV}
                     |]
     return (r,w)
-  where
+  where      
+      
       types = [(MsgPayNow,PayNow),(MsgPayAtVenue,PayAtVenue)]
       gates = [(MsgStripe,PayGatewayStripe),(MsgYooKassa,PayGatewayYookassa)]
 

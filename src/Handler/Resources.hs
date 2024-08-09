@@ -16,7 +16,8 @@ import Foundation
       , MsgBooking, MsgServiceAssignment, MsgSearchEngineOptimization
       , MsgPaymentOption, MsgYooKassa, MsgShopId
       , MsgDoc001, MsgDoc002, MsgDoc003, MsgDoc004, MsgDoc005, MsgDoc006
-      , MsgDoc007, MsgDoc008, MsgDoc009
+      , MsgDoc007, MsgDoc008, MsgDoc009, MsgDoc010, MsgDoc011, MsgDoc012
+      , MsgDoc013
       )
     )
 

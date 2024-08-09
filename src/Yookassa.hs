@@ -85,6 +85,7 @@ import Yookassa.Data
       , MsgYooKassa, MsgUnhandledError, MsgInvalidPaymentAmount
       , MsgYourBookingHasBeenCreatedSuccessfully, MsgPaymentStatus
       , MsgViewBookingDetails, MsgReturnToHomePage, MsgFinish
+      , MsgPaymentDeclined, MsgSomethingWentWrong
       )
     )
 
@@ -100,9 +101,7 @@ getCompletionR bid pid paymentId = do
               ( defaults & auth ?~ basicAuth shopid secret )
               ( unpack (endpointYookassa <> "/" <> paymentId) )
 
-    -- Payment status: "pending", "waiting_for_capture", "succeeded", "canceled"
     let status = response L.^. responseBody . key "status" . _String
-
     
     liftHandler $ runDB $ update $ \x -> do
         set x [PaymentStatus =. val status]

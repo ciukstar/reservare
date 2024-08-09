@@ -1,0 +1,14 @@
+
+<header>
+  <md-icon-button href=@?{(BookTimingR month,stati)} aria-label=_{MsgBack}>
+    <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgError}
+
+
+<main>
+
+  ^{widgetBanner msgs}
+
+  ^{widgetSnackbar msgs}

@@ -143,7 +143,13 @@
   <section>
     <h3.md-typescale-headline-small>_{MsgPaymentOption}
     <p>
-      ...
+      _{MsgDoc010}
+    <p>
+      _{MsgDoc011}
+    <p>
+      _{MsgDoc012}
+    <p>
+      _{MsgDoc013}
 
   <section>
     <h3.md-typescale-headline-small>_{MsgService}

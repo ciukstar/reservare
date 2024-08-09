@@ -13,10 +13,6 @@
     <md-menu-item href=@{HomeR} :curr == Just HomeR:selected>
       _{MsgWelcome}
 
-    $maybe Entity uid _ <- user
-      <md-menu-item href=@{BusinessesR uid} :curr == Just (BusinessesR uid):selected>
-        _{MsgBusiness}
-
     <details.app-submenu #idDetailsData
       :elem curr [Just (DataR ServicesR), Just (DataR StaffR), Just (DataR DataBusinessesR), Just (DataR UsersR), Just (DataR TokensR)]:open
       ontoggle="this.querySelector('.app-expand-icon').textContent = this.open ? 'expand_less' : 'expand_more'">

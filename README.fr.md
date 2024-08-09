@@ -85,7 +85,13 @@ Un utilisateur peut se voir attribuer le rôle d'administrateur par un superutil
 ...
 
 ### Modalité de paiement
-...
+Pour chaque espace de travail, vous pouvez spécifier une ou plusieurs options de paiement en sélectionnant son type, son nom et sa passerelle de paiement.
+
+Si plusieurs passerelles de paiement sont configurées pour un espace de travail, elles seront présentées comme options à l'utilisateur qui réserve le rendez-vous.
+
+Si un espace de travail n'a qu'une seule option de paiement (passerelle de paiement) configurée, elle sera alors utilisée par défaut et représentera ainsi une étape de moins dans le processus de réservation.
+
+Au moins une option de paiement (passerelle de paiement) doit être spécifiée pour l'espace de travail. Si aucune option n'est spécifiée, une erreur se produira lors de la réservation.
 
 ### Service
 ...

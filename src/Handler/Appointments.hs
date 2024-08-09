@@ -57,7 +57,8 @@ import Foundation
       , MsgAppointmentSetFor, MsgSelectAvailableDayAndTimePlease
       , MsgEmployeeScheduleNotGeneratedYet, MsgNoEmployeesAvailableNow
       , MsgPrevious, MsgInvalidFormData, MsgServiceAssignment
-      , MsgEmployeeWorkScheduleForThisMonthNotSetYet      
+      , MsgNoPaymentOptionSpecified, MsgWorkspaceWithoutPaymentOptions
+      , MsgError, MsgEmployeeWorkScheduleForThisMonthNotSetYet
       )
     )
 
@@ -103,7 +104,7 @@ import Yesod.Auth (maybeAuth, Route (LoginR))
 import Yesod.Core.Handler
     ( getMessages, newIdent, addMessageI
     , getRequest, YesodRequest (reqGetParams), redirect
-    , getMessageRender, setUltDestCurrent, setUltDest
+    , getMessageRender, setUltDestCurrent, setUltDest, setUltDestReferer
     )
 import Yesod.Core
     ( Yesod(defaultLayout), MonadIO (liftIO), whamlet
@@ -118,7 +119,7 @@ import Yesod.Form
     , FieldSettings (fsLabel, fsTooltip, fsId, fsName, fsAttrs, FieldSettings)
     , Option (optionDisplay), checkboxesFieldList, runFormGet, mopt
     )
-import Yesod.Form.Input (runInputGet, iopt)
+import Yesod.Form.Input (runInputGet, iopt, ireq)
 import Yesod.Form.Fields
     ( textField, intField, radioField, optionsPairs, OptionList (olOptions)
     , Option (optionExternalValue, optionInternalValue), datetimeLocalField
@@ -155,7 +156,7 @@ postAppointmentPaymentR = do
                      )
           redirect $ AuthR LoginR
           
-      (FormSuccess (_,eid',sid',tid',oid'), Just (Entity uid _)) -> do
+      (FormSuccess (aid',eid',sid',tid',oid'), Just (Entity uid _)) -> do
 
           charge' <- (bimap unValue unValue <$>) <$> runDB ( selectOne $ do
               x :& w <- from $ table @Service
@@ -177,13 +178,14 @@ postAppointmentPaymentR = do
                                              , bookCharge = charge
                                              , bookCurrency = currency
                                              }
-                setUltDestCurrent
-                redirect ( StripeR $ S.CheckoutR bid oid', [ ("sid", pack $ show $ fromSqlKey sid')
-                                                           , ("eid", pack $ show $ fromSqlKey eid')
-                                                           , ("tid", pack $ show (utcToLocalTime utc tid'))
-                                                           , ("oid", pack $ show $ fromSqlKey oid')
-                                                           ]
-                         )
+                let params = [ ("aid", pack $ show $ fromSqlKey aid')
+                             , ("sid", pack $ show $ fromSqlKey sid')
+                             , ("eid", pack $ show $ fromSqlKey eid')
+                             , ("tid", pack $ show (utcToLocalTime utc tid'))
+                             , ("oid", pack $ show $ fromSqlKey oid')
+                             ]
+                setUltDest (AppointmentPaymentR, params)
+                redirect (StripeR $ S.CheckoutR bid oid', params)
                     
             (Just (charge,currency),Just (Entity _ (PayOption _ PayNow _ (Just PayGatewayYookassa) _ _))) -> do
                 bid <- runDB $ insert $ Book { bookCustomer = uid
@@ -193,12 +195,14 @@ postAppointmentPaymentR = do
                                              , bookCharge = charge
                                              , bookCurrency = currency
                                              }
-                redirect ( YookassaR $ Y.CheckoutR bid oid', [ ("sid", pack $ show $ fromSqlKey sid')
-                                                             , ("eid", pack $ show $ fromSqlKey eid')
-                                                             , ("tid", pack $ show (utcToLocalTime utc tid'))
-                                                             , ("oid", pack $ show $ fromSqlKey oid')
-                                                             ]
-                         )
+                let params = [ ("aid", pack $ show $ fromSqlKey aid')
+                             , ("sid", pack $ show $ fromSqlKey sid')
+                             , ("eid", pack $ show $ fromSqlKey eid')
+                             , ("tid", pack $ show (utcToLocalTime utc tid'))
+                             , ("oid", pack $ show $ fromSqlKey oid')
+                             ]
+                setUltDest (AppointmentPaymentR, params)
+                redirect (YookassaR $ Y.CheckoutR bid oid', params)
                     
             (Just (charge,currency),Just (Entity _ (PayOption _ PayAtVenue _ _ _ _))) -> do
                 bid <- runDB $ insert $ Book { bookCustomer = uid
@@ -251,22 +255,103 @@ getAppointmentPaymentR :: Handler Html
 getAppointmentPaymentR = do
     stati <- reqGetParams <$> getRequest
     aid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "aid" )
-    eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
-    sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
-    tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
+    eid <- toSqlKey <$> runInputGet ( ireq intField "eid" )
+    sid <- toSqlKey <$> runInputGet ( ireq intField "sid" )
+    tid <- localTimeToUTC utc <$> runInputGet ( ireq datetimeLocalField "tid" )
     oid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "oid" )
 
-    today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
-    let month = maybe today ((\(y,m,_) -> YearMonth y m) . toGregorian . utctDay) tid
+    let month = ((\(y,m,_) -> YearMonth y m) . toGregorian . utctDay) tid
 
-    (fw,et) <- generateFormPost $ formPayment aid eid sid tid oid
+    user <- maybeAuth
 
-    msgs <- getMessages
-    defaultLayout $ do
-        setTitleI MsgPaymentOption
-        idFormPayment <- newIdent
-        idFabNext <- newIdent
-        $(widgetFile "appointments/payment/payment")
+    charge' <- (bimap unValue unValue <$>) <$> runDB ( selectOne $ do
+        x :& w <- from $ table @Service
+            `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
+        where_ $ x ^. ServiceId ==. val sid
+        return (x ^. ServicePrice, w ^. WorkspaceCurrency) )
+    
+    options <- runDB $ select $ do
+        x <- from $ table @PayOption
+        where_ $ x ^. PayOptionWorkspace `in_` subSelectList
+            ( do
+                  s <- from $ table @Service
+                  where_ $ s ^. ServiceId ==. val sid
+                  return $ s ^. ServiceWorkspace
+            )
+        return x
+
+    case (options,charge',user) of
+      (_,_,Nothing) -> do
+          setUltDestCurrent
+          redirect $ AuthR LoginR
+          
+      ([],_,_) -> do
+          addMessageI statusError MsgNoPaymentOptionSpecified
+          addMessageI statusError MsgWorkspaceWithoutPaymentOptions
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgError
+              $(widgetFile "appointments/payment/error")
+          
+      ([Entity oid' (PayOption _ PayNow _ (Just PayGatewayStripe) _ _)],Just (charge,currency),Just (Entity uid _)) -> do
+          bid <- runDB $ insert $ Book { bookCustomer = uid
+                                       , bookService = sid
+                                       , bookStaff = eid
+                                       , bookAppointment = tid
+                                       , bookCharge = charge
+                                       , bookCurrency = currency
+                                       }
+          setUltDestReferer
+          redirect ( StripeR $ S.CheckoutR bid oid', [ ("sid", pack $ show $ fromSqlKey sid)
+                                                     , ("eid", pack $ show $ fromSqlKey eid)
+                                                     , ("tid", pack $ show (utcToLocalTime utc tid))
+                                                     , ("oid", pack $ show $ fromSqlKey oid')
+                                                     ]
+                   )
+              
+      ([Entity oid' (PayOption _ PayNow _ (Just PayGatewayYookassa) _ _)],Just (charge,currency),Just (Entity uid _)) -> do
+          bid <- runDB $ insert $ Book { bookCustomer = uid
+                                       , bookService = sid
+                                       , bookStaff = eid
+                                       , bookAppointment = tid
+                                       , bookCharge = charge
+                                       , bookCurrency = currency
+                                       }
+          setUltDestReferer
+          redirect ( YookassaR $ Y.CheckoutR bid oid', [ ("sid", pack $ show $ fromSqlKey sid)
+                                                       , ("eid", pack $ show $ fromSqlKey eid)
+                                                       , ("tid", pack $ show (utcToLocalTime utc tid))
+                                                       , ("oid", pack $ show $ fromSqlKey oid')
+                                                       ]
+                   )
+          
+      ([Entity _ (PayOption _ PayNow _ Nothing _ _)],Just _,Just _) -> do
+          addMessageI statusError MsgPaymentGatewayNotSpecified
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgError
+              $(widgetFile "appointments/payment/error")
+          
+      ([Entity oid' (PayOption _ PayAtVenue _ _ _ _)],Just (charge,currency),Just (Entity uid _)) -> do
+          bid <- runDB $ insert $ Book { bookCustomer = uid
+                                       , bookService = sid
+                                       , bookStaff = eid
+                                       , bookAppointment = tid
+                                       , bookCharge = charge
+                                       , bookCurrency = currency
+                                       }
+          redirect (AtVenueR $ V.CheckoutR bid oid')
+          
+      _ -> do
+          
+          (fw,et) <- generateFormPost $ formPayment aid (Just eid) (Just sid) (Just tid) oid
+
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgPaymentOption
+              idFormPayment <- newIdent
+              idFabNext <- newIdent
+              $(widgetFile "appointments/payment/payment")
 
 
 formPayment :: Maybe AssignmentId -> Maybe StaffId -> Maybe ServiceId -> Maybe UTCTime -> Maybe PayOptionId

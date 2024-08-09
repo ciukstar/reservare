@@ -50,6 +50,7 @@ data YookassaMessage = MsgBack
                    | MsgReturnToHomePage
                    | MsgFinish
                    | MsgInvalidArguments
+                   | MsgPaymentDeclined
 
 englishYookassaMessage :: YookassaMessage -> Text
 englishYookassaMessage MsgBack = "Back"
@@ -67,6 +68,7 @@ englishYookassaMessage MsgViewBookingDetails = "View booking details"
 englishYookassaMessage MsgReturnToHomePage = "Return to Home Page"
 englishYookassaMessage MsgFinish = "Finish"
 englishYookassaMessage MsgInvalidArguments = "Invalid arguments"
+englishYookassaMessage MsgPaymentDeclined = "Payment declined"
 
 
 
@@ -86,6 +88,7 @@ frenchYookassaMessage MsgViewBookingDetails = "Afficher les détails de la rése
 frenchYookassaMessage MsgReturnToHomePage = "Retour à la page d'accueil"
 frenchYookassaMessage MsgFinish = "Finir"
 frenchYookassaMessage MsgInvalidArguments = "Arguments invalides"
+frenchYookassaMessage MsgPaymentDeclined = "Paiement refusé"
 
 
 romanianYookassaMessage :: YookassaMessage -> Text
@@ -104,6 +107,7 @@ romanianYookassaMessage MsgViewBookingDetails = "Vizualizați detaliile rezervă
 romanianYookassaMessage MsgReturnToHomePage = "Înapoi la pagina de start"
 romanianYookassaMessage MsgFinish = "Finalizare"
 romanianYookassaMessage MsgInvalidArguments = "Argumente nevalide"
+romanianYookassaMessage MsgPaymentDeclined = "Plata a fost refuzată"
 
 
 russianYookassaMessage :: YookassaMessage -> Text
@@ -122,6 +126,7 @@ russianYookassaMessage MsgViewBookingDetails = "Посмотреть детал�
 russianYookassaMessage MsgReturnToHomePage = "Вернуться на главную страницу"
 russianYookassaMessage MsgFinish = "Завершить"
 russianYookassaMessage MsgInvalidArguments = "Неверные аргументы"
+russianYookassaMessage MsgPaymentDeclined = "Платеж отклонен"
 
 
 defaultYookassaMessage :: YookassaMessage -> Text

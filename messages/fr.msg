@@ -1,3 +1,6 @@
+WorkspaceWithoutPaymentOptions: Espace de travail sans options de paiement
+NoPaymentOptionSpecified: Aucune option de paiement spécifiée
+PaymentDeclined: Paiement refusé
 ShopId: ID de la boutique
 Payments: Paiements
 NoPaymentsHaveBeenMadeYet: Aucun paiement n'a encore été effectué
@@ -221,3 +224,11 @@ Doc007: Un utilisateur peut se voir attribuer le rôle d'administrateur par un s
 Doc008 href: Pour simuler un paiement réussi, utilisez les cartes de test de la <a href=#{href}>liste suivante</a>.
 
 Doc009 href: Pour simuler les paiements refusés par l'émetteur, utilisez les cartes de test de la <a href=#{href}>liste suivante</a>.
+
+Doc010: Pour chaque espace de travail, vous pouvez spécifier une ou plusieurs options de paiement en sélectionnant son type, son nom et sa passerelle de paiement.
+
+Doc011: Si plusieurs passerelles de paiement sont configurées pour un espace de travail, elles seront présentées comme options à l'utilisateur qui réserve le rendez-vous.
+
+Doc012: Si un espace de travail n'a qu'une seule option de paiement (passerelle de paiement) configurée, elle sera alors utilisée par défaut et représentera ainsi une étape de moins dans le processus de réservation.
+
+Doc013: Au moins une option de paiement (passerelle de paiement) doit être spécifiée pour l'espace de travail. Si aucune option n'est spécifiée, une erreur se produira lors de la réservation.

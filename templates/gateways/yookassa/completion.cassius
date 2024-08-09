@@ -19,8 +19,15 @@ main
     figure
         text-align: center
         md-icon
-            color: green
             --md-icon-size: 64px
+        md-icon.pending
+            color: var(--md-sys-color-secondary)
+        md-icon.capture
+            color: var(--md-sys-color-tertiary)
+        md-icon.succeeded
+            color: green
+        md-icon.canceled
+            color: var(--md-sys-color-error)
 
     aside.app-snackbar
         display: flex

@@ -86,7 +86,13 @@ A user can be grated the administrator role by a superuser or by another adminis
 ...
 
 ### Payment option
-...
+For each workspace, you can specify one or more payment options by selecting its type, name, and payment gateway.
+
+If multiple payment gateways are configured for a workspace, they will be presented as options to the user booking the appointment.
+
+If a workspace has only one payment option (payment gateway) set up, then it will be used as the default and thus one less step in the booking process.
+
+At least one payment option (payment gateway) must be specified for the workspace. If none are specified, an error will occur when booking.
 
 ### Service
 ...
