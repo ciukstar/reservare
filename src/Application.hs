@@ -95,6 +95,14 @@ import Handler.Data.Services
     , postServiceAssignmentR
     )
 
+import Handler.Data.Sectors
+  ( getSectorsR, postSectorsR
+  , getSectorR, postSectorR
+  , getSectorNewR
+  , getSectorEditR
+  , postSectorDeleR
+  )
+
 import Handler.Data.Staff
     ( getStaffR, getEmployeeR, getEmployeeNewR, postStaffR, getEmployeeEditR
     , postEmployeeDeleR, postEmployeeR, getStaffAssignmentsR

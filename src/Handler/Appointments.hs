@@ -643,7 +643,7 @@ formSearchAssignments idFormSearch extra = do
         orderBy [asc (x ^. ServiceName)]
         return x
 
-    let serviceItem (Entity sid (Service _ name _ _ _ _)) = (name,sid)
+    let serviceItem (Entity sid (Service _ name _ _ _ _ _)) = (name,sid)
 
     (sR,sV) <- mopt (chipsFieldList idFormSearch MsgService (serviceItem <$> services))
         FieldSettings { fsLabel = SomeMessage MsgService
@@ -1038,7 +1038,7 @@ $else
             $with (Entity _ (Business _ bname),Entity _ (Workspace _ wname _ _ _)) <- (business,workspace)
               \ (#{bname} - #{wname})
           <div slot=supporting-text>
-            $with (Entity _ (Workspace _ _ _ _ currency),Entity _ (Service _ name _ price _ _)) <- (workspace,service)
+            $with (Entity _ (Workspace _ _ _ _ currency),Entity _ (Service _ name _ price _ _ _)) <- (workspace,service)
               #{name} (
               <span.currency data-value=#{price} data-currency=#{currency}>
                 #{show price} #{currency}

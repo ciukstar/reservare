@@ -233,8 +233,8 @@ getCheckoutR bid oid = do
         where_ $ s ^. ServiceAvailable ==. val True
         return (s,w) )
 
-    let items = (\(Entity _ (Service _ name _ _ _ _),_) -> object ["id" .= name]) <$> services
-    let cents = getSum $ mconcat $ (\(Entity _ (Service _ _ _ price _ _),_) -> Sum price) <$> services
+    let items = (\(Entity _ (Service _ name _ _ _ _ _),_) -> object ["id" .= name]) <$> services
+    let cents = getSum $ mconcat $ (\(Entity _ (Service _ _ _ price _ _ _),_) -> Sum price) <$> services
     let currency = maybe "USD" (\(_, Entity _ (Workspace _ _ _ _ c)) -> c) (headMay services)
 
     rtp <- getRouteToParent

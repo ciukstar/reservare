@@ -67,8 +67,13 @@
     /services/#ServiceId             ServiceR            GET POST
     /services                        ServicesR           GET POST
 
+    /dele/sectors/#SectorId/+Sectors SectorDeleR POST
+    /edit/sectors/#SectorId/+Sectors SectorEditR GET
+    /form/sectors/new/+Sectors       SectorNewR  GET
+    /sector/#SectorId/+Sectors       SectorR     GET POST
+    /sectors/+Sectors                SectorsR    GET POST
 
-    
+
     /staff/#StaffId/assignments/#AssignmentId/#Month/fill/prev  StaffScheduleFillFromPreviousMonthR POST
     /staff/#StaffId/assignments/#AssignmentId/#Month/fill/hours StaffScheduleFillFromWorkingHoursR  POST
     

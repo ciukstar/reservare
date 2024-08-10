@@ -1,0 +1,48 @@
+
+<header.background>
+  $if null sids
+    <md-icon-button href=@{DataR $ SectorsR (Sectors [])} aria-label=_{MsgBack}>
+      <md-icon>arrow_back
+  $else
+    <md-icon-button href=@{DataR $ SectorsR (Sectors (init sids))} aria-label=_{MsgBack}>
+      <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgSector}
+      
+<main>
+  
+  <md-tabs ##{idTabs} aria-label=_{MsgTabs}
+    onchange="window.location.href = event.target.activeTabIndex == 0 ? '@{DataR $ SectorR (last sids) (Sectors (init sids))}' : '@{DataR $ SectorsR (Sectors (init sids))}'">
+    <md-primary-tab #idTabDetails aria-controls=idPanelDetails>
+      _{MsgDetails}
+    <md-primary-tab #idTabSubsectors aria-controls=#{idPanelSubsectors} active=true>
+      _{MsgSubsectors}
+
+  <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
+
+  <div ##{idPanelSubsectors} role=tabpanel aria-labelledby=idTabSubsectors>
+
+    ^{widgetBanner msgs}
+
+    $if null sectors
+      <figure style="text-align:center">
+        <span.on-secondary style="font-size:4rem">&varnothing;
+        <figcaption.md-typescale-body-large>
+          _{MsgThereAreNoDataYet}
+          <div.md-typescale-body-small>
+            _{MsgYouMightWantToAddAFew}
+    $else
+      <md-list>
+        $forall (Value level, Entity sid (Sector name _ _)) <- sectors
+          <md-list-item type=link href=@{DataR $ SectorR sid ps}>
+            <md-icon slot=start>counter_#{level}
+            <div slot=headline>#{name}
+            <md-icon slot=end>arrow_forward_ios
+          <md-divider>
+
+    ^{widgetSnackbar msgs}
+
+    <md-fab aria-label=_{MsgEdit} ##{idFabAdd} onclick="this.querySelector('a[href]').click()">
+      <a href=@{DataR $ SectorNewR ps}>
+      <md-icon slot=icon>add

@@ -1,0 +1,20 @@
+<header.background>
+  <md-icon-button href=@{DataR $ SectorsR ps} aria-label=_{MsgBack}>
+    <md-icon>arrow_back
+
+  <h1.md-typescale-title-large>
+    _{MsgSector}
+      
+<main>
+
+  ^{widgetBanner msgs}
+
+  <form method=post action=@{DataR $ SectorsR ps} enctype=#{et} novalidate ##{idFormSector}>
+    ^{fw}
+    <div.form-actions>
+      <md-text-button type=button href=@{DataR $ SectorsR ps}>
+        _{MsgCancel}
+      <md-filled-button type=submit>
+        _{MsgSave}
+
+  ^{widgetSnackbar msgs}

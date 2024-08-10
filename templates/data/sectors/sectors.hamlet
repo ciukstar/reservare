@@ -3,17 +3,16 @@
   ^{widgetMenu}
 
   <span.md-typescale-title-large>
-    _{MsgServices}
+    _{MsgSectors}
 
   <span #headerEnd>
     ^{widgetAccount}
-
 
 <main>
 
   ^{widgetBanner msgs}
 
-  $if null services
+  $if null sectors
     <figure style="text-align:center">
       <span.on-secondary style="font-size:4rem">&varnothing;
       <figcaption.md-typescale-body-large>
@@ -22,17 +21,15 @@
           _{MsgYouMightWantToAddAFew}
   $else
     <md-list>
-      $forall (Entity sid (Service _ name _ price _ _ _),Entity _ (Workspace _ _ _ _ currency)) <- services
-        <md-list-item type=link href=@{DataR $ ServiceR sid}>
+      $forall (_,Entity sid (Sector name _ _)) <- sectors
+        <md-list-item type=link href=@{DataR $ SectorR sid ps}>
           <div slot=headline>
             #{name}
-          <div.currency slot=supporting-text data-value=#{price} data-currency=#{currency}>
-            #{currency}#{price}
           <md-icon slot=end>arrow_forward_ios
         <md-divider>
 
   <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-    <a href=@{DataR ServiceNewR}>
+    <a href=@{DataR $ SectorNewR ps}>
     <md-icon slot=icon>add
 
-^{widgetSnackbar msgs}
+  ^{widgetSnackbar msgs}

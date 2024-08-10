@@ -53,7 +53,7 @@ import Foundation
       , MsgDele, MsgRecordDeleted, MsgInvalidFormData, MsgServiceAssignment
       , MsgEmployee, MsgAssignmentDate, MsgTheStart, MsgBusiness, MsgPrice
       , MsgSchedulingInterval, MsgUnitMinutes, MsgPriority, MsgAlreadyExists
-      , MsgRole, MsgAvailable, MsgDuration
+      , MsgRole, MsgAvailable, MsgDuration, MsgType
       )
     )
     
@@ -66,7 +66,8 @@ import Model
     ( statusSuccess, statusError
     , ServiceId
     , Service
-      ( Service, serviceName, serviceWorkspace, serviceDescr, servicePrice, serviceAvailable, serviceDuration
+      ( Service, serviceName, serviceWorkspace, serviceDescr, servicePrice
+      , serviceAvailable, serviceDuration, serviceType
       )
     , WorkspaceId, Workspace (workspaceName, Workspace)
     , AssignmentId
@@ -76,10 +77,11 @@ import Model
       )
     , StaffId, Staff (staffName, Staff)
     , Business (Business)
+    , Sector (sectorName)
     , EntityField
       ( ServiceId, WorkspaceName, WorkspaceId, AssignmentId, WorkspaceBusiness
       , StaffName, StaffId, AssignmentService, ServiceWorkspace, BusinessId
-      , AssignmentStaff, ServiceName, AssignmentRole
+      , AssignmentStaff, ServiceName, AssignmentRole, SectorName
       )
     )
 
@@ -343,7 +345,7 @@ postServiceDeleR sid = do
           redirect $ DataR ServicesR
       _otherwise -> do
           addMessageI statusError MsgInvalidFormData
-          redirect $ DataR $ ServiceR sid          
+          redirect $ DataR $ ServiceR sid
     
 
 getServiceEditR :: ServiceId -> Handler Html
@@ -374,7 +376,7 @@ postServicesR = do
       _otherwise -> do        
           msgs <- getMessages
           defaultLayout $ do
-              setTitleI MsgServices
+              setTitleI MsgService
               idFormStaff <- newIdent
               $(widgetFile "data/services/new")
 
@@ -400,7 +402,7 @@ formService service extra = do
         orderBy [asc (x ^. WorkspaceName), desc (x ^. WorkspaceId)]
         return x
     
-    (workspaceR, workspaceV) <- md3mreq (md3selectField (optionsPairs (options <$> workspaces))) FieldSettings
+    (workspaceR, workspaceV) <- md3mreq (md3selectField (optionsPairs (optionsWorkspace <$> workspaces))) FieldSettings
         { fsLabel = SomeMessage MsgWorkspace
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgWorkspace)]
@@ -436,8 +438,21 @@ formService service extra = do
         , fsAttrs = [("label", msgr MsgDuration),("supporting-text", msgr MsgUnitMinutes)]
         } (truncate . (/ 60) . nominalDiffTimeToSeconds . serviceDuration . entityVal <$> service)
 
+    sectors <- liftHandler $ runDB $ select $ do
+        x <- from $ table @Sector
+        orderBy [asc (x ^. SectorName)]
+        return x
+    
+    (typeR, typeV) <- md3mopt (md3selectField (optionsPairs (optionsType <$> sectors))) FieldSettings
+        { fsLabel = SomeMessage MsgType
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgType)]
+        } (serviceType . entityVal <$> service)
+
     let r = Service <$> workspaceR <*> nameR <*> descrR <*> priceR <*> availableR
              <*> ((* 60) . secondsToNominalDiffTime . fromIntegral <$> durationR)
+             <*> typeR
+             
     let w = [whamlet|
                     #{extra}
                     ^{fvInput workspaceV}
@@ -451,11 +466,14 @@ formService service extra = do
                         #{fvLabel availableV}
                         
                     ^{fvInput durationV}
+                    ^{fvInput typeV}
                     |]
     return (r,w)
         
   where
-      options e = (workspaceName . entityVal $ e, entityKey e)
+      optionsType e = (sectorName . entityVal $ e, entityKey e)
+      
+      optionsWorkspace e = (workspaceName . entityVal $ e, entityKey e)
       
       uniqueNameField :: FormResult WorkspaceId -> Field Handler Text
       uniqueNameField wid = checkM (uniqueName wid) md3textField

@@ -157,6 +157,13 @@
       ...
 
   <section>
+    <h3.md-typescale-headline-small>_{MsgSector}
+    <p>
+      _{MsgDoc014}
+    <p>
+      _{MsgDoc015}
+
+  <section>
     <h3.md-typescale-headline-small>_{MsgStaff}
     <p>
       ...

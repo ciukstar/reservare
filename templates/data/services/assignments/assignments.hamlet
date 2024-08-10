@@ -41,7 +41,7 @@
               $with Entity _ (Staff name _ _ _) <- employee
                 #{name}
             <div slot=supporting-text>
-              $with Entity _ (Service _ name _ _ _ _) <- service
+              $with Entity _ (Service _ name _ _ _ _ _) <- service
                 _{MsgService}: #{name}
             <div slot=supporting-text>
               $with (Entity _ (Workspace _ wname _ _ _), Entity _ (Business _ bname)) <- (workspace,buisiness)

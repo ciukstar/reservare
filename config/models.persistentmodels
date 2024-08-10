@@ -41,8 +41,15 @@ Service
     price Int
     available Bool
     duration NominalDiffTime
+    type SectorId Maybe OnDeleteCascade
     UniqueService workspace name
     deriving Eq
+
+Sector
+    name Text
+    descr Textarea Maybe
+    parent SectorId Maybe OnDeleteCascade
+    UniqueServiceType name
 
 Staff
     name Text
@@ -110,12 +117,12 @@ User
     deriving Typeable
 
 Store
-  token TokenId OnDeleteCascade
-  key Text
-  val Text
-  UniqueStore token key
+    token TokenId OnDeleteCascade
+    key Text
+    val Text
+    UniqueStore token key
 
 Token
-  api Text
-  store StoreType
-  UniqueToken api
+    api Text
+    store StoreType
+    UniqueToken api

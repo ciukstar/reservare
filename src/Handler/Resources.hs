@@ -14,10 +14,10 @@ import Foundation
       , MsgEmail, MsgPaymentGateway, MsgPublicKey, MsgSecretKey, MsgBasicEntities
       , MsgUser, MsgBusiness, MsgWorkspace, MsgService, MsgStaff, MsgSchedule
       , MsgBooking, MsgServiceAssignment, MsgSearchEngineOptimization
-      , MsgPaymentOption, MsgYooKassa, MsgShopId
+      , MsgPaymentOption, MsgYooKassa, MsgShopId, MsgSector
       , MsgDoc001, MsgDoc002, MsgDoc003, MsgDoc004, MsgDoc005, MsgDoc006
       , MsgDoc007, MsgDoc008, MsgDoc009, MsgDoc010, MsgDoc011, MsgDoc012
-      , MsgDoc013
+      , MsgDoc013, MsgDoc014, MsgDoc015
       )
     )
 

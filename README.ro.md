@@ -93,6 +93,11 @@ Trebuie specificată cel puțin o opțiune de plată (gateway de plată) pentru 
 ### Serviciu
 ...
 
+### Sector
+Un sector reprezintă tipul de activitate al serviciului prestat. Folosit în principal ca chei de căutare pentru servicii.
+
+Dacă este necesar, poate fi definită o ierarhie a acestor sectoare.
+
 ### Personal
 ...
 

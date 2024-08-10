@@ -254,14 +254,20 @@ instance Yesod App where
     isAuthorized r@(DataR ServicesR) _ = setUltDest r >> isAdmin
 
 
-    isAuthorized (DataR (StaffScheduleFillFromPreviousMonthR _ _ _)) _ = isAdmin
-    isAuthorized (DataR (StaffScheduleFillFromWorkingHoursR _ _ _)) _ = isAdmin
-    isAuthorized (DataR (StaffScheduleSlotDeleR _ _ _ _)) _ = isAdmin
-    isAuthorized (DataR (StaffScheduleSlotEditR _ _ _ _)) _ = isAdmin
-    isAuthorized (DataR (StaffScheduleSlotNewR _ _ _)) _ = isAdmin
-    isAuthorized (DataR (StaffScheduleSlotR _ _ _ _)) _ = isAdmin
-    isAuthorized (DataR (StaffScheduleSlotsR _ _ _)) _ = isAdmin
-    isAuthorized (DataR (StaffScheduleR _ _ _)) _ = isAdmin
+    isAuthorized (DataR (SectorDeleR _ _)) _ = isAdmin
+    isAuthorized (DataR (SectorEditR _ _)) _ = isAdmin
+    isAuthorized (DataR (SectorNewR _)) _ = isAdmin
+    isAuthorized (DataR (SectorR _ _)) _ = isAdmin
+    isAuthorized r@(DataR (SectorsR _)) _ = setUltDest r >> isAdmin
+
+    isAuthorized (DataR (StaffScheduleFillFromPreviousMonthR {})) _ = isAdmin
+    isAuthorized (DataR (StaffScheduleFillFromWorkingHoursR {})) _ = isAdmin
+    isAuthorized (DataR (StaffScheduleSlotDeleR {})) _ = isAdmin
+    isAuthorized (DataR (StaffScheduleSlotEditR {})) _ = isAdmin
+    isAuthorized (DataR (StaffScheduleSlotNewR {})) _ = isAdmin
+    isAuthorized (DataR (StaffScheduleSlotR {})) _ = isAdmin
+    isAuthorized (DataR (StaffScheduleSlotsR {})) _ = isAdmin
+    isAuthorized (DataR (StaffScheduleR {})) _ = isAdmin
 
     isAuthorized (DataR (StaffAssignmentDeleR _ _)) _ = isAdmin
     isAuthorized (DataR (StaffAssignmentEditR _ _)) _ = isAdmin
@@ -276,18 +282,18 @@ instance Yesod App where
     isAuthorized r@(DataR StaffR) _ = setUltDest r >> isAdmin
 
     
-    isAuthorized (DataR (PayOptionDeleR _ _ _)) _ = isAdmin
-    isAuthorized (DataR (PayOptionEditR _ _ _)) _ = isAdmin
+    isAuthorized (DataR (PayOptionDeleR {})) _ = isAdmin
+    isAuthorized (DataR (PayOptionEditR {})) _ = isAdmin
     isAuthorized (DataR (PayOptionNewR _ _)) _ = isAdmin
-    isAuthorized (DataR (PayOptionR _ _ _)) _ = isAdmin
+    isAuthorized (DataR (PayOptionR {})) _ = isAdmin
     isAuthorized (DataR (PayOptionsR _ _)) _ = isAdmin
     
-    isAuthorized (DataR (DataWorkingSlotDeleR _ _ _ _)) _ = isAdmin
-    isAuthorized (DataR (DataWorkingSlotEditR _ _ _ _)) _ = isAdmin
-    isAuthorized (DataR (DataWorkingSlotR _ _ _ _)) _ = isAdmin
-    isAuthorized (DataR (DataWorkingSlotNewR _ _ _)) _ = isAdmin
-    isAuthorized (DataR (DataWorkingSlotsR _ _ _)) _ = isAdmin
-    isAuthorized (DataR (DataWorkingHoursR _ _ _)) _ = isAdmin
+    isAuthorized (DataR (DataWorkingSlotDeleR {})) _ = isAdmin
+    isAuthorized (DataR (DataWorkingSlotEditR {})) _ = isAdmin
+    isAuthorized (DataR (DataWorkingSlotR {})) _ = isAdmin
+    isAuthorized (DataR (DataWorkingSlotNewR {})) _ = isAdmin
+    isAuthorized (DataR (DataWorkingSlotsR {})) _ = isAdmin
+    isAuthorized (DataR (DataWorkingHoursR {})) _ = isAdmin
 
     isAuthorized (DataR (DataWorkspaceDeleR _ _)) _ = isAdmin
     isAuthorized (DataR (DataWorkspaceEditR _ _)) _ = isAdmin

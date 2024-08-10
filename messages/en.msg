@@ -1,3 +1,9 @@
+Group: Group
+Tabs: Tabs
+Subsector: Subsector
+Subsectors: Subsectors
+Sector: Sector
+Sectors: Sectors
 WorkspaceWithoutPaymentOptions: Workspace with no payment options
 NoPaymentOptionSpecified: No payment option specified
 PaymentDeclined: Payment declined
@@ -232,3 +238,7 @@ Doc011: If multiple payment gateways are configured for a workspace, they will b
 Doc012: If a workspace has only one payment option (payment gateway) set up, then it will be used as the default and thus one less step in the booking process.
 
 Doc013: At least one payment option (payment gateway) must be specified for the workspace. If none are specified, an error will occur when booking.
+
+Doc014: A sector represents the type of activity of the service provided. Mainly used as search keys for services.
+
+Doc015: If necessary, a hierarchy of such sectors can be defined.

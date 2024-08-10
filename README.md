@@ -97,6 +97,11 @@ At least one payment option (payment gateway) must be specified for the workspac
 ### Service
 ...
 
+### Sector
+A sector represents the type of activity of the service provided. Mainly used as search keys for services.
+
+If necessary, a hierarchy of such sectors can be defined.
+
 ### Staff
 ...
 

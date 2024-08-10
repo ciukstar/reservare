@@ -55,7 +55,7 @@
 
       <dt.md-typescale-label-large>_{MsgService}
       <dd.md-typescale-body-medium>
-        $with Entity _ (Service _ name _ _ _ _) <- service
+        $with Entity _ (Service _ name _ _ _ _ _) <- service
           #{name}
 
       <dt.md-typescale-label-large>_{MsgWorkspace}

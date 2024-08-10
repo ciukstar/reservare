@@ -1,3 +1,9 @@
+Group: Groupe
+Tabs: Onglets
+Subsector: Sous-secteur
+Subsectors: Sous-secteurs
+Sector: Secteur
+Sectors: Secteurs
 WorkspaceWithoutPaymentOptions: Espace de travail sans options de paiement
 NoPaymentOptionSpecified: Aucune option de paiement spécifiée
 PaymentDeclined: Paiement refusé
@@ -232,3 +238,7 @@ Doc011: Si plusieurs passerelles de paiement sont configurées pour un espace de
 Doc012: Si un espace de travail n'a qu'une seule option de paiement (passerelle de paiement) configurée, elle sera alors utilisée par défaut et représentera ainsi une étape de moins dans le processus de réservation.
 
 Doc013: Au moins une option de paiement (passerelle de paiement) doit être spécifiée pour l'espace de travail. Si aucune option n'est spécifiée, une erreur se produira lors de la réservation.
+
+Doc014: Un secteur représente le type d’activité du service fourni. Principalement utilisé comme clés de recherche pour les services.
+
+Doc015: Si nécessaire, une hiérarchie de ces secteurs peut être définie.

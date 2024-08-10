@@ -1056,7 +1056,7 @@ formService bids wids sid extra = do
     return (serviceR,[whamlet|#{extra} ^{fvInput serviceV}|])
 
   where
-      pairs services = (\(Entity sid' (Service _ name _ _ _ _),_) -> (name, sid')) <$> services
+      pairs services = (\(Entity sid' (Service _ name _ _ _ _ _),_) -> (name, sid')) <$> services
 
       md3radioFieldList :: [(Entity Service,(Entity Workspace, Entity Business))]
                         -> Field (HandlerFor App) ServiceId
@@ -1079,7 +1079,7 @@ $if null opts
 $else
   <md-list ##{theId} *{attrs}>
     $forall (i,opt) <- opts
-      $maybe (Entity _ (Service _ sname _ price _ _),(workspace,business)) <- findService opt services
+      $maybe (Entity _ (Service _ sname _ price _ _ _),(workspace,business)) <- findService opt services
         <md-list-item type=button onclick="this.querySelector('md-radio').click()">
           <div slot=headline>
             #{sname}

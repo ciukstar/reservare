@@ -131,7 +131,7 @@ getCheckoutR bid oid = do
 
     case book of
       Nothing -> invalidArgs [pack $ show bid]
-      Just (_,Entity _ (Service _ sname _ cents _ _),Entity _ (Workspace _ _ _ _ currency)) -> do
+      Just (_,Entity _ (Service _ sname _ cents _ _ _),Entity _ (Workspace _ _ _ _ currency)) -> do
 
           homeR <- liftHandler getHomeR
           

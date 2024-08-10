@@ -28,7 +28,7 @@ import Data.Time.LocalTime
     ( TimeZone (timeZoneMinutes), minutesToTimeZone, TimeOfDay )
 
 import Database.Persist.Quasi ( lowerCaseSettings )
-import Database.Persist.Sql (PersistFieldSql (sqlType))
+import Database.Persist.Sql (PersistFieldSql (sqlType), fromSqlKey, toSqlKey)
 
 import Text.Printf (printf, PrintfType)
 import Text.Read (readMaybe)
@@ -99,6 +99,17 @@ instance PathPiece Month where
 -- http://www.yesodweb.com/book/persistent/
 share [mkPersist sqlSettings, mkMigrate "migrateAll"]
     $(persistFileWith lowerCaseSettings "config/models.persistentmodels")
+
+
+newtype Sectors = Sectors { unSectors :: [SectorId] }
+    deriving (Show, Read, Eq)
+
+instance PathMultiPiece Sectors where
+    toPathMultiPiece :: Sectors -> [Text]
+    toPathMultiPiece (Sectors xs) = pack . show . fromSqlKey <$> xs
+
+    fromPathMultiPiece :: [Text] -> Maybe Sectors
+    fromPathMultiPiece xs = Sectors <$> mapM ((toSqlKey <$>) . readMaybe . unpack) xs
 
 
 endpointYookassa :: Text

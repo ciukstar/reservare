@@ -1,3 +1,9 @@
+Group: Grupul
+Tabs: File
+Subsector: Subsector
+Subsectors: Subsectoare
+Sector: Sector
+Sectors: Sectoare
 WorkspaceWithoutPaymentOptions: Spațiu de lucru fără opțiuni de plată
 NoPaymentOptionSpecified: Nu a fost specificată nicio opțiune de plată
 PaymentDeclined: Plata a fost refuzată
@@ -232,3 +238,7 @@ Doc011: Dacă sunt configurate mai multe gateway-uri de plată pentru un spațiu
 Doc012: Dacă un spațiu de lucru are o singură opțiune de plată (gateway de plată) configurată, atunci va fi folosit ca implicit și, prin urmare, un pas mai puțin în procesul de rezervare.
 
 Doc013: Trebuie specificată cel puțin o opțiune de plată (gateway de plată) pentru spațiul de lucru. Dacă nu sunt specificate, va apărea o eroare la rezervare.
+
+Doc014: Un sector reprezintă tipul de activitate al serviciului prestat. Folosit în principal ca chei de căutare pentru servicii.
+
+Doc015: Dacă este necesar, poate fi definită o ierarhie a acestor sectoare.

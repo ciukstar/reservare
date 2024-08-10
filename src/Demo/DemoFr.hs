@@ -36,7 +36,7 @@ import Model
     , Workspace (Workspace, workspaceBusiness, workspaceName, workspaceAddress)
     , Service
       ( Service, serviceWorkspace, serviceName, serviceDescr, serviceAvailable
-      , serviceDuration
+      , serviceDuration, serviceType
       )
     , Staff (Staff, staffName, staffAccount, staffMobile, staffPhone)
     , Assignment (Assignment, assignmentService, assignmentStaff, assignmentTime)
@@ -53,7 +53,7 @@ import Model
       , payOptionIcon, PayOption
       )
     , PayMethod (PayNow, PayAtVenue)
-    , PayGateway (PayGatewayStripe)
+    , PayGateway (PayGatewayStripe), Sector (Sector, sectorName, sectorDescr, sectorParent)
     )
 
 import Settings (AppSettings)
@@ -223,35 +223,86 @@ fillDemoFr appSettings = do
                       , payOptionIcon = Just "point_of_sale"
                       }
 
-    let service1 = Service { serviceWorkspace = w11
-                           , serviceName = "Voyages d'agrément"
-                           , serviceDescr = Just "Voyagez comme vous le souhaitez"
-                           , servicePrice = 10000
-                           , serviceAvailable = True
-                           , serviceDuration = oneHour
-                           }
+    let sector1 = Sector { sectorName = "Tourisme"
+                         , sectorDescr = Just "Conseil en tourisme"
+                         , sectorParent = Nothing
+                         }
+    sec1 <- insert sector1
 
-    s1 <- insert service1
+    let sector2 = Sector { sectorName = "Hôtel"
+                         , sectorDescr = Just "Hôtellerie et restauration"
+                         , sectorParent = Nothing
+                         }
+    sec2 <- insert sector2
 
-    let service2 = Service { serviceWorkspace = w11
-                           , serviceName = "Voyage Italie"
-                           , serviceDescr = Just "La joie italienne"
-                           , servicePrice = 20000
-                           , serviceAvailable = True
-                           , serviceDuration = oneHour
-                           }
+    let sector3 = Sector { sectorName = "Financière"
+                         , sectorDescr = Just "Services financiers"
+                         , sectorParent = Nothing
+                         }
+    sec3 <- insert sector3
 
-    s2 <- insert service2
+    let sector4 = Sector { sectorName = "Soins de santé"
+                         , sectorDescr = Just "Soins de santé"
+                         , sectorParent = Nothing
+                         }
+    sec4 <- insert sector4
 
-    let service3 = Service { serviceWorkspace = w11
-                           , serviceName = "Bonjour Paris"
-                           , serviceDescr = Just "La France attend"
-                           , servicePrice = 25000
-                           , serviceAvailable = True
-                           , serviceDuration = oneHour
-                           }
+    let sector5 = Sector { sectorName = "Juridique"
+                         , sectorDescr = Just "Pratique du droit"
+                         , sectorParent = Nothing
+                         }
+    sec5 <- insert sector5
 
-    s3 <- insert service3
+    let sector6 = Sector { sectorName = "Gestion"
+                         , sectorDescr = Just "Conseil en gestion"
+                         , sectorParent = Nothing
+                         }
+    sec6 <- insert sector6
+
+    let sector7 = Sector { sectorName = "IT"
+                         , sectorDescr = Just "Conseil en technologies de l'information"
+                         , sectorParent = Nothing
+                         }
+    sec7 <- insert sector7
+
+    let sector8 = Sector { sectorName = "Musique"
+                         , sectorDescr = Just "Industrie de la musique"
+                         , sectorParent = Nothing
+                         }
+    sec8 <- insert sector8
+
+    let service111 = Service { serviceWorkspace = w11
+                             , serviceName = "Voyages d'agrément"
+                             , serviceDescr = Just "Voyagez comme vous le souhaitez"
+                             , servicePrice = 10000
+                             , serviceAvailable = True
+                             , serviceDuration = oneHour
+                             , serviceType = Just sec1
+                             }
+
+    s111 <- insert service111
+
+    let service112 = Service { serviceWorkspace = w11
+                             , serviceName = "Voyage Italie"
+                             , serviceDescr = Just "La joie italienne"
+                             , servicePrice = 20000
+                             , serviceAvailable = True
+                             , serviceDuration = oneHour
+                             , serviceType = Just sec1
+                             }
+
+    s112 <- insert service112
+
+    let service113 = Service { serviceWorkspace = w11
+                             , serviceName = "Bonjour Paris"
+                             , serviceDescr = Just "La France attend"
+                             , servicePrice = 25000
+                             , serviceAvailable = True
+                             , serviceDuration = oneHour
+                             , serviceType = Just sec1
+                             }
+
+    s113 <- insert service113
 
     let business2 = Business { businessOwner = usr2
                              , businessName = "TGR & Cie"
@@ -314,6 +365,7 @@ fillDemoFr appSettings = do
                              , servicePrice = 10000
                              , serviceAvailable = True
                              , serviceDuration = oneHour
+                             , serviceType = Just sec1
                              }
 
     s211 <- insert service211
@@ -324,6 +376,7 @@ fillDemoFr appSettings = do
                              , servicePrice = 20000
                              , serviceAvailable = True
                              , serviceDuration = oneHour
+                             , serviceType = Just sec1
                              }
 
     s212 <- insert service212
@@ -334,6 +387,7 @@ fillDemoFr appSettings = do
                              , servicePrice = 25000
                              , serviceAvailable = True
                              , serviceDuration = oneHour
+                             , serviceType = Just sec1
                              }
 
     s213 <- insert service213
@@ -393,6 +447,7 @@ fillDemoFr appSettings = do
                              , servicePrice = 10000
                              , serviceAvailable = True
                              , serviceDuration = oneHour
+                             , serviceType = Just sec1
                              }
 
     s221 <- insert service221
@@ -403,6 +458,7 @@ fillDemoFr appSettings = do
                              , servicePrice = 20000
                              , serviceAvailable = True
                              , serviceDuration = oneHour
+                             , serviceType = Just sec1
                              }
 
     s222 <- insert service222
@@ -413,6 +469,7 @@ fillDemoFr appSettings = do
                              , servicePrice = 25000
                              , serviceAvailable = True
                              , serviceDuration = oneHour
+                             , serviceType = Just sec1
                              }
 
     s223 <- insert service223
@@ -456,7 +513,7 @@ fillDemoFr appSettings = do
     empl4 <- insert employee4
 
     let assignment111 = Assignment { assignmentStaff = empl1
-                                   , assignmentService = s1
+                                   , assignmentService = s111
                                    , assignmentRole = "Agent de tourisme"
                                    , assignmentTime = now
                                    , assignmentSlotInterval = quarterHour
@@ -490,7 +547,7 @@ fillDemoFr appSettings = do
                              }
 
     let assignment221 = Assignment { assignmentStaff = empl2
-                                   , assignmentService = s2
+                                   , assignmentService = s112
                                    , assignmentRole = "Agent de tourisme"
                                    , assignmentTime = now
                                    , assignmentSlotInterval = halfHour
@@ -524,7 +581,7 @@ fillDemoFr appSettings = do
                              }
 
     let assignment331 = Assignment { assignmentStaff = empl3
-                                    , assignmentService = s3
+                                    , assignmentService = s113
                                     , assignmentRole = "Agent de tourisme"
                                     , assignmentTime = now
                                     , assignmentSlotInterval = oneHour

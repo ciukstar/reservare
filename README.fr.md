@@ -96,6 +96,11 @@ Au moins une option de paiement (passerelle de paiement) doit être spécifiée 
 ### Service
 ...
 
+### Secteur
+Un secteur représente le type d’activité du service fourni. Principalement utilisé comme clés de recherche pour les services.
+
+Si nécessaire, une hiérarchie de ces secteurs peut être définie.
+
 ### Personelle
 ...
 

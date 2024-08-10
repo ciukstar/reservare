@@ -7,10 +7,10 @@ module Widgets
 import Foundation
     ( Widget
     , Route (HomeR, DataR, AuthR, AccountR, AccountPhotoR, DocsR)
-    , DataR (UsersR, TokensR, DataBusinessesR, StaffR, ServicesR)
+    , DataR (UsersR, TokensR, DataBusinessesR, StaffR, SectorsR, ServicesR)
     , AppMessage
       ( MsgMainMenu, MsgUsers, MsgWelcome, MsgData, MsgSignIn, MsgSignOut
-      , MsgUserAccount, MsgPhoto, MsgTokens, MsgBusinesses
+      , MsgUserAccount, MsgPhoto, MsgTokens, MsgBusinesses, MsgSectors
       , MsgStaff, MsgServices, MsgResources, MsgDocumentation, MsgSourceCode
       )
     )
@@ -19,7 +19,7 @@ import Data.Text (Text)
 
 import Database.Persist (Entity (Entity))
 
-import Model (statusError, statusSuccess)
+import Model (statusError, statusSuccess, Sectors (Sectors))
     
 import Settings (widgetFile)
 

@@ -50,7 +50,7 @@
     <fieldset>
       <legend>_{MsgService}
       <dl>
-        $with Entity _ (Service _ name _ price _ duration) <- service
+        $with Entity _ (Service _ name _ price _ duration _) <- service
           <dt.md-typescale-label-large>_{MsgTheName}
           <dd.md-typescale-body-medium>
             #{name}
