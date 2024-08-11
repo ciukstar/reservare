@@ -61,7 +61,7 @@ import Widgets (widgetMenu, widgetAccount, widgetBanner, widgetSnackbar)
 import Yesod.Core
     ( Yesod(defaultLayout), setTitleI, getMessages, newIdent, whamlet
     , SomeMessage (SomeMessage), getMessageRender, redirect, addMessageI
-    , YesodRequest (reqGetParams), getRequest, MonadHandler (liftHandler)
+    , MonadHandler (liftHandler)
     )
 import Yesod.Form
     ( Field, FormResult (FormSuccess), checkM, runFormPost
@@ -223,8 +223,6 @@ formSectorDelete extra = return (FormSuccess (), [whamlet|#{extra}|])
 
 getSectorsR :: Sectors -> Handler Html
 getSectorsR ps@(Sectors sids) = do
-
-    stati <- reqGetParams <$> getRequest
 
     sectors <- runDB $ select $ do
         cte <- withRecursive

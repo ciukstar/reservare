@@ -21,9 +21,12 @@ module Handler.Data.Services
   ) where
 
 
-import Control.Monad (void)
+import Control.Monad (void, unless, when)
 
-import Data.Text (Text)
+import Data.Bifunctor (Bifunctor(bimap, second))
+import qualified Data.Map as M (fromListWith, findWithDefault)
+import Data.Maybe (mapMaybe) 
+import Data.Text (Text, pack, unpack)
 import Data.Time (nominalDiffTimeToSeconds, secondsToNominalDiffTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Data.Time.LocalTime (utcToLocalTime, localTimeToUTC, utc)
@@ -31,11 +34,12 @@ import Data.Time.LocalTime (utcToLocalTime, localTimeToUTC, utc)
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, desc, asc, selectOne, where_, val
     , (^.), (==.), (:&)((:&))
-    , innerJoin, on
+    , innerJoin, on, isNothing_, valList, justList, in_, Value (unValue)
     )
 import Database.Persist
     (Entity (Entity), entityVal, entityKey, insert_)
 import qualified Database.Persist as P (delete, PersistStoreWrite (replace))
+import Database.Persist.Sql (fromSqlKey, toSqlKey)
 
 import Foundation
     ( Handler, Form
@@ -43,7 +47,7 @@ import Foundation
     , DataR
       ( ServicesR, ServiceR, ServiceNewR, ServiceEditR, ServiceDeleR
       , ServiceAssignmentsR, ServiceAssignmentNewR, ServiceAssignmentR
-      , ServiceAssignmentEditR, ServiceAssignmentDeleR
+      , ServiceAssignmentEditR, ServiceAssignmentDeleR, SectorsR, DataBusinessesR
       )
     , AppMessage
       ( MsgServices, MsgAdd, MsgYouMightWantToAddAFew, MsgThereAreNoDataYet
@@ -53,7 +57,8 @@ import Foundation
       , MsgDele, MsgRecordDeleted, MsgInvalidFormData, MsgServiceAssignment
       , MsgEmployee, MsgAssignmentDate, MsgTheStart, MsgBusiness, MsgPrice
       , MsgSchedulingInterval, MsgUnitMinutes, MsgPriority, MsgAlreadyExists
-      , MsgRole, MsgAvailable, MsgDuration, MsgType
+      , MsgRole, MsgAvailable, MsgDuration, MsgType, MsgSectors, MsgBusinesses
+      , MsgWorkspaces
       )
     )
     
@@ -77,24 +82,27 @@ import Model
       )
     , StaffId, Staff (staffName, Staff)
     , Business (Business)
-    , Sector (sectorName)
+    , Sector (sectorName, Sector)
+    , Sectors (Sectors)
     , EntityField
       ( ServiceId, WorkspaceName, WorkspaceId, AssignmentId, WorkspaceBusiness
       , StaffName, StaffId, AssignmentService, ServiceWorkspace, BusinessId
-      , AssignmentStaff, ServiceName, AssignmentRole, SectorName
+      , AssignmentStaff, ServiceName, AssignmentRole, SectorName, SectorParent
+      , ServiceType, BusinessName
       )
     )
 
 import Settings (widgetFile)
 
 import Text.Hamlet (Html)
+import Text.Read (readMaybe)
 
 import Widgets (widgetMenu, widgetAccount, widgetBanner, widgetSnackbar)
 
 import Yesod.Core
     ( Yesod(defaultLayout), getMessages, newIdent, getMessageRender
-    , redirect, whamlet, addMessageI
-    , SomeMessage (SomeMessage), MonadHandler (liftHandler)
+    , redirect, whamlet, addMessageI, YesodRequest (reqGetParams)
+    , SomeMessage (SomeMessage), MonadHandler (liftHandler), getRequest
     )
 import Yesod.Core.Widget (setTitleI)
 import Yesod.Form
@@ -498,6 +506,9 @@ formService service extra = do
 
 getServiceR :: ServiceId -> Handler Html
 getServiceR sid = do
+
+    stati <- reqGetParams <$> getRequest
+    
     service <- runDB $ selectOne $ do
         x :& w <- from $ table @Service
             `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
@@ -520,15 +531,69 @@ formServiceDelete extra = return (pure (), [whamlet|#{extra}|])
 
 getServicesR :: Handler Html
 getServicesR = do
+
+    stati <- reqGetParams <$> getRequest
+    let inputSectors = filter (\(x,_) -> x == paramSector) stati
+    let selectedSectors = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputSectors
+    
+    sectors <- runDB $ select $ do
+        x <- from $ table @Sector
+        where_ $ isNothing_ $ x ^. SectorParent
+        orderBy [asc (x ^. SectorName)]
+        return x
+        
+    let inputBusinesses = filter (\(x,_) -> x == paramBusiness) stati
+    let selectedBusinesses = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputBusinesses
+    
+    businesses <- runDB $ select $ do
+        x <- from $ table @Business
+        orderBy [asc (x ^. BusinessName)]
+        return x
+    
+    workspaces <- runDB $ select $ do
+        x <- from $ table @Workspace
+        unless (null selectedBusinesses) $ where_ $ x ^. WorkspaceBusiness `in_` valList selectedBusinesses
+        when (null selectedBusinesses) $ where_ $ val False
+        orderBy [asc (x ^. WorkspaceName)]
+        return x
+        
+    let inputWorkspaces = filter (\(x,_) -> x == paramWorkspace) stati
+    let selectedWorkspaces = let wids = (entityKey <$> workspaces) in
+          filter (`elem` wids) $ mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputWorkspaces
+
+
+    businessWorkspaces <- M.fromListWith (<>) . (second (:[]) <$>) . (bimap unValue unValue <$>) <$> runDB ( select $ do
+        x :& b <- from $ table @Workspace
+            `innerJoin` table @Business `on` (\(x :& b) -> x ^. WorkspaceBusiness ==. b ^. BusinessId)
+        unless (null selectedBusinesses) $ where_ $ x ^. WorkspaceBusiness `in_` valList selectedBusinesses
+        when (null selectedBusinesses) $ where_ $ val False
+        return (b ^. BusinessId,x ^. WorkspaceId) )
+        
+    let paramsWokspaces bid = (\x -> (paramWorkspace,pack $ show $ fromSqlKey x))
+            <$> filter (\x -> x `notElem` M.findWithDefault [] bid businessWorkspaces) selectedWorkspaces
     
     services <- runDB $ select $ do
         x :& w <- from $ table @Service
             `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
+        unless (null selectedSectors) $ where_ $ x ^. ServiceType `in_` justList (valList selectedSectors)
+        unless (null selectedBusinesses) $ where_ $ w ^. WorkspaceBusiness `in_` valList selectedBusinesses
+        unless (null selectedWorkspaces) $ where_ $ w ^. WorkspaceId `in_` valList selectedWorkspaces
         orderBy [desc (x ^. ServiceId)]
         return (x,w)
         
     msgs <- getMessages
     defaultLayout $ do
-        setTitleI MsgServices
+        setTitleI MsgServices 
+        idFilterChips <- newIdent
         idFabAdd <- newIdent
         $(widgetFile "data/services/services")
+
+
+paramSector :: Text
+paramSector = "t"
+
+paramBusiness :: Text
+paramBusiness = "b"
+
+paramWorkspace :: Text
+paramWorkspace = "w"

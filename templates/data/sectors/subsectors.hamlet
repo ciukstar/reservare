@@ -12,11 +12,18 @@
       
 <main>
   
-  <md-tabs ##{idTabs} aria-label=_{MsgTabs}
-    onchange="window.location.href = event.target.activeTabIndex == 0 ? '@{DataR $ SectorR (last sids) (Sectors (init sids))}' : '@{DataR $ SectorsR (Sectors (init sids))}'">
-    <md-primary-tab #idTabDetails aria-controls=idPanelDetails>
+  <md-tabs ##{idTabs} aria-label=_{MsgTabs}>
+  
+    <md-primary-tab #idTabDetails aria-controls=idPanelDetails
+      onclick="this.querySelector('a[href]').click()">
+      
+      <a href=@{DataR $ SectorR (last sids) (Sectors (init sids))}>
       _{MsgDetails}
-    <md-primary-tab #idTabSubsectors aria-controls=#{idPanelSubsectors} active=true>
+      
+    <md-primary-tab #idTabSubsectors aria-controls=#{idPanelSubsectors} active=true
+      onclick="this.querySelector('a[href]').click()">
+      
+      <a href=@{DataR $ SectorsR (Sectors (init sids))}>
       _{MsgSubsectors}
 
   <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
