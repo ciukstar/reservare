@@ -12,18 +12,19 @@
 <main>
 
   <div ##{idFilterChips}>
-    <details :not (null selectedSectors):open>
+    <details :not (null selectedSectors):open ##{idDetailsSectors}>
       <summary.md-typescale-label-large #idSummarySectors>
         <md-ripple for=idSummarySectors>
         _{MsgSectors}
 
-      <md-chip-set>
-        $forall Entity gid (Sector name _ _) <- sectors
-          $with isSelected <- elem gid selectedSectors
-            $with theId <- pack $ show $ fromSqlKey gid
+      <md-chip-set ##{idChipSetSectors}>
+        $forall Entity tid (Sector name _ _) <- sectors
+          $with (isSelected,theId) <- (elem tid selectedSectors,pack $ show $ fromSqlKey tid)
+            $with scrollParams <- [(paramX2,pack $ show scrollX2),(paramX3,pack $ show scrollX3)]
               <md-filter-chip label=#{name} :isSelected:selected onclick="this.querySelector('a[href]').click()">
-                $with params <- inputBusinesses <> inputWorkspaces
-                  <a :isSelected:href=@?{(DataR ServicesR,((<>) (filter (((/=) theId) . snd) inputSectors) params))}
+                $with params <- ((<>) (inputBusinesses <> inputWorkspaces) scrollParams)
+                  <a.with-scroll-x data-with-scroll-x-target=#{idChipSetSectors} data-with-scroll-x-param=#{paramX1}
+                     :isSelected:href=@?{(DataR ServicesR,((<>) (filter (((/=) theId) . snd) inputSectors) params))}
                      :not isSelected:href=@?{(DataR ServicesR,((<>) ((:) (paramSector,theId) inputSectors) params))}>
                    
         <md-assist-chip href=@?{(DataR $ SectorsR (Sectors []),stati)}>
@@ -34,13 +35,14 @@
         <md-ripple for=idSummaryBusinesses>
         _{MsgBusinesses}
 
-      <md-chip-set>
+      <md-chip-set ##{idChipSetBusinesses}>
         $forall Entity bid (Business _ name) <- businesses
-          $with isSelected <- elem bid selectedBusinesses
-            $with theId <- pack $ show $ fromSqlKey bid
+          $with (isSelected,theId) <- (elem bid selectedBusinesses,pack $ show $ fromSqlKey bid)
+            $with scrollParams <- [(paramX1,pack $ show scrollX1),(paramX3,pack $ show scrollX3)]
               <md-filter-chip label=#{name} :isSelected:selected onclick="this.querySelector('a[href]').click()">
-                $with params <- inputSectors <> inputWorkspaces
-                  <a :isSelected:href=@?{(DataR ServicesR,((<>) (filter (((/=) theId) . snd) inputBusinesses) ((<>) inputSectors (paramsWokspaces bid))))}
+                $with params <- ((inputSectors <> inputWorkspaces) <> scrollParams)
+                  <a.with-scroll-x data-with-scroll-x-target=#{idChipSetBusinesses} data-with-scroll-x-param=#{paramX2}
+                     :isSelected:href=@?{(DataR ServicesR,((<>) ((<>) (filter (((/=) theId) . snd) inputBusinesses) ((<>) inputSectors (paramsWokspaces bid))) scrollParams))}
                      :not isSelected:href=@?{(DataR ServicesR,((<>) ((:) (paramBusiness,theId) inputBusinesses) params))}>
         
         <md-assist-chip href=@?{(DataR DataBusinessesR,stati)}>
@@ -52,13 +54,14 @@
           <md-ripple for=idSummaryWorkspaces>
           _{MsgWorkspaces}
 
-        <md-chip-set>
+        <md-chip-set ##{idChipSetWorkspaces}>
           $forall Entity wid (Workspace _ name _ _ _) <- workspaces
-            $with isSelected <- elem wid selectedWorkspaces
-              $with theId <- pack $ show $ fromSqlKey wid
+            $with (isSelected,theId) <- (elem wid selectedWorkspaces,pack $ show $ fromSqlKey wid)
+              $with scrollParams <- [(paramX1,pack $ show scrollX1),(paramX2,pack $ show scrollX2)]
                 <md-filter-chip label=#{name} :isSelected:selected onclick="this.querySelector('a[href]').click()">
-                  $with params <- inputSectors <> inputBusinesses
-                    <a :isSelected:href=@?{(DataR ServicesR,((<>) (filter (((/=) theId) . snd) inputWorkspaces) params))}
+                  $with params <- ((inputSectors <> inputBusinesses) <> scrollParams)
+                    <a.with-scroll-x data-with-scroll-x-target=#{idChipSetWorkspaces} data-with-scroll-x-param=#{paramX3}
+                       :isSelected:href=@?{(DataR ServicesR,((<>) (filter (((/=) theId) . snd) inputWorkspaces) params))}
                        :not isSelected:href=@?{(DataR ServicesR,((<>) ((:) (paramWorkspace,theId) inputWorkspaces) params))}>
 
   ^{widgetBanner msgs}
@@ -73,7 +76,9 @@
   $else
     <md-list>
       $forall (Entity sid (Service _ name _ price _ _ _),Entity _ (Workspace _ _ _ _ currency)) <- services
-        <md-list-item type=link href=@?{(DataR $ ServiceR sid,stati)}>
+        <md-list-item.with-scroll-x data-with-scroll-x-target=#{idChipSetSectors} data-with-scroll-x-param=#{paramX1}
+          type=link href=@?{(DataR $ ServiceR sid,stati)}>
+          
           <div slot=headline>
             #{name}
           <div.currency slot=supporting-text data-value=#{price} data-currency=#{currency}>

@@ -1,6 +1,6 @@
 
 <header>
-  <md-icon-button href=@{DataR $ ServiceR sid} aria-label=_{MsgBack}>
+  <md-icon-button href=@?{(DataR $ ServiceR sid,stati)} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
   <span.md-typescale-title-large>
@@ -10,10 +10,10 @@
 
   ^{widgetBanner msgs}
 
-  <form method=post action=@{DataR $ ServiceR sid} enctype=#{et} novalidate ##{idFormStaff}>
+  <form method=post action=@?{(DataR $ ServiceR sid,stati)} enctype=#{et} novalidate ##{idFormStaff}>
     ^{fw}
     <div.form-actions>
-      <md-text-button type=button href=@{DataR $ ServiceR sid}>
+      <md-text-button type=button href=@?{(DataR $ ServiceR sid,stati)}>
         _{MsgCancel}
       <md-filled-button type=submit>
         _{MsgSave}

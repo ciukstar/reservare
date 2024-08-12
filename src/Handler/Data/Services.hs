@@ -23,9 +23,10 @@ module Handler.Data.Services
 
 import Control.Monad (void, unless, when)
 
+import qualified Data.Aeson as A (toJSON)
 import Data.Bifunctor (Bifunctor(bimap, second))
 import qualified Data.Map as M (fromListWith, findWithDefault)
-import Data.Maybe (mapMaybe) 
+import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Text (Text, pack, unpack)
 import Data.Time (nominalDiffTimeToSeconds, secondsToNominalDiffTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
@@ -61,7 +62,7 @@ import Foundation
       , MsgWorkspaces
       )
     )
-    
+
 import Material3
     ( md3mreq, md3textField, md3textareaField, md3mopt, md3selectField
     , md3datetimeLocalField, md3intField, md3switchField
@@ -107,20 +108,23 @@ import Yesod.Core
 import Yesod.Core.Widget (setTitleI)
 import Yesod.Form
     ( FieldSettings(FieldSettings, fsLabel, fsTooltip, fsId, fsName, fsAttrs)
-    , optionsPairs, FieldView (fvInput, fvId, fvLabel), FormResult (FormSuccess), Field
+    , optionsPairs, FieldView (fvInput, fvId, fvLabel), FormResult (FormSuccess)
+    , Field, textField
     )
 import Yesod.Form.Functions (generateFormPost, runFormPost, checkM)
+import Yesod.Form.Input (runInputGet, iopt)
 import Yesod.Persist (YesodPersist(runDB))
 
 
 postServiceAssignmentR :: ServiceId -> AssignmentId -> Handler Html
 postServiceAssignmentR sid aid = do
+    stati <- reqGetParams <$> getRequest
 
     assignment <- runDB $ selectOne $ do
         x <- from $ table @Assignment
         where_ $ x ^. AssignmentId ==. val aid
         return x
-        
+
     ((fr,fw),et) <- runFormPost $ formServiceAssignment sid assignment
 
     case fr of
@@ -138,28 +142,29 @@ postServiceAssignmentR sid aid = do
 
 postServiceAssignmentDeleR :: ServiceId -> AssignmentId -> Handler Html
 postServiceAssignmentDeleR sid aid = do
-
+    stati <- reqGetParams <$> getRequest
     ((fr,_),_) <- runFormPost formServiceAssignmentDelete
     case fr of
       FormSuccess () -> do
           runDB $ P.delete aid
           addMessageI statusSuccess MsgRecordDeleted
-          redirect $ DataR $ ServiceAssignmentsR sid
+          redirect (DataR $ ServiceAssignmentsR sid,stati)
       _otherwise -> do
           addMessageI statusError MsgInvalidFormData
-          redirect $ DataR $ ServiceAssignmentR sid aid
+          redirect (DataR $ ServiceAssignmentR sid aid,stati)
 
 
 getServiceAssignmentEditR :: ServiceId -> AssignmentId -> Handler Html
 getServiceAssignmentEditR sid aid = do
+    stati <- reqGetParams <$> getRequest
 
     assignment <- runDB $ selectOne $ do
         x <- from $ table @Assignment
         where_ $ x ^. AssignmentId ==. val aid
         return x
-        
+
     (fw,et) <- generateFormPost $ formServiceAssignment sid assignment
-        
+
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignment
@@ -169,6 +174,7 @@ getServiceAssignmentEditR sid aid = do
 
 getServiceAssignmentR :: ServiceId -> AssignmentId -> Handler Html
 getServiceAssignmentR sid aid = do
+    stati <- reqGetParams <$> getRequest
 
     assignment <- runDB $ selectOne $ do
         x :& s :& w :& b :& e <- from $ table @Assignment
@@ -180,7 +186,7 @@ getServiceAssignmentR sid aid = do
         return (x,(e,(s,(w,b))))
 
     (fw2,et2) <- generateFormPost formServiceAssignmentDelete
-        
+
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignment
@@ -201,7 +207,7 @@ postServiceAssignmentsR sid = do
           runDB $ insert_ r
           addMessageI statusSuccess MsgRecordAdded
           redirect $ DataR $ ServiceAssignmentsR sid
-      _otherwise -> do        
+      _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgServiceAssignment
@@ -212,7 +218,7 @@ postServiceAssignmentsR sid = do
 getServiceAssignmentNewR :: ServiceId -> Handler Html
 getServiceAssignmentNewR sid = do
     (fw,et) <- generateFormPost $ formServiceAssignment sid Nothing
-        
+
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignment
@@ -222,38 +228,38 @@ getServiceAssignmentNewR sid = do
 
 formServiceAssignment :: ServiceId -> Maybe (Entity Assignment) -> Form Assignment
 formServiceAssignment sid assignment extra = do
-     
+
     msgr <- getMessageRender
-    
+
     staff <- liftHandler $ runDB $ select $ do
         x <- from $ table @Staff
         orderBy [asc (x ^. StaffName), desc (x ^. StaffId)]
         return x
-    
+
     (employeeR, employeeV) <- md3mreq (md3selectField (optionsPairs (options <$> staff))) FieldSettings
         { fsLabel = SomeMessage MsgEmployee
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgEmployee)]
         } (assignmentStaff . entityVal <$> assignment)
-    
+
     (roleR, roleV) <- md3mreq (uniqueRoleField sid employeeR) FieldSettings
         { fsLabel = SomeMessage MsgRole
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgRole)]
         } (assignmentRole . entityVal <$> assignment)
-    
+
     (startR, startV) <- md3mreq md3datetimeLocalField FieldSettings
         { fsLabel = SomeMessage MsgAssignmentDate
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgAssignmentDate),("step","1")]
         } (utcToLocalTime utc . assignmentTime . entityVal <$> assignment)
-    
+
     (intervalR, intervalV) <- md3mreq md3intField FieldSettings
         { fsLabel = SomeMessage MsgSchedulingInterval
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgSchedulingInterval),("supporting-text", msgr MsgUnitMinutes)]
         } (truncate . (/ 60) . nominalDiffTimeToSeconds . assignmentSlotInterval . entityVal <$> assignment)
-    
+
     (priorityR, priorityV) <- md3mreq md3intField FieldSettings
         { fsLabel = SomeMessage MsgPriority
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
@@ -272,12 +278,12 @@ formServiceAssignment sid assignment extra = do
                     ^{fvInput intervalV}
                     ^{fvInput priorityV}
                     |]
-    
+
     return (r, w)
-        
+
   where
       options e = (staffName . entityVal $ e, entityKey e)
-      
+
       uniqueRoleField :: ServiceId -> FormResult StaffId -> Field Handler Text
       uniqueRoleField sid' eid = checkM (uniqueRole sid' eid) md3textField
 
@@ -301,7 +307,8 @@ formServiceAssignment sid assignment extra = do
 
 getServiceAssignmentsR :: ServiceId -> Handler Html
 getServiceAssignmentsR sid = do
-    
+    stati <- reqGetParams <$> getRequest
+
     assignments <- runDB $ select $ do
         x :& s :& w :& b :& e <- from $ table @Assignment
             `innerJoin` table @Service `on` (\(x :& s) -> x ^. AssignmentService ==. s ^. ServiceId)
@@ -311,24 +318,25 @@ getServiceAssignmentsR sid = do
         where_ $ x ^. AssignmentService ==. val sid
         orderBy [desc (x ^. AssignmentId)]
         return (x,(e,(s,(w,b))))
-        
+
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignments
         idTabAssignments <- newIdent
         idPanelAssignments <- newIdent
-        idFabAdd <- newIdent 
+        idFabAdd <- newIdent
         $(widgetFile "data/services/assignments/assignments")
 
 
 postServiceR :: ServiceId -> Handler Html
 postServiceR sid = do
-    
+    stati <- reqGetParams <$> getRequest
+
     service <- runDB $ selectOne $ do
         x <- from $ table @Service
         where_ $ x ^. ServiceId ==. val sid
         return x
-        
+
     ((fr,fw),et) <- runFormPost $ formService service
     case fr of
       FormSuccess r -> do
@@ -345,27 +353,29 @@ postServiceR sid = do
 
 postServiceDeleR :: ServiceId -> Handler Html
 postServiceDeleR sid = do
+    stati <- reqGetParams <$> getRequest
     ((fr,_),_) <- runFormPost formServiceDelete
     case fr of
       FormSuccess () -> do
           void $ runDB $ P.delete sid
           addMessageI statusSuccess MsgRecordDeleted
-          redirect $ DataR ServicesR
+          redirect (DataR ServicesR,stati)
       _otherwise -> do
           addMessageI statusError MsgInvalidFormData
-          redirect $ DataR $ ServiceR sid
-    
+          redirect (DataR $ ServiceR sid,stati)
+
 
 getServiceEditR :: ServiceId -> Handler Html
 getServiceEditR sid = do
-    
+    stati <- reqGetParams <$> getRequest
+
     service <- runDB $ selectOne $ do
         x <- from $ table @Service
         where_ $ x ^. ServiceId ==. val sid
         return x
-        
+
     (fw,et) <- generateFormPost $ formService service
-        
+
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServices
@@ -375,13 +385,14 @@ getServiceEditR sid = do
 
 postServicesR :: Handler Html
 postServicesR = do
+    stati <- reqGetParams <$> getRequest
     ((fr,fw),et) <- runFormPost $ formService Nothing
     case fr of
       FormSuccess r -> do
           runDB $ insert_ r
           addMessageI statusSuccess MsgRecordAdded
-          redirect $ DataR ServicesR
-      _otherwise -> do        
+          redirect (DataR ServicesR, stati)
+      _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgService
@@ -391,8 +402,10 @@ postServicesR = do
 
 getServiceNewR :: Handler Html
 getServiceNewR = do
+    stati <- reqGetParams <$> getRequest
+    
     (fw,et) <- generateFormPost $ formService Nothing
-        
+
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServices
@@ -404,42 +417,42 @@ formService :: Maybe (Entity Service) -> Form Service
 formService service extra = do
 
     msgr <- getMessageRender
-    
+
     workspaces <- liftHandler $ runDB $ select $ do
         x <- from $ table @Workspace
         orderBy [asc (x ^. WorkspaceName), desc (x ^. WorkspaceId)]
         return x
-    
+
     (workspaceR, workspaceV) <- md3mreq (md3selectField (optionsPairs (optionsWorkspace <$> workspaces))) FieldSettings
         { fsLabel = SomeMessage MsgWorkspace
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgWorkspace)]
         } (serviceWorkspace . entityVal <$> service)
-    
+
     (nameR,nameV) <- md3mreq (uniqueNameField workspaceR) FieldSettings
         { fsLabel = SomeMessage MsgTheName
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgTheName)]
         } (serviceName . entityVal <$> service)
-    
+
     (descrR,descrV) <- md3mopt md3textareaField FieldSettings
         { fsLabel = SomeMessage MsgDescription
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgDescription)]
         } (serviceDescr . entityVal <$> service)
-    
+
     (priceR,priceV) <- md3mreq md3intField FieldSettings
         { fsLabel = SomeMessage MsgPrice
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgPrice)]
         } (servicePrice . entityVal <$> service)
-    
+
     (availableR,availableV) <- md3mreq md3switchField FieldSettings
         { fsLabel = SomeMessage MsgAvailable
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", msgr MsgAvailable)]
         } (serviceAvailable . entityVal <$> service)
-    
+
     (durationR,durationV) <- md3mreq md3intField FieldSettings
         { fsLabel = SomeMessage MsgDuration
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
@@ -450,7 +463,7 @@ formService service extra = do
         x <- from $ table @Sector
         orderBy [asc (x ^. SectorName)]
         return x
-    
+
     (typeR, typeV) <- md3mopt (md3selectField (optionsPairs (optionsType <$> sectors))) FieldSettings
         { fsLabel = SomeMessage MsgType
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
@@ -460,7 +473,7 @@ formService service extra = do
     let r = Service <$> workspaceR <*> nameR <*> descrR <*> priceR <*> availableR
              <*> ((* 60) . secondsToNominalDiffTime . fromIntegral <$> durationR)
              <*> typeR
-             
+
     let w = [whamlet|
                     #{extra}
                     ^{fvInput workspaceV}
@@ -472,17 +485,17 @@ formService service extra = do
                       ^{fvInput availableV}
                       <label.body-large for=#{fvId availableV}>
                         #{fvLabel availableV}
-                        
+
                     ^{fvInput durationV}
                     ^{fvInput typeV}
                     |]
     return (r,w)
-        
+
   where
       optionsType e = (sectorName . entityVal $ e, entityKey e)
-      
+
       optionsWorkspace e = (workspaceName . entityVal $ e, entityKey e)
-      
+
       uniqueNameField :: FormResult WorkspaceId -> Field Handler Text
       uniqueNameField wid = checkM (uniqueName wid) md3textField
 
@@ -501,14 +514,14 @@ formService service extra = do
               Nothing -> Left MsgAlreadyExists
               Just (Entity sid' _) | sid == sid' -> Right name
                                    | otherwise -> Left MsgAlreadyExists
-    
+
 
 
 getServiceR :: ServiceId -> Handler Html
 getServiceR sid = do
 
     stati <- reqGetParams <$> getRequest
-    
+
     service <- runDB $ selectOne $ do
         x :& w <- from $ table @Service
             `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
@@ -516,14 +529,14 @@ getServiceR sid = do
         return (x,w)
 
     (fw2,et2) <- generateFormPost formServiceDelete
-        
+
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
         idTabDetails <- newIdent
         idPanelDetails <- newIdent
         $(widgetFile "data/services/service")
-        
+
 
 formServiceDelete :: Form ()
 formServiceDelete extra = return (pure (), [whamlet|#{extra}|])
@@ -535,28 +548,28 @@ getServicesR = do
     stati <- reqGetParams <$> getRequest
     let inputSectors = filter (\(x,_) -> x == paramSector) stati
     let selectedSectors = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputSectors
-    
+
     sectors <- runDB $ select $ do
         x <- from $ table @Sector
         where_ $ isNothing_ $ x ^. SectorParent
         orderBy [asc (x ^. SectorName)]
         return x
-        
+
     let inputBusinesses = filter (\(x,_) -> x == paramBusiness) stati
     let selectedBusinesses = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputBusinesses
-    
+
     businesses <- runDB $ select $ do
         x <- from $ table @Business
         orderBy [asc (x ^. BusinessName)]
         return x
-    
+
     workspaces <- runDB $ select $ do
         x <- from $ table @Workspace
         unless (null selectedBusinesses) $ where_ $ x ^. WorkspaceBusiness `in_` valList selectedBusinesses
         when (null selectedBusinesses) $ where_ $ val False
         orderBy [asc (x ^. WorkspaceName)]
         return x
-        
+
     let inputWorkspaces = filter (\(x,_) -> x == paramWorkspace) stati
     let selectedWorkspaces = let wids = (entityKey <$> workspaces) in
           filter (`elem` wids) $ mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputWorkspaces
@@ -568,10 +581,15 @@ getServicesR = do
         unless (null selectedBusinesses) $ where_ $ x ^. WorkspaceBusiness `in_` valList selectedBusinesses
         when (null selectedBusinesses) $ where_ $ val False
         return (b ^. BusinessId,x ^. WorkspaceId) )
-        
+
     let paramsWokspaces bid = (\x -> (paramWorkspace,pack $ show $ fromSqlKey x))
             <$> filter (\x -> x `notElem` M.findWithDefault [] bid businessWorkspaces) selectedWorkspaces
+
     
+    scrollX1 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX1)
+    scrollX2 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX2)
+    scrollX3 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX3)
+
     services <- runDB $ select $ do
         x :& w <- from $ table @Service
             `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
@@ -580,11 +598,15 @@ getServicesR = do
         unless (null selectedWorkspaces) $ where_ $ w ^. WorkspaceId `in_` valList selectedWorkspaces
         orderBy [desc (x ^. ServiceId)]
         return (x,w)
-        
+
     msgs <- getMessages
     defaultLayout $ do
-        setTitleI MsgServices 
+        setTitleI MsgServices
         idFilterChips <- newIdent
+        idDetailsSectors <- newIdent
+        idChipSetSectors <- newIdent
+        idChipSetBusinesses <- newIdent
+        idChipSetWorkspaces <- newIdent
         idFabAdd <- newIdent
         $(widgetFile "data/services/services")
 
@@ -597,3 +619,13 @@ paramBusiness = "b"
 
 paramWorkspace :: Text
 paramWorkspace = "w"
+
+
+paramX3 :: Text
+paramX3 = "x3"
+
+paramX2 :: Text
+paramX2 = "x2"
+
+paramX1 :: Text
+paramX1 = "x1"

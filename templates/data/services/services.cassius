@@ -45,10 +45,10 @@ main
         details[open] > summary::after
             transform: rotate(180deg)
 
-    md-chip-set
-        padding: 1rem
-        flex-wrap: nowrap
-        overflow-y: scroll
+        md-chip-set
+            padding: 1rem
+            flex-wrap: nowrap
+            overflow-x: auto
 
     ##{idFabAdd}
         position: fixed

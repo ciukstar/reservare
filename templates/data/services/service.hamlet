@@ -9,7 +9,7 @@
   <span #headerEnd>
     <md-icon-button type=button aria-label=_{MsgDele} onclick="document.getElementById('idDialogDelete').show()">
       <md-icon>delete
-    <md-icon-button href=@{DataR $ ServiceEditR sid} aria-label=_{MsgEdit}>
+    <md-icon-button href=@?{(DataR $ ServiceEditR sid,stati)} aria-label=_{MsgEdit}>
       <md-icon>edit
 
 <md-dialog #idDialogDelete>
@@ -20,7 +20,7 @@
   <div slot=actions>
     <md-text-button type=button onclick="document.getElementById('idDialogDelete').close()">
       _{MsgCancel}
-    <form slot=content method=post action=@{DataR $ ServiceDeleR sid} enctype=#{et2}>
+    <form slot=content method=post action=@?{(DataR $ ServiceDeleR sid,stati)} enctype=#{et2}>
       ^{fw2}
       <md-filled-button type=submit>
         _{MsgDele}
@@ -30,11 +30,11 @@
   <md-tabs>
   
     <md-primary-tab ##{idTabDetails} aria-cotrols=#{idPanelDetails} active onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ ServiceR sid}>
+      <a href=@?{(DataR $ ServiceR sid,stati)}>
       _{MsgDetails}
       
     <md-primary-tab #idTabAssignments aria-cotrols=idPanelAssignments onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ ServiceAssignmentsR sid}>
+      <a href=@?{(DataR $ ServiceAssignmentsR sid,stati)}>
       _{MsgServiceAssignments}
       
 
