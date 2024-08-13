@@ -18,10 +18,11 @@ import qualified AtVenue.Data as V (Route(CheckoutR))
 
 import Control.Monad (when, unless, forM_)
 
-import Data.Bifunctor (Bifunctor(first,bimap))
+import qualified Data.Aeson as A (toJSON)
+import Data.Bifunctor (Bifunctor(first,bimap, second))
 import Data.Foldable (find)
-import qualified Data.Map as M (member, Map, fromListWith)
-import Data.Maybe (fromMaybe)
+import qualified Data.Map as M (member, Map, fromListWith, findWithDefault)
+import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Text (pack, Text, unpack)
 import Data.Time
     ( UTCTime (utctDay), weekFirstDay, DayOfWeek (Monday)
@@ -36,29 +37,30 @@ import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, asc, innerJoin, on, in_
     , (^.), (==.), (:&)((:&))
     , toSqlKey, val, where_, selectOne, Value (unValue), between, valList
-    , distinct, subSelectList, just
+    , distinct, subSelectList, just, isNothing_, justList
     )
 import Database.Persist (Entity (Entity), entityKey, insert)
 import Database.Persist.Sql (fromSqlKey)
 
 import Foundation
-    ( Handler, Form, App
+    ( Handler, Form, App, Widget
     , Route
       ( AuthR, HomeR
       , AppointmentStaffR, AppointmentTimingR, AppointmentTimeSlotsR
       , AppointmentPaymentR, StripeR, YookassaR, AtVenueR
       )
     , AppMessage
-      ( MsgServices, MsgNext, MsgServices, MsgThereAreNoDataYet
-      , MsgBack, MsgStaff, MsgBusiness, MsgWorkspace, MsgAppointmentTime
+      ( MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
+      , MsgServices, MsgNext, MsgServices, MsgThereAreNoDataYet
+      , MsgBack, MsgStaff, MsgAppointmentTime
       , MsgPaymentOption, MsgCancel, MsgService, MsgEmployee, MsgSelect
-      , MsgSelectTime, MsgPaymentGatewayNotSpecified, MsgRole
-      , MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
+      , MsgSelectTime, MsgPaymentGatewayNotSpecified
       , MsgAppointmentSetFor, MsgSelectAvailableDayAndTimePlease
       , MsgEmployeeScheduleNotGeneratedYet, MsgNoEmployeesAvailableNow
       , MsgPrevious, MsgInvalidFormData, MsgServiceAssignment
       , MsgNoPaymentOptionSpecified, MsgWorkspaceWithoutPaymentOptions
-      , MsgError, MsgEmployeeWorkScheduleForThisMonthNotSetYet
+      , MsgError, MsgEmployeeWorkScheduleForThisMonthNotSetYet, MsgWorkspaces
+      , MsgSectors, MsgBusinesses, MsgRoles
       )
     )
 
@@ -79,24 +81,24 @@ import Model
       , bookCharge, bookCurrency
       )
     , PayGateway (PayGatewayStripe, PayGatewayYookassa)
+    , Sector (Sector)
     , EntityField
       ( ServiceWorkspace, WorkspaceId, WorkspaceBusiness
       , BusinessId, ServiceName, AssignmentStaff, StaffId, StaffName
       , BusinessName, WorkspaceName, ServiceId, AssignmentService
       , AssignmentSlotInterval, ScheduleAssignment, AssignmentId
       , ScheduleDay, PayOptionId, PayOptionWorkspace, AssignmentRole
-      , ServiceAvailable, ServicePrice, WorkspaceCurrency
-      )
+      , ServiceAvailable, ServicePrice, WorkspaceCurrency, SectorParent
+      , SectorName, ServiceType
+      ), SectorId
     )
 
 import Settings (widgetFile)
     
 import qualified Stripe.Data as S (Route(CheckoutR))
 
-import Text.Cassius (cassius)
 import Text.Hamlet (Html)
 import Text.Read (readMaybe)
-import Text.Shakespeare.I18N (RenderMessage)
 
 import Widgets (widgetSnackbar, widgetBanner)
 
@@ -104,7 +106,7 @@ import Yesod.Auth (maybeAuth, Route (LoginR))
 import Yesod.Core.Handler
     ( getMessages, newIdent, addMessageI
     , getRequest, YesodRequest (reqGetParams), redirect
-    , getMessageRender, setUltDestCurrent, setUltDest, setUltDestReferer
+    , getMessageRender, setUltDestCurrent, setUltDest, setUltDestReferer, lookupGetParams
     )
 import Yesod.Core
     ( Yesod(defaultLayout), MonadIO (liftIO), whamlet
@@ -112,12 +114,12 @@ import Yesod.Core
     , SomeMessage (SomeMessage)
     )
 import Yesod.Core.Types (HandlerFor)
-import Yesod.Core.Widget (setTitleI, toWidget)
+import Yesod.Core.Widget (setTitleI)
 import Yesod.Form
     ( FieldView(fvInput), Field (fieldView)
     , FormResult (FormSuccess, FormFailure, FormMissing)    
     , FieldSettings (fsLabel, fsTooltip, fsId, fsName, fsAttrs, FieldSettings)
-    , Option (optionDisplay), checkboxesFieldList, runFormGet, mopt
+    , Option (optionDisplay)
     )
 import Yesod.Form.Input (runInputGet, iopt, ireq)
 import Yesod.Form.Fields
@@ -592,161 +594,6 @@ groupByKey :: Ord k => (v -> k) -> [v] -> M.Map k [v]
 groupByKey f = M.fromListWith (<>) . fmap (\x -> (f x,[x]))
 
 
-formSearchAssignments :: Text -> Form ( Maybe [BusinessId]
-                                      , Maybe [WorkspaceId]
-                                      , Maybe [ServiceId]
-                                      , Maybe [Text]
-                                      )
-formSearchAssignments idFormSearch extra = do
-
-    msgr <- getMessageRender
-
-    businesses <- liftHandler $ runDB $ select $ do
-        x <- from $ table @Business
-        orderBy [asc (x ^. BusinessName)]
-        return x
-
-    let businessItem (Entity bid (Business _ name)) = (name,bid)
-
-    (bR,bV) <- mopt (chipsFieldList idFormSearch MsgBusiness (businessItem <$> businesses))
-        FieldSettings { fsLabel = SomeMessage MsgBusiness
-                      , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-                      , fsAttrs = [("label", msgr MsgBusiness),("hidden","hidden")]
-                      } Nothing
-
-    workspaces <- liftHandler $ runDB $ select $ do
-        x <- from $ table @Workspace
-        unless (null businesses) $ where_ $ x ^. WorkspaceBusiness `in_` valList (entityKey <$> businesses)
-        when (null businesses) $ where_ $ val False
-        case bR of
-          FormSuccess (Just bids@(_:_)) -> where_ $ x ^. WorkspaceBusiness `in_` valList bids
-          _otherwise -> where_ $ val False
-        orderBy [asc (x ^. WorkspaceName)]
-        return x
-
-    let workspaceItem (Entity wid (Workspace _ name _ _ _)) = (name,wid)
-
-    (wR,wV) <- mopt (chipsFieldList idFormSearch MsgWorkspace (workspaceItem <$> workspaces))
-        FieldSettings { fsLabel = SomeMessage MsgWorkspace
-                      , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-                      , fsAttrs = [("label", msgr MsgWorkspace),("hidden","hidden")]
-                      } Nothing
-
-    services <- liftHandler $ runDB $ select $ do
-        x <- from $ table @Service
-        where_ $ x ^. ServiceAvailable ==. val True
-        unless (null workspaces) $ where_ $ x ^. ServiceWorkspace `in_` valList (entityKey <$> workspaces)
-        when (null workspaces) $ where_ $ val False
-        case wR of
-          FormSuccess (Just wids@(_:_)) -> where_ $ x ^. ServiceWorkspace `in_` valList wids
-          _otherwise -> where_ $ val False
-        orderBy [asc (x ^. ServiceName)]
-        return x
-
-    let serviceItem (Entity sid (Service _ name _ _ _ _ _)) = (name,sid)
-
-    (sR,sV) <- mopt (chipsFieldList idFormSearch MsgService (serviceItem <$> services))
-        FieldSettings { fsLabel = SomeMessage MsgService
-                      , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-                      , fsAttrs = [("label", msgr MsgService),("hidden","hidden")]
-                      } Nothing
-
-    roles <- liftHandler $ (unValue <$>) <$> runDB ( select $ distinct $ do
-        x <- from $ table @Assignment
-        unless (null services) $ where_ $ x ^. AssignmentService `in_` valList (entityKey <$> services)
-        when (null services) $ where_ $ val False
-        case sR of
-          FormSuccess (Just sids@(_:_)) -> where_ $ x ^. AssignmentService `in_` valList sids
-          _otherwise -> where_ $ val False
-        orderBy [asc (x ^. AssignmentRole)]
-        return $ x ^. AssignmentRole )
-
-    (rR,rV) <- mopt (chipsFieldList idFormSearch MsgRole ((\x -> (x,x)) <$> roles))
-        FieldSettings { fsLabel = SomeMessage MsgRole
-                      , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-                      , fsAttrs = [("label", msgr MsgRole),("hidden","hidden")]
-                      } Nothing
-
-    let r = (,,,) <$> bR <*> wR <*> sR <*> rR
-    let w = do
-            idFilterChips <- newIdent
-            toWidget [cassius|
-                             ##{idFilterChips}
-                                 display: flex
-                                 flex-direction: column
-
-                                 details
-                                     summary
-                                         position: relative
-                                         padding: 1rem
-                                         display: flex
-                                         align-items: center
-                                         justify-content: flex-start
-
-                                     summary::before
-                                         margin-right: 0.5rem
-                                         content: 'filter_alt'
-                                         font-family: 'Material Symbols Outlined'
-                                         font-size: 24px
-
-                                     summary::after
-                                         margin-left: auto
-                                         content: 'arrow_drop_down'
-                                         font-family: 'Material Symbols Outlined'
-                                         font-size: 32px
-                                         transition: 0.2s
-
-                                     p
-                                         padding: 0 1rem
-
-                                 details[open] > summary::after
-                                     transform: rotate(180deg)
-
-            |]
-            [whamlet|
-                    <div ##{idFilterChips}>
-                      #{extra}
-                      ^{fvInput bV}
-                      $case bR
-                        $of FormSuccess (Just ((:) _ _))
-                          <md-divider>
-                          ^{fvInput wV}
-                        $of _
-                      $case wR
-                        $of FormSuccess (Just ((:) _ _))
-                          <md-divider>
-                          ^{fvInput sV}
-                        $of _
-                      $case sR
-                        $of FormSuccess (Just ((:) _ _))
-                          <md-divider>
-                          ^{fvInput rV}
-                        $of _
-            |]
-
-    return (r,w)
-  where
-      chipsFieldList :: (Eq a, RenderMessage App msg) => Text -> AppMessage -> [(msg,a)] -> Field Handler [a]
-      chipsFieldList idForm label items = (checkboxesFieldList items)
-          { fieldView = \theId name attrs x _isReq -> do
-                opts <- olOptions <$> handlerToWidget (optionsPairs items)
-                let sele (Left _) _ = False
-                    sele (Right vals) opt = optionInternalValue opt `elem` vals
-                [whamlet|
-                  <details :any (sele x) opts:open>
-                    <summary.md-typescale-label-large #summary#{theId}>
-                      <md-ripple for=summary#{theId}>
-                      _{label}
-                    <p>
-                      <md-chip-set ##{theId}>
-                        $forall opt <- opts
-                          <md-filter-chip label=#{optionDisplay opt} :sele x opt:selected
-                            onclick="this.querySelector('input').click();document.getElementById('#{idForm}').submit()">
-                            <input type=checkbox name=#{name} value=#{optionExternalValue opt} *{attrs} :sele x opt:checked>
-                |]
-          }
-
-
 postAppointmentTimingR :: Month -> Handler Html
 postAppointmentTimingR month = do
     stati <- reqGetParams <$> getRequest
@@ -899,15 +746,27 @@ postAppointmentStaffR = do
     stati <- reqGetParams <$> getRequest
     aid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "aid" )
 
-    idFormSearch <- newIdent
+    let inputSectors = filter (\(x,_) -> x == paramSector) stati
+        selectedSectors = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputSectors
 
-    ((fr0,fw0),et0) <- runFormGet $ formSearchAssignments idFormSearch
+    let inputBusinesses = filter (\(x,_) -> x == paramBusiness) stati
+        selectedBusinesses = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputBusinesses
 
-    let (bids,wids,sids,roles) = case fr0 of
-          FormSuccess r -> r
-          _otherwise -> (Just [],Just [],Just [],Just [])
+    let inputWorkspaces = filter (\(x,_) -> x == paramWorkspace) stati
+        selectedWorkspaces = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputWorkspaces
 
-    ((fr,fw),et) <- runFormPost $ formAssignments bids wids sids roles aid
+    let inputServices = filter (\(x,_) -> x == paramWorkspace) stati
+        selectedServices = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputServices
+
+    selectedRoles <- lookupGetParams paramRole
+
+    ((fr,fw),et) <- runFormPost $ formAssignments 
+               selectedSectors
+               selectedBusinesses
+               selectedWorkspaces
+               selectedServices
+               selectedRoles
+               aid
 
     case fr of
       FormSuccess (aid',(eid',sid')) -> do
@@ -937,19 +796,30 @@ postAppointmentStaffR = do
 
 getAppointmentStaffR :: Handler Html
 getAppointmentStaffR = do
-
     stati <- reqGetParams <$> getRequest
     aid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "aid" )
 
-    idFormSearch <- newIdent
+    let inputSectors = filter (\(x,_) -> x == paramSector) stati
+        selectedSectors = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputSectors
 
-    ((fr0,fw0),et0) <- runFormGet $ formSearchAssignments idFormSearch
+    let inputBusinesses = filter (\(x,_) -> x == paramBusiness) stati
+        selectedBusinesses = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputBusinesses
 
-    let (bids,wids,sids,roles) = case fr0 of
-          FormSuccess r -> r
-          _otherwise -> (Just [],Just [],Just [],Just [])
+    let inputWorkspaces = filter (\(x,_) -> x == paramWorkspace) stati
+        selectedWorkspaces = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputWorkspaces
 
-    (fw,et) <- generateFormPost $ formAssignments bids wids sids roles aid
+    let inputServices = filter (\(x,_) -> x == paramWorkspace) stati
+        selectedServices = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputServices
+
+    selectedRoles <- lookupGetParams paramRole
+
+    (fw,et) <- generateFormPost $ formAssignments
+               selectedSectors
+               selectedBusinesses
+               selectedWorkspaces
+               selectedServices
+               selectedRoles
+               aid
 
     msgs <- getMessages
     defaultLayout $ do
@@ -959,9 +829,9 @@ getAppointmentStaffR = do
         $(widgetFile "appointments/assignments")
 
 
-formAssignments :: Maybe [BusinessId] -> Maybe [WorkspaceId] -> Maybe [ServiceId] -> Maybe [Text]
+formAssignments :: [SectorId] -> [BusinessId] -> [WorkspaceId] -> [ServiceId] -> [Text]
                 -> Maybe AssignmentId -> Form (AssignmentId,(StaffId,ServiceId))
-formAssignments bids wids sids roles aid extra = do
+formAssignments tids bids wids sids roles aid extra = do
 
     assignments <- liftHandler $ runDB $ select $ do
         x :& e :& s :& w :& b <- from $ table @Assignment
@@ -971,19 +841,13 @@ formAssignments bids wids sids roles aid extra = do
             `innerJoin` table @Business `on` (\(_ :& _ :& _ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)
 
         where_ $ s ^. ServiceAvailable ==. val True
+
+        unless (null roles) $ where_ $ x ^. AssignmentRole `in_` valList roles
+        unless (null sids) $ where_ $ s ^. ServiceId `in_` valList sids
+        unless (null wids) $ where_ $ w ^. WorkspaceId `in_` valList wids
+        unless (null bids) $ where_ $ b ^. BusinessId `in_` valList bids
+        unless (null tids) $ where_ $ s ^. ServiceType `in_` justList (valList tids)
         
-        case roles of
-          Just xs@(_:_) -> where_ $ x ^. AssignmentRole `in_` valList xs
-          _otherwise -> where_ $ val True
-        case sids of
-          Just xs@(_:_) -> where_ $ s ^. ServiceId `in_` valList xs
-          _otherwise -> where_ $ val True
-        case wids of
-          Just xs@(_:_) -> where_ $ w ^. WorkspaceId `in_` valList xs
-          _otherwise -> where_ $ val True
-        case bids of
-          Just xs@(_:_) -> where_ $ b ^. BusinessId `in_` valList xs
-          _otherwise -> where_ $ val True
         orderBy [asc (e ^. StaffName), asc (e ^. StaffId)]
         return (x,(e,(s,(w,b))))
 
@@ -1049,3 +913,120 @@ $else
       <md-divider>
 |]
               }
+
+
+
+widgetFilterChips :: Route App -> Widget
+widgetFilterChips route = do
+
+    stati <- reqGetParams <$> getRequest
+    let inputSectors = filter (\(x,_) -> x == paramSector) stati
+        selectedSectors = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputSectors
+
+    sectors <- liftHandler $ runDB $ select $ do
+        x <- from $ table @Sector
+        where_ $ isNothing_ $ x ^. SectorParent
+        orderBy [asc (x ^. SectorName)]
+        return x
+
+    let inputBusinesses = filter (\(x,_) -> x == paramBusiness) stati
+    let selectedBusinesses = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputBusinesses
+
+    businesses <- liftHandler $ runDB $ select $ do
+        x <- from $ table @Business
+        orderBy [asc (x ^. BusinessName)]
+        return x
+
+    workspaces <- liftHandler $ runDB $ select $ do
+        x <- from $ table @Workspace
+        unless (null selectedBusinesses) $ where_ $ x ^. WorkspaceBusiness `in_` valList selectedBusinesses
+        when (null selectedBusinesses) $ where_ $ val False
+        orderBy [asc (x ^. WorkspaceName)]
+        return x
+
+    let inputWorkspaces = filter (\(x,_) -> x == paramWorkspace) stati
+        selectedWorkspaces = let wids = (entityKey <$> workspaces) in
+          filter (`elem` wids) $ mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputWorkspaces
+
+
+    let toMap = M.fromListWith (<>) . (second (:[]) <$>)
+
+    businessWorkspaces <- liftHandler $ toMap . (bimap unValue unValue <$>) <$> runDB ( select $ do
+        x :& b <- from $ table @Workspace
+            `innerJoin` table @Business `on` (\(x :& b) -> x ^. WorkspaceBusiness ==. b ^. BusinessId)
+        unless (null selectedBusinesses) $ where_ $ x ^. WorkspaceBusiness `in_` valList selectedBusinesses
+        when (null selectedBusinesses) $ where_ $ val False
+        return (b ^. BusinessId,x ^. WorkspaceId) )
+
+    let paramsWokspaces bid = (\x -> (paramWorkspace,pack $ show $ fromSqlKey x))
+            <$> filter (\x -> x `notElem` M.findWithDefault [] bid businessWorkspaces) selectedWorkspaces
+    
+    services <- liftHandler $ runDB $ select $ do
+        x <- from $ table @Service
+        where_ $ x ^. ServiceAvailable ==. val True
+        unless (null workspaces) $ where_ $ x ^. ServiceWorkspace `in_` valList (entityKey <$> workspaces)
+        when (null workspaces) $ where_ $ val False
+        orderBy [asc (x ^. ServiceName)]
+        return x
+
+    let inputServices = filter (\(x,_) -> x == paramService) stati
+        selectedServices = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputServices
+
+    roles <- liftHandler $ (unValue <$>) <$> runDB ( select $ distinct $ do
+        x <- from $ table @Assignment
+        unless (null services) $ where_ $ x ^. AssignmentService `in_` valList (entityKey <$> services)
+        when (null services) $ where_ $ val False
+        orderBy [asc (x ^. AssignmentRole)]
+        return $ x ^. AssignmentRole )
+
+    let inputRoles = filter (\(x,_) -> x == paramRole) stati
+        selectedRoles = snd <$> inputRoles
+
+    
+    scrollX1 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX1)
+    scrollX2 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX2)
+    scrollX3 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX3)
+    scrollX4 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX4)
+    scrollX5 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX5)
+
+    idFilterChips <- newIdent
+    idDetailsSectors <- newIdent
+    idChipSetSectors <- newIdent
+    idChipSetBusinesses <- newIdent
+    idChipSetWorkspaces <- newIdent
+    idChipSetServices <- newIdent
+    idChipSetRoles <- newIdent
+    
+    $(widgetFile "appointments/widgets/chips")
+
+
+paramRole :: Text
+paramRole = "r"
+
+paramService :: Text
+paramService = "s"
+
+paramSector :: Text
+paramSector = "t"
+
+paramBusiness :: Text
+paramBusiness = "b"
+
+paramWorkspace :: Text
+paramWorkspace = "w"
+
+
+paramX5 :: Text
+paramX5 = "x5"
+
+paramX4 :: Text
+paramX4 = "x4"
+
+paramX3 :: Text
+paramX3 = "x3"
+
+paramX2 :: Text
+paramX2 = "x2"
+
+paramX1 :: Text
+paramX1 = "x1"

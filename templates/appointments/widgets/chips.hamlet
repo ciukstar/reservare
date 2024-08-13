@@ -1,0 +1,79 @@
+
+<div ##{idFilterChips}>
+  <details :not (null selectedSectors):open ##{idDetailsSectors}>
+    <summary.md-typescale-label-large #idSummarySectors>
+      <md-ripple for=idSummarySectors>
+      _{MsgSectors}
+
+    <md-chip-set ##{idChipSetSectors}>
+      $forall Entity tid (Sector name _ _) <- sectors
+        $with (isSelected,theId) <- (elem tid selectedSectors,pack $ show $ fromSqlKey tid)
+          $with scrollParams <- [(paramX2,pack $ show scrollX2),(paramX3,pack $ show scrollX3),(paramX4,pack $ show scrollX4),(paramX5,pack $ show scrollX5)]
+            <md-filter-chip label=#{name} :isSelected:selected onclick="this.querySelector('a[href]').click()">
+              $with params <- ((((inputBusinesses <> inputWorkspaces) <> inputServices) <> inputRoles) <> scrollParams)
+                <a.with-scroll-x data-with-scroll-x-target=#{idChipSetSectors} data-with-scroll-x-param=#{paramX1}
+                   :isSelected:href=@?{(route,((<>) (filter (((/=) theId) . snd) inputSectors) params))}
+                   :not isSelected:href=@?{(route,((<>) ((:) (paramSector,theId) inputSectors) params))}>
+
+  <details :not (null selectedBusinesses):open>
+    <summary.md-typescale-label-large #idSummaryBusinesses>
+      <md-ripple for=idSummaryBusinesses>
+      _{MsgBusinesses}
+
+    <md-chip-set ##{idChipSetBusinesses}>
+      $forall Entity bid (Business _ name) <- businesses
+        $with (isSelected,theId) <- (elem bid selectedBusinesses,pack $ show $ fromSqlKey bid)
+          $with scrollParams <- [(paramX1,pack $ show scrollX1),(paramX3,pack $ show scrollX3),(paramX4,pack $ show scrollX4),(paramX5,pack $ show scrollX5)]
+            <md-filter-chip label=#{name} :isSelected:selected onclick="this.querySelector('a[href]').click()">
+              $with params <- ((((inputSectors <> inputWorkspaces) <> inputServices) <> inputRoles) <> scrollParams)
+                <a.with-scroll-x data-with-scroll-x-target=#{idChipSetBusinesses} data-with-scroll-x-param=#{paramX2}
+                   :isSelected:href=@?{(route,((<>) ((<>) (filter (((/=) theId) . snd) inputBusinesses) ((<>) inputSectors (paramsWokspaces bid))) scrollParams))}
+                   :not isSelected:href=@?{(route,((<>) ((:) (paramBusiness,theId) inputBusinesses) params))}>
+
+  $if not (null selectedBusinesses)
+    <details :not (null selectedWorkspaces):open>
+      <summary.md-typescale-label-large #idSummaryWorkspaces>
+        <md-ripple for=idSummaryWorkspaces>
+        _{MsgWorkspaces}
+
+      <md-chip-set ##{idChipSetWorkspaces}>
+        $forall Entity wid (Workspace _ name _ _ _) <- workspaces
+          $with (isSelected,theId) <- (elem wid selectedWorkspaces,pack $ show $ fromSqlKey wid)
+            $with scrollParams <- [(paramX1,pack $ show scrollX1),(paramX2,pack $ show scrollX2),(paramX4,pack $ show scrollX4),(paramX5,pack $ show scrollX5)]
+              <md-filter-chip label=#{name} :isSelected:selected onclick="this.querySelector('a[href]').click()">
+                $with params <- ((((inputSectors <> inputBusinesses) <> inputServices) <> inputRoles) <> scrollParams)
+                  <a.with-scroll-x data-with-scroll-x-target=#{idChipSetWorkspaces} data-with-scroll-x-param=#{paramX3}
+                     :isSelected:href=@?{(route,((<>) (filter (((/=) theId) . snd) inputWorkspaces) params))}
+                     :not isSelected:href=@?{(route,((<>) ((:) (paramWorkspace,theId) inputWorkspaces) params))}>
+
+  $if not (null selectedWorkspaces)
+    <details :not (null selectedServices):open>
+      <summary.md-typescale-label-large #idSummaryServices>
+        <md-ripple for=idSummaryServices>
+        _{MsgServices}
+
+      <md-chip-set ##{idChipSetServices}>
+        $forall Entity sid (Service _ name _ _ _ _ _) <- services
+          $with (isSelected,theId) <- (elem sid selectedServices,pack $ show $ fromSqlKey sid)
+            $with scrollParams <- [(paramX1,pack $ show scrollX1),(paramX2,pack $ show scrollX2),(paramX3,pack $ show scrollX3),(paramX5,pack $ show scrollX5)]
+              <md-filter-chip label=#{name} :isSelected:selected onclick="this.querySelector('a[href]').click()">
+                $with params <- ((((inputSectors <> inputBusinesses) <> inputWorkspaces) <> inputRoles) <> scrollParams)
+                  <a.with-scroll-x data-with-scroll-x-target=#{idChipSetServices} data-with-scroll-x-param=#{paramX4}
+                     :isSelected:href=@?{(route,((<>) (filter (((/=) theId) . snd) inputServices) params))}
+                     :not isSelected:href=@?{(route,((<>) ((:) (paramService,theId) inputServices) params))}>
+
+  $if not (null selectedServices)
+    <details :not (null selectedRoles):open>
+      <summary.md-typescale-label-large #idSummaryRoles>
+        <md-ripple for=idSummaryRoles>
+        _{MsgRoles}
+
+      <md-chip-set ##{idChipSetRoles}>
+        $forall name <- roles
+          $with (isSelected,theId) <- (elem name selectedRoles,name)
+            $with scrollParams <- [(paramX1,pack $ show scrollX1),(paramX2,pack $ show scrollX2),(paramX3,pack $ show scrollX3),(paramX4,pack $ show scrollX4)]
+              <md-filter-chip label=#{name} :isSelected:selected onclick="this.querySelector('a[href]').click()">
+                $with params <- ((((inputSectors <> inputBusinesses) <> inputWorkspaces) <> inputServices) <> scrollParams)
+                  <a.with-scroll-x data-with-scroll-x-target=#{idChipSetRoles} data-with-scroll-x-param=#{paramX5}
+                     :isSelected:href=@?{(route,((<>) (filter (((/=) theId) . snd) inputRoles) params))}
+                     :not isSelected:href=@?{(route,((<>) ((:) (paramRole,theId) inputRoles) params))}>

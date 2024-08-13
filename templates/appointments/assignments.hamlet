@@ -8,8 +8,7 @@
 
 <main>
 
-  <form method=get action=@?{(AppointmentStaffR,stati)} enctype=#{et0} ##{idFormSearch}>
-    ^{fw0}
+  ^{widgetFilterChips AppointmentStaffR}
 
   ^{widgetBanner msgs}
   

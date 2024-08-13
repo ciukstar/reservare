@@ -18,13 +18,14 @@ module Handler.Booking
 
 import qualified AtVenue.Data as V (Route(CheckoutR))
 
-import Control.Monad (unless, forM_)
+import Control.Monad (unless, forM_, when)
 
-import Data.Bifunctor (Bifunctor(first,bimap))
+import qualified Data.Aeson as A (toJSON)
+import Data.Bifunctor (Bifunctor(first,bimap, second))
 import Data.Foldable (find)
-import qualified Data.Map as M (member, Map, fromListWith)
+import qualified Data.Map as M (member, Map, fromListWith, findWithDefault)
 import Data.Maybe (fromMaybe, mapMaybe)
-import Data.Text (pack, unpack)
+import Data.Text (pack, unpack, Text)
 import Data.Time
     ( UTCTime (utctDay), weekFirstDay, DayOfWeek (Monday)
     , DayPeriod (periodFirstDay, periodLastDay), addDays, toGregorian
@@ -38,13 +39,13 @@ import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, asc, innerJoin, on, in_
     , (^.), (==.), (:&)((:&))
     , toSqlKey, val, where_, selectOne, Value (unValue), between
-    , valList, just, subSelectList, justList
+    , valList, just, subSelectList, justList, isNothing_
     )
-import Database.Persist (Entity (Entity), insert)
+import Database.Persist (Entity (Entity), entityKey, insert)
 import Database.Persist.Sql (fromSqlKey)
 
 import Foundation
-    ( Handler, Form, App
+    ( Handler, Form, App, Widget
     , Route
       ( HomeR, BookServicesR, BookStaffR, BookTimingR, BookTimeSlotsR
       , BookPaymentR, AuthR, StripeR, YookassaR, AtVenueR
@@ -62,7 +63,7 @@ import Foundation
       , MsgAddress, MsgFullName, MsgTheAppointment, MsgTheName, MsgDuration
       , MsgPaymentGatewayNotSpecified, MsgNoPaymentsHaveBeenMadeYet
       , MsgPayments, MsgTotalCharge, MsgError, MsgNoPaymentOptionSpecified
-      , MsgWorkspaceWithoutPaymentOptions
+      , MsgWorkspaceWithoutPaymentOptions, MsgBusinesses, MsgWorkspaces, MsgSectors
       )
     )
 
@@ -85,7 +86,7 @@ import Model
     , PayOptionId, PayOption (PayOption)
     , Payment (Payment)
     , PayGateway (PayGatewayStripe, PayGatewayYookassa)
-    , SectorId
+    , SectorId, Sector (Sector)
     , EntityField
       ( ServiceWorkspace, WorkspaceId, WorkspaceBusiness
       , BusinessId, ServiceName, AssignmentStaff, StaffId, StaffName
@@ -93,7 +94,8 @@ import Model
       , AssignmentSlotInterval, ScheduleAssignment, AssignmentId
       , ScheduleDay, BookId, BookService, BookStaff, ServiceAvailable
       , PayOptionWorkspace, PayOptionId, ServicePrice, WorkspaceCurrency
-      , PaymentBook, PaymentOption, ServiceType
+      , PaymentBook, PaymentOption, ServiceType, SectorParent, SectorName
+      , BusinessName, WorkspaceName
       )
     )
 
@@ -104,10 +106,7 @@ import qualified Stripe.Data as S (Route(CheckoutR))
 import Text.Hamlet (Html)
 import Text.Read (readMaybe)
 
-import Widgets
-    ( widgetSnackbar, widgetBanner, widgetFilterChips, paramSector
-    , paramBusiness, paramWorkspace
-    )
+import Widgets (widgetSnackbar, widgetBanner)
 
 import Yesod.Auth (maybeAuth, Route (LoginR))
 import Yesod.Core.Handler
@@ -995,3 +994,81 @@ $else
       <md-divider>
 |]
               }
+
+
+
+widgetFilterChips :: Route App -> Widget
+widgetFilterChips route = do
+
+    stati <- reqGetParams <$> getRequest
+    let inputSectors = filter (\(x,_) -> x == paramSector) stati
+    let selectedSectors = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputSectors
+
+    sectors <- liftHandler $ runDB $ select $ do
+        x <- from $ table @Sector
+        where_ $ isNothing_ $ x ^. SectorParent
+        orderBy [asc (x ^. SectorName)]
+        return x
+
+    let inputBusinesses = filter (\(x,_) -> x == paramBusiness) stati
+    let selectedBusinesses = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputBusinesses
+
+    businesses <- liftHandler $ runDB $ select $ do
+        x <- from $ table @Business
+        orderBy [asc (x ^. BusinessName)]
+        return x
+
+    workspaces <- liftHandler $ runDB $ select $ do
+        x <- from $ table @Workspace
+        unless (null selectedBusinesses) $ where_ $ x ^. WorkspaceBusiness `in_` valList selectedBusinesses
+        when (null selectedBusinesses) $ where_ $ val False
+        orderBy [asc (x ^. WorkspaceName)]
+        return x
+
+    let inputWorkspaces = filter (\(x,_) -> x == paramWorkspace) stati
+    let selectedWorkspaces = let wids = (entityKey <$> workspaces) in
+          filter (`elem` wids) $ mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputWorkspaces
+
+    let toMap = M.fromListWith (<>) . (second (:[]) <$>)
+
+    businessWorkspaces <- liftHandler $ toMap . (bimap unValue unValue <$>) <$> runDB ( select $ do
+        x :& b <- from $ table @Workspace
+            `innerJoin` table @Business `on` (\(x :& b) -> x ^. WorkspaceBusiness ==. b ^. BusinessId)
+        unless (null selectedBusinesses) $ where_ $ x ^. WorkspaceBusiness `in_` valList selectedBusinesses
+        when (null selectedBusinesses) $ where_ $ val False
+        return (b ^. BusinessId,x ^. WorkspaceId) )
+
+    let paramsWokspaces bid = (\x -> (paramWorkspace,pack $ show $ fromSqlKey x))
+            <$> filter (\x -> x `notElem` M.findWithDefault [] bid businessWorkspaces) selectedWorkspaces
+
+    scrollX1 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX1)
+    scrollX2 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX2)
+    scrollX3 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX3)
+
+    idFilterChips <- newIdent
+    idDetailsSectors <- newIdent
+    idChipSetSectors <- newIdent
+    idChipSetBusinesses <- newIdent
+    idChipSetWorkspaces <- newIdent
+    
+    $(widgetFile "book/widgets/chips")
+
+
+paramSector :: Text
+paramSector = "t"
+
+paramBusiness :: Text
+paramBusiness = "b"
+
+paramWorkspace :: Text
+paramWorkspace = "w"
+
+
+paramX3 :: Text
+paramX3 = "x3"
+
+paramX2 :: Text
+paramX2 = "x2"
+
+paramX1 :: Text
+paramX1 = "x1"

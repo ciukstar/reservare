@@ -1,3 +1,4 @@
+Roles: Роли
 Group: Группа
 Tabs: Вкладки
 Subsector: Подсектор

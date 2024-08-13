@@ -1,3 +1,4 @@
+Roles: Rôles
 Group: Groupe
 Tabs: Onglets
 Subsector: Sous-secteur

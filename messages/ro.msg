@@ -1,3 +1,4 @@
+Roles: Roluri
 Group: Grupul
 Tabs: File
 Subsector: Subsector
