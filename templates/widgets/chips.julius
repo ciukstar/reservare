@@ -1,0 +1,21 @@
+
+setTimeout(() => {
+  document.getElementById(#{idChipSetSectors}).scroll(#{A.toJSON scrollX1},0);
+  document.getElementById(#{idChipSetBusinesses}).scroll(#{A.toJSON scrollX2},0);
+  if (#{A.toJSON $ not (null selectedBusinesses)}) {
+    document.getElementById(#{idChipSetWorkspaces}).scroll(#{A.toJSON scrollX3},0);
+  }
+}, 300);
+
+Array.from(
+  document.body.querySelectorAll('.with-scroll-x[href]')
+).forEach((x) => {
+  x.addEventListener('click',function (e) {
+    x.href = [new window.URL(x.href)].map(y => {
+      y.searchParams.set( x.dataset.withScrollXParam,
+                          document.getElementById(x.dataset.withScrollXTarget).scrollLeft
+                        );
+      return y.href;
+    })[0];
+  });
+});

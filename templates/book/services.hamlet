@@ -9,8 +9,7 @@
 
 <main>
 
-  <form method=get action=@{BookServicesR} enctype=#{et0} ##{idFormSearch}>
-    ^{fw0}
+  ^{widgetFilterChips BookServicesR}
 
   ^{widgetBanner msgs}
     

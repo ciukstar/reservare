@@ -6,7 +6,6 @@
   <span.md-typescale-title-large>
     _{MsgStaff}
 
-
 <main>
 
   <form method=get action=@?{(AppointmentStaffR,stati)} enctype=#{et0} ##{idFormSearch}>
