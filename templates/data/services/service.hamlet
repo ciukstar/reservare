@@ -33,6 +33,10 @@
       <a href=@?{(DataR $ ServiceR sid,stati)}>
       _{MsgDetails}
       
+    <md-primary-tab #idTabPhotos aria-cotrols=idPanelPhotos onclick="this.querySelector('a[href]').click()">
+      <a href=@?{(DataR $ ServicePhotosR sid,stati)}>
+      _{MsgPhoto}
+      
     <md-primary-tab #idTabAssignments aria-cotrols=idPanelAssignments onclick="this.querySelector('a[href]').click()">
       <a href=@?{(DataR $ ServiceAssignmentsR sid,stati)}>
       _{MsgServiceAssignments}
@@ -65,5 +69,7 @@
           #{show duration}
 
     ^{widgetSnackbar msgs}
+
+  <div #idPanelPotos role=tabpanel aria-labelledby=idTabPotos hidden>
 
   <div #idPanelAssignments role=tabpanel aria-labelledby=idTabAssignments hidden>

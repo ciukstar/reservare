@@ -18,11 +18,15 @@ module Handler.Data.Services
   , getServiceAssignmentEditR
   , postServiceAssignmentDeleR
   , postServiceAssignmentR
-  , getServicePhotoR
+  , getServicePhotoR, postServicePhotoR
+  , getServicePhotosR, postServicePhotosR
+  , getServicePhotoEditR
+  , getServicePhotoNewR
+  , postServicePhotoDeleR
   ) where
 
 
-import Control.Monad (void, unless, when, forM_, forM)
+import Control.Monad (void, unless, when, forM)
 
 import qualified Data.Aeson as A (toJSON)
 import Data.Bifunctor (Bifunctor(bimap, second))
@@ -36,8 +40,9 @@ import Data.Time.LocalTime (utcToLocalTime, localTimeToUTC, utc)
 
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, desc, asc, selectOne, where_, val
-    , (^.), (==.), (:&)((:&))
+    , (^.), (==.), (:&)((:&)), (=.)
     , innerJoin, on, isNothing_, valList, justList, in_, Value (unValue)
+    , update, set
     )
 import Database.Persist
     (Entity (Entity), entityVal, entityKey, insert_)
@@ -45,13 +50,14 @@ import qualified Database.Persist as P (delete, PersistStoreWrite (replace))
 import Database.Persist.Sql (fromSqlKey, toSqlKey)
 
 import Foundation
-    ( Handler, Form
+    ( Handler, Form, Widget
     , Route (DataR, StaticR)
     , DataR
       ( ServicesR, ServiceR, ServiceNewR, ServiceEditR, ServiceDeleR
       , ServiceAssignmentsR, ServiceAssignmentNewR, ServiceAssignmentR
       , ServiceAssignmentEditR, ServiceAssignmentDeleR, SectorsR
-      , DataBusinessesR, ServicePhotoR
+      , DataBusinessesR, ServicePhotoR, ServicePhotosR, ServicePhotoEditR
+      , ServicePhotoNewR, ServicePhotoDeleR
       )
     , AppMessage
       ( MsgServices, MsgAdd, MsgYouMightWantToAddAFew, MsgThereAreNoDataYet
@@ -62,13 +68,13 @@ import Foundation
       , MsgEmployee, MsgAssignmentDate, MsgTheStart, MsgBusiness, MsgPrice
       , MsgSchedulingInterval, MsgUnitMinutes, MsgPriority, MsgAlreadyExists
       , MsgRole, MsgAvailable, MsgDuration, MsgType, MsgSectors, MsgBusinesses
-      , MsgWorkspaces
-      ), Widget
+      , MsgWorkspaces, MsgPhoto, MsgAttribution
+      )
     )
 
 import Material3
     ( md3mreq, md3textField, md3textareaField, md3mopt, md3selectField
-    , md3datetimeLocalField, md3intField, md3switchField
+    , md3datetimeLocalField, md3intField, md3switchField, md3htmlField
     )
 
 import Model
@@ -88,18 +94,25 @@ import Model
     , Business (Business)
     , Sector (sectorName, Sector)
     , Sectors (Sectors)
-    , ServicePhotoId, ServicePhoto (ServicePhoto)
+    , ServicePhotoId
+    , ServicePhoto
+      ( ServicePhoto, servicePhotoAttribution, servicePhotoService, servicePhotoMime
+      , servicePhotoPhoto
+      )
     , EntityField
       ( ServiceId, WorkspaceName, WorkspaceId, AssignmentId, WorkspaceBusiness
       , StaffName, StaffId, AssignmentService, ServiceWorkspace, BusinessId
       , AssignmentStaff, ServiceName, AssignmentRole, SectorName, SectorParent
       , ServiceType, BusinessName, ServicePhotoService, ServicePhotoId
+      , ServicePhotoMime, ServicePhotoPhoto, ServicePhotoAttribution
       )
     )
 
 import Settings (widgetFile)
 import Settings.StaticFiles
-    (img_rule_settings_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg)
+    ( img_rule_settings_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg
+    , img_add_photo_alternate_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg
+    )
 
 import Text.Hamlet (Html)
 import Text.Read (readMaybe)
@@ -110,13 +123,14 @@ import Yesod.Core
     ( Yesod(defaultLayout), getMessages, newIdent, getMessageRender
     , redirect, whamlet, addMessageI, YesodRequest (reqGetParams)
     , SomeMessage (SomeMessage), MonadHandler (liftHandler)
-    , getRequest, TypedContent (TypedContent), ToContent (toContent), lookupGetParams
+    , getRequest, TypedContent (TypedContent), ToContent (toContent)
+    , lookupGetParams, FileInfo (fileContentType), fileSourceByteString
     )
 import Yesod.Core.Widget (setTitleI)
 import Yesod.Form
     ( FieldSettings(FieldSettings, fsLabel, fsTooltip, fsId, fsName, fsAttrs)
-    , optionsPairs, FieldView (fvInput, fvId, fvLabel), FormResult (FormSuccess)
-    , Field, textField
+    , optionsPairs, FieldView (fvInput, fvId, fvLabel, fvErrors)
+    , FormResult (FormSuccess), Field, textField, fileField, mreq, mopt
     )
 import Yesod.Form.Functions (generateFormPost, runFormPost, checkM)
 import Yesod.Form.Input (runInputGet, iopt)
@@ -579,6 +593,186 @@ getServicesR = do
         setTitleI MsgServices
         idFabAdd <- newIdent
         $(widgetFile "data/services/services")
+
+
+postServicePhotoDeleR :: ServiceId -> ServicePhotoId -> Handler Html
+postServicePhotoDeleR sid fid = do
+    ((fr2,_),_) <- runFormPost formPhotoDelete
+    case fr2 of
+      FormSuccess () -> do
+          void $ runDB $ P.delete fid
+          addMessageI statusSuccess MsgRecordDeleted
+          redirect $ DataR $ ServicePhotosR sid
+      _otherwise -> do
+          addMessageI statusError MsgInvalidFormData
+          redirect $ DataR $ ServicePhotoEditR sid fid
+
+
+formPhotoDelete :: Form ()
+formPhotoDelete extra = return (pure (),[whamlet|#{extra}|])
+
+
+postServicePhotosR :: ServiceId -> Handler Html
+postServicePhotosR sid = do
+
+    ((fr,fw),et) <- runFormPost $ formPhotoNew sid Nothing
+
+    case fr of
+      FormSuccess (fi,attribution) -> do
+          bs <- fileSourceByteString fi
+          runDB $ insert_ ServicePhoto { servicePhotoService = sid
+                                       , servicePhotoMime = fileContentType fi
+                                       , servicePhotoPhoto = bs
+                                       , servicePhotoAttribution = attribution
+                                       }
+          redirect $ DataR $ ServicePhotosR sid
+      _otherwise -> do
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgService
+              idFormNew <- newIdent
+              $(widgetFile "data/services/photos/new")
+
+
+getServicePhotoNewR :: ServiceId -> Handler Html
+getServicePhotoNewR sid = do
+
+    (fw,et) <- generateFormPost $ formPhotoNew sid Nothing
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgService
+        idFormNew <- newIdent
+        $(widgetFile "data/services/photos/new")
+
+
+formPhotoNew :: ServiceId -> Maybe (Entity ServicePhoto) -> Form (FileInfo,Maybe Html)
+formPhotoNew sid photo extra = do
+
+    msgr <- getMessageRender
+    
+    (photoR,photoV) <- mreq fileField FieldSettings
+        { fsLabel = SomeMessage MsgPhoto
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("style","display:none")]
+        } Nothing
+    
+    (attribR,attribV) <- md3mopt md3htmlField FieldSettings
+        { fsLabel = SomeMessage MsgAttribution
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgAttribution)]
+        } (servicePhotoAttribution . entityVal <$> photo)
+
+    let r = (,) <$> photoR <*> attribR
+
+    idLabelPhoto <- newIdent
+    idFigurePhoto <- newIdent
+    idImgPhoto <- newIdent
+    
+    let w = $(widgetFile "data/services/photos/form")
+    return (r,w)
+
+
+postServicePhotoR :: ServiceId -> ServicePhotoId -> Handler Html
+postServicePhotoR sid fid = do
+    
+    photo <- runDB $ selectOne $ do
+        x <- from $ table @ServicePhoto
+        where_ $ x ^. ServicePhotoId ==. val fid
+        return x
+
+    ((fr,fw),et) <- runFormPost $ formPhoto sid photo
+
+    case fr of
+      FormSuccess (Just fi,attribution) -> do
+          bs <- fileSourceByteString fi
+          runDB $ update $ \x -> do
+              set x [ ServicePhotoMime =. val (fileContentType fi)
+                    , ServicePhotoPhoto =. val bs
+                    , ServicePhotoAttribution =. val attribution
+                    ]
+              where_ $ x ^. ServicePhotoId ==. val fid
+          redirect $ DataR $ ServicePhotosR sid
+          
+      FormSuccess (Nothing,attribution) -> do
+          runDB $ update $ \x -> do
+              set x [ ServicePhotoAttribution =. val attribution ]
+              where_ $ x ^. ServicePhotoId ==. val fid
+          redirect $ DataR $ ServicePhotosR sid
+              
+      _otherwise -> do
+          (fw2,et2) <- generateFormPost formPhotoDelete
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgService
+              idFormEdit <- newIdent
+              $(widgetFile "data/services/photos/edit")
+
+
+getServicePhotoEditR :: ServiceId -> ServicePhotoId -> Handler Html
+getServicePhotoEditR sid fid = do
+
+    photo <- runDB $ selectOne $ do
+        x <- from $ table @ServicePhoto
+        where_ $ x ^. ServicePhotoId ==. val fid
+        return x
+        
+    (fw2,et2) <- generateFormPost formPhotoDelete
+    
+    (fw,et) <- generateFormPost $ formPhoto sid photo
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgService
+        idFormEdit <- newIdent
+        $(widgetFile "data/services/photos/edit")
+    
+
+
+formPhoto :: ServiceId -> Maybe (Entity ServicePhoto) -> Form (Maybe FileInfo,Maybe Html)
+formPhoto sid photo extra = do
+
+    msgr <- getMessageRender
+    
+    (photoR,photoV) <- mopt fileField FieldSettings
+        { fsLabel = SomeMessage MsgPhoto
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("style","display:none")]
+        } Nothing
+    
+    (attribR,attribV) <- md3mopt md3htmlField FieldSettings
+        { fsLabel = SomeMessage MsgAttribution
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgAttribution)]
+        } (servicePhotoAttribution . entityVal <$> photo)
+
+    let r = (,) <$> photoR <*> attribR
+
+    idLabelPhoto <- newIdent
+    idFigurePhoto <- newIdent
+    idImgPhoto <- newIdent
+    
+    let w = $(widgetFile "data/services/photos/form")
+    return (r,w)
+
+
+getServicePhotosR :: ServiceId -> Handler Html
+getServicePhotosR sid = do
+
+    stati <- reqGetParams <$> getRequest
+
+    photos <- runDB $ select $ do
+        x <- from $ table @ServicePhoto
+        where_ $ x ^. ServicePhotoService ==. val sid
+        return x
+
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgService
+        idTabPhotos <- newIdent
+        idPanelPhotos <- newIdent
+        idFabAdd <- newIdent
+        $(widgetFile "data/services/photos/photos")
 
 
 getServicePhotoR :: ServiceId -> ServicePhotoId -> Handler TypedContent

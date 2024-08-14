@@ -60,8 +60,13 @@
     /services/#ServiceId/assignments/new/form                ServiceAssignmentNewR  GET
     /services/#ServiceId/assignments/#AssignmentId           ServiceAssignmentR     GET POST
     /services/#ServiceId/assignments                         ServiceAssignmentsR    GET POST
+
     
-    /services/#ServiceId/photos/#ServicePhotoId ServicePhotoR GET
+    /services/#ServiceId/photos/#ServicePhotoId/dele ServicePhotoDeleR POST
+    /services/#ServiceId/photos/#ServicePhotoId/edit ServicePhotoEditR GET
+    /services/#ServiceId/photos/new/form             ServicePhotoNewR  GET
+    /services/#ServiceId/photos/#ServicePhotoId      ServicePhotoR     GET POST
+    /services/#ServiceId/photos                      ServicePhotosR    GET POST
     
     /services/#ServiceId/delete    ServiceDeleR   POST
     /services/#ServiceId/form/edit ServiceEditR   GET
