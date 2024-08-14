@@ -61,11 +61,13 @@
     /services/#ServiceId/assignments/#AssignmentId           ServiceAssignmentR     GET POST
     /services/#ServiceId/assignments                         ServiceAssignmentsR    GET POST
     
-    /services/#ServiceId/delete      ServiceDeleR        POST
-    /services/#ServiceId/form/edit   ServiceEditR        GET
-    /services/new/form               ServiceNewR         GET
-    /services/#ServiceId             ServiceR            GET POST
-    /services                        ServicesR           GET POST
+    /services/#ServiceId/photos/#ServicePhotoId ServicePhotoR GET
+    
+    /services/#ServiceId/delete    ServiceDeleR   POST
+    /services/#ServiceId/form/edit ServiceEditR   GET
+    /services/new/form             ServiceNewR    GET
+    /services/#ServiceId           ServiceR       GET POST
+    /services                      ServicesR      GET POST
 
     /dele/sectors/#SectorId/+Sectors SectorDeleR POST
     /edit/sectors/#SectorId/+Sectors SectorEditR GET

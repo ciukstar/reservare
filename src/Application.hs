@@ -93,6 +93,7 @@ import Handler.Data.Services
     , postServiceAssignmentsR, getServiceAssignmentR
     , getServiceAssignmentEditR, postServiceAssignmentDeleR
     , postServiceAssignmentR
+    , getServicePhotoR
     )
 
 import Handler.Data.Sectors

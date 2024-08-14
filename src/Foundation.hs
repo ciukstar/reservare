@@ -247,6 +247,9 @@ instance Yesod App where
     isAuthorized (DataR (ServiceAssignmentNewR _)) _ = isAdmin
     isAuthorized (DataR (ServiceAssignmentsR _)) _ = isAdmin
 
+    
+    isAuthorized (DataR (ServicePhotoR _ _)) _ = return Authorized
+
     isAuthorized (DataR (ServiceDeleR _)) _ = isAdmin
     isAuthorized (DataR (ServiceEditR _)) _ = isAdmin
     isAuthorized (DataR ServiceNewR) _ = isAdmin

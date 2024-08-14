@@ -34,6 +34,12 @@ Assignment
     priority Int
     UniqueAssignment staff service role
 
+ServicePhoto
+    service ServiceId OnDeleteCascade
+    mime Text
+    photo ByteString
+    attribution Html Maybe
+
 Service
     workspace WorkspaceId OnDeleteCascade
     name Text

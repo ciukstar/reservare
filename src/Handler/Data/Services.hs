@@ -18,16 +18,18 @@ module Handler.Data.Services
   , getServiceAssignmentEditR
   , postServiceAssignmentDeleR
   , postServiceAssignmentR
+  , getServicePhotoR
   ) where
 
 
-import Control.Monad (void, unless, when)
+import Control.Monad (void, unless, when, forM_, forM)
 
 import qualified Data.Aeson as A (toJSON)
 import Data.Bifunctor (Bifunctor(bimap, second))
 import qualified Data.Map as M (fromListWith, findWithDefault)
 import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Text (Text, pack, unpack)
+import Data.Text.Encoding (encodeUtf8)
 import Data.Time (nominalDiffTimeToSeconds, secondsToNominalDiffTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Data.Time.LocalTime (utcToLocalTime, localTimeToUTC, utc)
@@ -44,11 +46,12 @@ import Database.Persist.Sql (fromSqlKey, toSqlKey)
 
 import Foundation
     ( Handler, Form
-    , Route (DataR)
+    , Route (DataR, StaticR)
     , DataR
       ( ServicesR, ServiceR, ServiceNewR, ServiceEditR, ServiceDeleR
       , ServiceAssignmentsR, ServiceAssignmentNewR, ServiceAssignmentR
-      , ServiceAssignmentEditR, ServiceAssignmentDeleR, SectorsR, DataBusinessesR
+      , ServiceAssignmentEditR, ServiceAssignmentDeleR, SectorsR
+      , DataBusinessesR, ServicePhotoR
       )
     , AppMessage
       ( MsgServices, MsgAdd, MsgYouMightWantToAddAFew, MsgThereAreNoDataYet
@@ -60,7 +63,7 @@ import Foundation
       , MsgSchedulingInterval, MsgUnitMinutes, MsgPriority, MsgAlreadyExists
       , MsgRole, MsgAvailable, MsgDuration, MsgType, MsgSectors, MsgBusinesses
       , MsgWorkspaces
-      )
+      ), Widget
     )
 
 import Material3
@@ -85,15 +88,18 @@ import Model
     , Business (Business)
     , Sector (sectorName, Sector)
     , Sectors (Sectors)
+    , ServicePhotoId, ServicePhoto (ServicePhoto)
     , EntityField
       ( ServiceId, WorkspaceName, WorkspaceId, AssignmentId, WorkspaceBusiness
       , StaffName, StaffId, AssignmentService, ServiceWorkspace, BusinessId
       , AssignmentStaff, ServiceName, AssignmentRole, SectorName, SectorParent
-      , ServiceType, BusinessName
+      , ServiceType, BusinessName, ServicePhotoService, ServicePhotoId
       )
     )
 
 import Settings (widgetFile)
+import Settings.StaticFiles
+    (img_rule_settings_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg)
 
 import Text.Hamlet (Html)
 import Text.Read (readMaybe)
@@ -103,7 +109,8 @@ import Widgets (widgetMenu, widgetAccount, widgetBanner, widgetSnackbar)
 import Yesod.Core
     ( Yesod(defaultLayout), getMessages, newIdent, getMessageRender
     , redirect, whamlet, addMessageI, YesodRequest (reqGetParams)
-    , SomeMessage (SomeMessage), MonadHandler (liftHandler), getRequest
+    , SomeMessage (SomeMessage), MonadHandler (liftHandler)
+    , getRequest, TypedContent (TypedContent), ToContent (toContent), lookupGetParams
     )
 import Yesod.Core.Widget (setTitleI)
 import Yesod.Form
@@ -546,24 +553,67 @@ getServicesR :: Handler Html
 getServicesR = do
 
     stati <- reqGetParams <$> getRequest
-    let inputSectors = filter (\(x,_) -> x == paramSector) stati
-    let selectedSectors = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputSectors
+    
+    selectedSectors <- mapMaybe ((toSqlKey <$>) . readMaybe . unpack) <$> lookupGetParams paramSector
+    selectedBusinesses <- mapMaybe ((toSqlKey <$>) . readMaybe . unpack) <$> lookupGetParams paramBusiness
+    selectedWorkspaces <- mapMaybe ((toSqlKey <$>) . readMaybe . unpack) <$> lookupGetParams paramWorkspace
 
-    sectors <- runDB $ select $ do
+    services <- do
+        xs <- runDB $ select $ do
+            x :& w <- from $ table @Service
+                `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
+            unless (null selectedSectors) $ where_ $ x ^. ServiceType `in_` justList (valList selectedSectors)
+            unless (null selectedBusinesses) $ where_ $ w ^. WorkspaceBusiness `in_` valList selectedBusinesses
+            unless (null selectedWorkspaces) $ where_ $ w ^. WorkspaceId `in_` valList selectedWorkspaces
+            orderBy [desc (x ^. ServiceId)]
+            return (x,w)
+        forM xs $ \(s@(Entity sid _),w) -> do
+            f <- runDB $ selectOne $ do
+                x <- from $ table @ServicePhoto
+                where_ $ x ^. ServicePhotoService ==. val sid
+                return x
+            return (s,w,f)
+
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgServices
+        idFabAdd <- newIdent
+        $(widgetFile "data/services/services")
+
+
+getServicePhotoR :: ServiceId -> ServicePhotoId -> Handler TypedContent
+getServicePhotoR sid fid = do
+    photo <- runDB $ selectOne $ do
+        x <- from $ table @ServicePhoto
+        where_ $ x ^. ServicePhotoId ==. val fid
+        return x
+    case photo of
+      Just (Entity _ (ServicePhoto _ mime bs _)) -> return $ TypedContent (encodeUtf8 mime) $ toContent bs
+      Nothing -> redirect $ StaticR img_rule_settings_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg
+
+
+widgetChips :: Widget
+widgetChips = do
+    stati <- reqGetParams <$> getRequest
+    
+    let inputSectors = filter (\(x,_) -> x == paramSector) stati
+        selectedSectors = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputSectors
+
+    sectors <- liftHandler $ runDB $ select $ do
         x <- from $ table @Sector
         where_ $ isNothing_ $ x ^. SectorParent
         orderBy [asc (x ^. SectorName)]
         return x
 
     let inputBusinesses = filter (\(x,_) -> x == paramBusiness) stati
-    let selectedBusinesses = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputBusinesses
+        selectedBusinesses = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputBusinesses
 
-    businesses <- runDB $ select $ do
+    businesses <- liftHandler $ runDB $ select $ do
         x <- from $ table @Business
         orderBy [asc (x ^. BusinessName)]
         return x
 
-    workspaces <- runDB $ select $ do
+    workspaces <- liftHandler $ runDB $ select $ do
         x <- from $ table @Workspace
         unless (null selectedBusinesses) $ where_ $ x ^. WorkspaceBusiness `in_` valList selectedBusinesses
         when (null selectedBusinesses) $ where_ $ val False
@@ -571,11 +621,12 @@ getServicesR = do
         return x
 
     let inputWorkspaces = filter (\(x,_) -> x == paramWorkspace) stati
-    let selectedWorkspaces = let wids = (entityKey <$> workspaces) in
+        selectedWorkspaces = let wids = (entityKey <$> workspaces) in
           filter (`elem` wids) $ mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputWorkspaces
 
-
-    businessWorkspaces <- M.fromListWith (<>) . (second (:[]) <$>) . (bimap unValue unValue <$>) <$> runDB ( select $ do
+    let toMap = M.fromListWith (<>) . (second (:[]) <$>) . (bimap unValue unValue <$>)
+    
+    businessWorkspaces <- liftHandler $ toMap <$> runDB ( select $ do
         x :& b <- from $ table @Workspace
             `innerJoin` table @Business `on` (\(x :& b) -> x ^. WorkspaceBusiness ==. b ^. BusinessId)
         unless (null selectedBusinesses) $ where_ $ x ^. WorkspaceBusiness `in_` valList selectedBusinesses
@@ -589,26 +640,15 @@ getServicesR = do
     scrollX1 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX1)
     scrollX2 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX2)
     scrollX3 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX3)
+    
+    idFilterChips <- newIdent
+    idDetailsSectors <- newIdent
+    idChipSetSectors <- newIdent
+    idChipSetBusinesses <- newIdent
+    idChipSetWorkspaces <- newIdent
+    
+    $(widgetFile "data/services/widgets/chips")
 
-    services <- runDB $ select $ do
-        x :& w <- from $ table @Service
-            `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
-        unless (null selectedSectors) $ where_ $ x ^. ServiceType `in_` justList (valList selectedSectors)
-        unless (null selectedBusinesses) $ where_ $ w ^. WorkspaceBusiness `in_` valList selectedBusinesses
-        unless (null selectedWorkspaces) $ where_ $ w ^. WorkspaceId `in_` valList selectedWorkspaces
-        orderBy [desc (x ^. ServiceId)]
-        return (x,w)
-
-    msgs <- getMessages
-    defaultLayout $ do
-        setTitleI MsgServices
-        idFilterChips <- newIdent
-        idDetailsSectors <- newIdent
-        idChipSetSectors <- newIdent
-        idChipSetBusinesses <- newIdent
-        idChipSetWorkspaces <- newIdent
-        idFabAdd <- newIdent
-        $(widgetFile "data/services/services")
 
 
 paramSector :: Text
