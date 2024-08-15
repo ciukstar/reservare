@@ -1,3 +1,10 @@
+NoStaffAssignedYet: Personalul pentru acest serviciu nu a fost încă alocat
+Registrant: Înregistrant
+OwnerName: Numele proprietarului
+BookNow: Rezervați acum
+Book: Rezervați
+Catalog: Catalog
+Catalogue: Catalog
 ServiceCatalog: Catalogul serviciilor
 Roles: Roluri
 Group: Grupul

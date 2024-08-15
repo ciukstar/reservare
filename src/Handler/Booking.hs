@@ -14,6 +14,7 @@ module Handler.Booking
   , getBookTimeSlotsR, postBookTimeSlotsR
   , getBookPaymentR, postBookPaymentR
   , getBookDetailsR
+  , widgetFilterChips, paramSector, paramBusiness, paramWorkspace
   ) where
 
 import qualified AtVenue.Data as V (Route(CheckoutR))
@@ -63,7 +64,8 @@ import Foundation
       , MsgAddress, MsgFullName, MsgTheAppointment, MsgTheName, MsgDuration
       , MsgPaymentGatewayNotSpecified, MsgNoPaymentsHaveBeenMadeYet
       , MsgPayments, MsgTotalCharge, MsgError, MsgNoPaymentOptionSpecified
-      , MsgWorkspaceWithoutPaymentOptions, MsgBusinesses, MsgWorkspaces, MsgSectors
+      , MsgWorkspaceWithoutPaymentOptions, MsgBusinesses, MsgWorkspaces
+      , MsgSectors
       )
     )
 

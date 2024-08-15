@@ -210,6 +210,9 @@ instance Yesod App where
     isAuthorized :: Route App -> Bool -> Handler AuthResult
 
     
+    isAuthorized (CatalogServiceAssignmentsR _) _ = return Authorized
+    isAuthorized (CatalogServiceBusinessR _) _ = return Authorized
+    isAuthorized (CatalogServiceR _) _ = return Authorized
     isAuthorized (CatalogServicePhotoR _ _) _ = return Authorized
     isAuthorized r@CatalogR _ = setUltDest r >> return Authorized
     

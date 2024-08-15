@@ -1,3 +1,10 @@
+NoStaffAssignedYet: Для этой услуги пока не назначен ни один сотрудник
+Registrant: Регистрант
+OwnerName: Имя владельца
+BookNow: Забронировать сейчас
+Book: Забронировать
+Catalog: Каталог
+Catalogue: Каталог
 ServiceCatalog: Каталог услуг
 Roles: Роли
 Group: Группа

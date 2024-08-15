@@ -16,7 +16,7 @@
       _{MsgWelcomeTo} _{MsgAppName}
 
   <md-filled-tonal-button type=link href=@{CatalogR}>
-    _{MsgServiceCatalog}
+    _{MsgCatalogue}
 
   <md-filled-tonal-button type=link href=@{BookServicesR}>
     _{MsgBookAService}

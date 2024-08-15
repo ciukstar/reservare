@@ -1,3 +1,10 @@
+NoStaffAssignedYet: Le personnel pour ce service n'a pas encore été affecté
+Registrant: Titulaire
+OwnerName: Nom du propriétaire
+BookNow: Réservez maintenant
+Book: Réserver
+Catalog: Catalogue
+Catalogue: Catalogue
 ServiceCatalog: Catalogue de services
 Roles: Rôles
 Group: Groupe

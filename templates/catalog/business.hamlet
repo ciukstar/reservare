@@ -1,0 +1,69 @@
+
+<header>
+  <md-icon-button href=@{CatalogR} aria-label=_{MsgBack}>
+    <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgService}
+
+<main>
+
+  <md-tabs>
+  
+    <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails onclick="this.querySelector('a[href]').click()">
+      <a href=@{CatalogServiceR sid}>
+      _{MsgDetails}
+      
+    <md-primary-tab ##{idTabBusiness} aria-cotrols=#{idPanelBusiness} active onclick="this.querySelector('a[href]').click()">
+      <a href=@{CatalogServiceBusinessR sid}>
+      _{MsgBusiness}
+      
+    <md-primary-tab #idTabAssignments aria-cotrols=idPanelAssignments onclick="this.querySelector('a[href]').click()">
+      <a href=@{CatalogServiceAssignmentsR sid}>
+      _{MsgServiceAssignments}
+      
+
+  <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
+
+  <div ##{idPanelBusiness} role=tabpanel aria-labelledby=#{idTabBusiness}>
+  
+    ^{widgetBanner msgs}
+
+    $maybe ((Entity _ (Workspace _ wname address tzo currency),business),owner) <- workspace
+      <dl>
+        <dt.md-typescale-label-large scope=row>_{MsgTheName}
+        <dd.md-typescale-body-medium>
+          #{wname}
+
+        <dt.md-typescale-label-large scope=row>_{MsgAddress}
+        <dd.md-typescale-body-medium>
+          #{address}
+
+        <dt.md-typescale-label-large scope=row>_{MsgTimeZone}
+        <dd.md-typescale-body-medium>
+          #{show tzo}
+
+        <dt.md-typescale-label-large scope=row>_{MsgCurrency}
+        <dd.md-typescale-body-medium.currency>
+          #{currency}
+
+      <fieldset>
+        <legend>_{MsgOwner}
+        $with (Entity _ (Business _ bname),Entity _ (User email _ _ _ _ oname _ _)) <- (business,owner) 
+          <dl>
+            <dt.md-typescale-label-large scope=row>_{MsgTheName}
+            <dd.md-typescale-body-medium>
+              #{bname}
+
+            <dt.md-typescale-label-large scope=row>_{MsgEmail}
+            <dd.md-typescale-body-medium>
+              #{email}
+
+            <dt.md-typescale-label-large scope=row>_{MsgRegistrant}
+            <dd.md-typescale-body-medium>
+              $maybe name <- oname
+                #{name}
+
+    ^{widgetSnackbar msgs}
+
+  <div #idPanelAssignments role=tabpanel aria-labelledby=idTabAssignments hidden>

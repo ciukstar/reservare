@@ -22,14 +22,14 @@
             _{MsgData}
             <md-icon.app-expand-icon slot=icon>expand_more
 
-      <md-menu-item href=@{DataR $ SectorsR (Sectors [])} :curr == Just (DataR $ SectorsR (Sectors [])):selected>
-        _{MsgSectors}
-
       <md-menu-item href=@{DataR ServicesR} :curr == Just (DataR ServicesR):selected>
         _{MsgServices}
 
       <md-menu-item href=@{DataR DataBusinessesR} :curr == Just (DataR DataBusinessesR):selected>
         _{MsgBusinesses}
+
+      <md-menu-item href=@{DataR $ SectorsR (Sectors [])} :curr == Just (DataR $ SectorsR (Sectors [])):selected>
+        _{MsgSectors}
 
       <md-menu-item href=@{DataR StaffR} :curr == Just (DataR StaffR):selected>
         _{MsgStaff}

@@ -57,6 +57,13 @@ Sector
     parent SectorId Maybe OnDeleteCascade
     UniqueServiceType name
 
+StaffPhoto
+    staff StaffId OnDeleteCascade
+    mime Text
+    photo ByteString
+    attribution Html Maybe
+    UniqueStaffPhoto staff
+
 Staff
     name Text
     account UserId Maybe OnDeleteSetNull

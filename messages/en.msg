@@ -1,3 +1,10 @@
+NoStaffAssignedYet: No staff has been assigned to this service yet
+Registrant: Registrant
+OwnerName: Owner name
+BookNow: Book now
+Book: Book
+Catalog: Catalog
+Catalogue: Catalogue
 ServiceCatalog: Service catalog
 Roles: Roles
 Group: Group

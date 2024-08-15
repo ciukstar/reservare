@@ -52,7 +52,13 @@ import Network.Wai.Middleware.RequestLogger
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
 
-import Handler.Catalog (getCatalogR, getCatalogServicePhotoR)
+import Handler.Catalog
+    ( getCatalogR
+    , getCatalogServiceR
+    , getCatalogServiceBusinessR
+    , getCatalogServicePhotoR
+    , getCatalogServiceAssignmentsR
+    )
 
 import Handler.Appointments
     ( getAppointmentStaffR, postAppointmentStaffR

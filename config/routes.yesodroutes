@@ -1,12 +1,13 @@
 -- By default this file is used by `parseRoutesFile` in Foundation.hs
 -- Syntax for this file here: https://www.yesodweb.com/book/routing-and-handlers
 
-/catalog/#ServiceId/photos/#ServicePhotoId CatalogServicePhotoR GET
-/catalog                                   CatalogR             GET
 
-/yookassa YookassaR Yookassa getYookassa 
-/stripe   StripeR   Stripe   getStripe
-/atvenue  AtVenueR  AtVenue  getAtVenue
+/catalog/#ServiceId/assignments            CatalogServiceAssignmentsR GET
+/catalog/#ServiceId/business               CatalogServiceBusinessR    GET
+/catalog/#ServiceId                        CatalogServiceR            GET
+/catalog/#ServiceId/photos/#ServicePhotoId CatalogServicePhotoR       GET
+/catalog                                   CatalogR                   GET
+
 
 /appointment/payment           AppointmentPaymentR   GET POST
 /appointment/timing/#Day/slots AppointmentTimeSlotsR GET POST
@@ -20,6 +21,11 @@
 /book/timing/#Month     BookTimingR    GET POST
 /book/staff             BookStaffR     GET POST
 /book/services          BookServicesR  GET POST
+
+
+/yookassa YookassaR Yookassa getYookassa 
+/stripe   StripeR   Stripe   getStripe
+/atvenue  AtVenueR  AtVenue  getAtVenue
 
     
 /users/#UserId/businesses/#BusinessId/workspaces/#WorkspaceId/form/dele WorkspaceDeleR POST
