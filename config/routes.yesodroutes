@@ -1,6 +1,8 @@
 -- By default this file is used by `parseRoutesFile` in Foundation.hs
 -- Syntax for this file here: https://www.yesodweb.com/book/routing-and-handlers
 
+/catalog/#ServiceId/photos/#ServicePhotoId CatalogServicePhotoR GET
+/catalog                                   CatalogR             GET
 
 /yookassa YookassaR Yookassa getYookassa 
 /stripe   StripeR   Stripe   getStripe

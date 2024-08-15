@@ -1,3 +1,4 @@
+ServiceCatalog: Service catalog
 Roles: Roles
 Group: Group
 Tabs: Tabs

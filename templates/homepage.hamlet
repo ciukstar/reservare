@@ -15,6 +15,9 @@
     <figcaption.md-typescale-headline-medium>
       _{MsgWelcomeTo} _{MsgAppName}
 
+  <md-filled-tonal-button type=link href=@{CatalogR}>
+    _{MsgServiceCatalog}
+
   <md-filled-tonal-button type=link href=@{BookServicesR}>
     _{MsgBookAService}
 

@@ -7,10 +7,10 @@ module Handler.Home (getHomeR) where
 
 import Foundation
     ( Handler
-    , Route (AppointmentStaffR, BookServicesR, StaticR)
+    , Route (CatalogR, AppointmentStaffR, BookServicesR, StaticR)
     , AppMessage
       ( MsgWelcome, MsgAppName, MsgWelcomeTo, MsgMakeAnAppointment
-      , MsgBookAService
+      , MsgBookAService, MsgServiceCatalog
       )
     )
 

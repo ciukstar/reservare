@@ -1,3 +1,4 @@
+ServiceCatalog: Каталог услуг
 Roles: Роли
 Group: Группа
 Tabs: Вкладки

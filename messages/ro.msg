@@ -1,3 +1,4 @@
+ServiceCatalog: Catalogul serviciilor
 Roles: Roluri
 Group: Grupul
 Tabs: File
