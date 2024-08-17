@@ -41,7 +41,7 @@
   <div ##{idPanelDetails} role=tabpanel aria-labelledby=#{idTabDetails}>
     ^{widgetBanner msgs}
 
-    $maybe (Entity _ (Business _ name), Entity _ (User ownerEmail _ _ _ _ ownerName _ _)) <- business        
+    $maybe (Entity _ (Business _ name _ _), Entity _ (User ownerEmail _ _ _ _ ownerName _ _)) <- business        
       <dl>
 
         <dt.md-typescale-label-large scope=row>_{MsgTheName}

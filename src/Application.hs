@@ -136,6 +136,7 @@ import Handler.Data.Business
     , getDataBusinessEditR
     , postDataBusinessDeleR
     , postDataBusinessR
+    , getDataBusinessLogoR
     , getDataWorkspacesR
     , getDataWorkspaceNewR
     , postDataWorkspacesR

@@ -1,3 +1,6 @@
+BusinessFullName: Nom complet
+Logo: Logo
+Logotype: Logotype
 NoStaffAssignedYet: Le personnel pour ce service n'a pas encore été affecté
 Registrant: Titulaire
 OwnerName: Nom du propriétaire

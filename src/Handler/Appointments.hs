@@ -899,7 +899,7 @@ $else
           <div slot=supporting-text>
             $with Entity _ (Assignment _ _ role _ _ _) <- assignment
               #{role}
-            $with (Entity _ (Business _ bname),Entity _ (Workspace _ wname _ _ _)) <- (business,workspace)
+            $with (Entity _ (Business _ bname _ _),Entity _ (Workspace _ wname _ _ _)) <- (business,workspace)
               \ (#{bname} - #{wname})
           <div slot=supporting-text>
             $with (Entity _ (Workspace _ _ _ _ currency),Entity _ (Service _ name _ price _ _ _)) <- (workspace,service)

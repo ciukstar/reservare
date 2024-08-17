@@ -130,6 +130,9 @@
     /businesses/#BusinessId/workspaces/new/form               DataWorkspaceNewR  GET
     /businesses/#BusinessId/workspaces/#WorkspaceId           DataWorkspaceR     GET POST
     /businesses/#BusinessId/workspaces                        DataWorkspacesR    GET POST
+
+    
+    /businesses/#BusinessId/logo       DataBusinessLogoR GET
     
     /businesses/#BusinessId/form/dele  DataBusinessDeleR POST
     /businesses/#BusinessId/form/edit  DataBusinessEditR GET

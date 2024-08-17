@@ -32,7 +32,7 @@ import Model
       ( UserPhoto, userPhotoMime, userPhotoPhoto, userPhotoUser
       , userPhotoAttribution
       )
-    , Business (Business, businessOwner, businessName)
+    , Business (Business, businessOwner, businessName, businessFullName, businessDescr)
     , Workspace (Workspace, workspaceBusiness, workspaceName, workspaceAddress)
     , Service
       ( Service, serviceWorkspace, serviceName, serviceDescr, serviceAvailable
@@ -168,6 +168,8 @@ fillDemoFr appSettings = do
 
     let business1 = Business { businessOwner = usr1
                              , businessName = "BJ & Cie"
+                             , businessFullName = Just "Bernard Jade & Cie"
+                             , businessDescr = Just "Bernard Jade & Compagnie"
                              }
 
     b1 <- insert business1
@@ -306,6 +308,8 @@ fillDemoFr appSettings = do
 
     let business2 = Business { businessOwner = usr2
                              , businessName = "TGR & Cie"
+                             , businessFullName = Just "Thomas Gabriel Raphaël & Cie"
+                             , businessDescr = Just "Thomas Gabriel Raphaël & Compagnie"
                              }
 
     b21 <- insert business2
@@ -476,6 +480,8 @@ fillDemoFr appSettings = do
 
     let business3 = Business { businessOwner = usr3
                              , businessName = "RAL & Cie"
+                             , businessFullName = Just "Richard Arthur Louis & Cie"
+                             , businessDescr = Just "Richard Arthur Louis & Compagnie"
                              }
 
     b31 <- insert business3

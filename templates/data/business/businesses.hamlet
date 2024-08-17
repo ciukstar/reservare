@@ -22,11 +22,21 @@
           _{MsgYouMightWantToAddAFew}
   $else
     <md-list>
-      $forall Entity bid (Business _ name) <- businesses
+      $forall (Entity bid (Business _ name fname _),attrib) <- businesses
         <md-list-item type=link href=@{DataR $ DataBusinessR bid}>
+          <img slot=start src=@{DataR $ DataBusinessLogoR bid} width=56 height=56 loading=lazy alt=_{MsgLogotype}>
           <div slot=headline>
             #{name}
-          <md-icon slot=end>arrow_forward_ios
+          <div slot=supporting-text>
+            $maybe fullName <- fname
+              #{fullName}
+          <md-icon slot=end>
+            arrow_forward_ios
+            
+        $maybe attribution <- attrib
+          <div.app-attribution>
+            <div.app-attribution-wrapper.md-typescale-body-small>
+              #{attribution}
         <md-divider>
 
   <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">

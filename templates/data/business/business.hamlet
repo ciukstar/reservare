@@ -27,6 +27,14 @@
 
 <main>
 
+  <figure>
+    <img slot=start src=@{DataR $ DataBusinessLogoR bid} width=64 height=64 loading=lazy alt=_{MsgLogotype}>
+    <figcaption>
+      $maybe attrib <- attribution
+        <div.app-attribution>
+          <div.app-attribution-wrapper.md-typescale-body-small>
+            ^{attrib}
+
   <md-tabs>
   
     <md-primary-tab ##{idTabDetails} aria-cotrols=#{idPanelDetails} active onclick="this.querySelector('a[href]').click()">
@@ -41,12 +49,22 @@
   <div ##{idPanelDetails} role=tabpanel aria-labelledby=#{idTabDetails}>
     ^{widgetBanner msgs}
 
-    $maybe (Entity _ (Business _ name), Entity _ (User ownerEmail _ _ _ _ ownerName _ _)) <- business        
+    $maybe (Entity _ (Business _ name fname descr), Entity _ (User ownerEmail _ _ _ _ ownerName _ _)) <- business        
       <dl>
 
         <dt.md-typescale-label-large scope=row>_{MsgTheName}
         <dd.md-typescale-body-medium>
           #{name}
+
+        <dt.md-typescale-label-large scope=row>_{MsgBusinessFullName}
+        <dd.md-typescale-body-medium>
+          $maybe fullName <- fname
+            #{fullName}
+
+        <dt.md-typescale-label-large scope=row>_{MsgDescription}
+        <dd.md-typescale-body-medium>
+          $maybe descr <- descr
+            #{descr}
 
         <dt.md-typescale-label-large scope=row>_{MsgOwner}
         <dd.md-typescale-body-medium>

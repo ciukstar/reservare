@@ -69,7 +69,7 @@
 
       <dt.md-typescale-label-large scope=row>_{MsgBusiness}
       <dd.md-typescale-body-medium>
-        $with Entity _ (Business _ name) <- business
+        $with Entity _ (Business _ name _ _) <- business
           #{name}
 
   ^{widgetSnackbar msgs}

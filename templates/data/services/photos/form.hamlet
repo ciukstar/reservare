@@ -9,10 +9,10 @@
       <img src=@{StaticR img_add_photo_alternate_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg} width=auto height=120
            ##{idImgPhoto} loading=lazy alt=_{MsgPhoto}>
            
-    <figcaption.body-medium>
+    <figcaption>
 
       $maybe errs <- fvErrors photoV
-        <div style="color:var(--md-sys-color-error)">
+        <div.body-medium style="color:var(--md-sys-color-error)">
           #{errs}
    
       <md-outlined-button type=button onclick="document.getElementById('#{idLabelPhoto}').click()">

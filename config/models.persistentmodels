@@ -93,9 +93,18 @@ Workspace
     currency Text
     UniqueWorkspace business name
 
+BusinessLogo
+    business BusinessId OnDeleteCascade
+    mime Text
+    photo ByteString
+    attribution Html Maybe
+    UniqueBusinessPhoto business
+
 Business
     owner UserId OnDeleteCascade
     name Text
+    fullName Text Maybe
+    descr Textarea Maybe
     UniqueBusiness name
 
 UserInfo

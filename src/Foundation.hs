@@ -316,6 +316,7 @@ instance Yesod App where
     isAuthorized (DataR (DataWorkspacesR _)) _ = isAdmin
 
     
+    isAuthorized (DataR (DataBusinessLogoR _)) _ = isAdmin
     isAuthorized (DataR (DataBusinessDeleR _)) _ = isAdmin
     isAuthorized (DataR (DataBusinessEditR _)) _ = isAdmin
     isAuthorized (DataR (DataBusinessR _)) _ = isAdmin

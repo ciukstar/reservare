@@ -22,7 +22,7 @@
           _{MsgYouMightWantToAddAFew}
   $else
     <md-list>
-      $forall Entity bid (Business _ name) <- businesses
+      $forall Entity bid (Business _ name _ _) <- businesses
         <md-list-item type=link href=@{BusinessR uid bid}>
           <div slot=headline>
             #{name}

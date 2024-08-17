@@ -1,0 +1,6 @@
+
+##{idLabelLogo}
+    align-self: center
+
+    ##{idFigureLogo}
+        text-align: center

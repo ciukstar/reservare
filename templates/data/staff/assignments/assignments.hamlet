@@ -46,7 +46,7 @@
               $with Entity _ (Service _ name _ _ _ _ _) <- service
                 _{MsgService}: #{name}
             <div slot=supporting-text>
-              $with (Entity _ (Workspace _ wname _ _ _), Entity _ (Business _ bname)) <- (workspace,buisiness)
+              $with (Entity _ (Workspace _ wname _ _ _), Entity _ (Business _ bname _ _)) <- (workspace,buisiness)
                 _{MsgWorkspace} : #{bname} (#{wname})
             $with dt <- iso8601Show time
               <time slot=supporting-text datetime=#{dt}>

@@ -1,3 +1,6 @@
+BusinessFullName: Full name
+Logo: Logo
+Logotype: Logotype
 NoStaffAssignedYet: No staff has been assigned to this service yet
 Registrant: Registrant
 OwnerName: Owner name

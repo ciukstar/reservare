@@ -985,7 +985,7 @@ $else
         <md-list-item type=button onclick="this.querySelector('md-radio').click()">
           <div slot=headline>
             #{sname}
-          $with (Entity _ (Workspace _ wname _ _ currency),Entity _ (Business _ bname)) <- (workspace,business)
+          $with (Entity _ (Workspace _ wname _ _ currency),Entity _ (Business _ bname _ _)) <- (workspace,business)
             <div slot=supporting-text>
               #{wname} (#{bname})
             <div.currency slot=supporting-text data-value=#{price} data-currency=#{currency}>

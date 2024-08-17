@@ -1,3 +1,6 @@
+BusinessFullName: Numele complet
+Logo: Sigla
+Logotype: Logotip
 NoStaffAssignedYet: Personalul pentru acest serviciu nu a fost încă alocat
 Registrant: Înregistrant
 OwnerName: Numele proprietarului

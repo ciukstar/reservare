@@ -83,7 +83,7 @@
 
         <dt.md-typescale-label-large>_{MsgBusiness}
         <dd.md-typescale-body-medium>
-          $with Entity _ (Business _ name) <- buisiness
+          $with Entity _ (Business _ name _ _) <- buisiness
             #{name}
 
 

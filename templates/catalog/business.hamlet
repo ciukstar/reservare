@@ -49,7 +49,7 @@
 
       <fieldset>
         <legend>_{MsgOwner}
-        $with (Entity _ (Business _ bname),Entity _ (User email _ _ _ _ oname _ _)) <- (business,owner) 
+        $with (Entity _ (Business _ bname _ _),Entity _ (User email _ _ _ _ oname _ _)) <- (business,owner) 
           <dl>
             <dt.md-typescale-label-large scope=row>_{MsgTheName}
             <dd.md-typescale-body-medium>

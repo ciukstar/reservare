@@ -1,3 +1,6 @@
+BusinessFullName: Полное название
+Logo: Логотип
+Logotype: Логотип
 NoStaffAssignedYet: Для этой услуги пока не назначен ни один сотрудник
 Registrant: Регистрант
 OwnerName: Имя владельца

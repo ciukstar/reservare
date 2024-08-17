@@ -51,12 +51,12 @@ import Material3 (md3mreq, md3textField, md3textareaField)
 
 import Model
     ( statusError, statusSuccess
-    , BusinessId, Business(Business, businessName)
+    , BusinessId, Business(Business)
     , UserId, User (User)
     , WorkspaceId, Workspace (Workspace, workspaceName, workspaceAddress, workspaceTzo, workspaceCurrency)
     , EntityField
       ( UserId, BusinessId, BusinessOwner, WorkspaceId
-      , WorkspaceBusiness, BusinessName, WorkspaceName
+      , WorkspaceBusiness, WorkspaceName
       )
     )
 
@@ -361,36 +361,7 @@ getBusinessNewR uid = do
 
 
 formBusiness :: UserId -> Maybe (Entity Business) -> Form Business
-formBusiness uid business extra = do
-    
-    msgr <- getMessageRender
-        
-    (nameR, nameV) <- md3mreq uniqueNameField FieldSettings
-        { fsLabel = SomeMessage MsgTheName
-        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgTheName)]
-        } (businessName . entityVal <$> business)
-
-    return ( Business uid <$> nameR
-           , $(widgetFile "business/form")
-           )
-  where
-      
-      uniqueNameField :: Field Handler Text
-      uniqueNameField = checkM uniqueName md3textField
-
-      uniqueName :: Text -> Handler (Either AppMessage Text)
-      uniqueName name = do
-          x <- runDB $ selectOne $ do
-              x <- from $ table @Business
-              where_ $ x ^. BusinessName ==. val name
-              return x
-          return $ case x of
-            Nothing -> Right name
-            Just (Entity bid _) -> case business of
-              Nothing -> Left MsgAlreadyExists
-              Just (Entity bid' _) | bid == bid' -> Right name
-                                   | otherwise -> Left MsgAlreadyExists
+formBusiness _uid _business _extra = undefined
 
 
 getBusinessesR :: UserId -> Handler Html

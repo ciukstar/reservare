@@ -24,7 +24,7 @@
       _{MsgBusinesses}
 
     <md-chip-set ##{idChipSetBusinesses}>
-      $forall Entity bid (Business _ name) <- businesses
+      $forall Entity bid (Business _ name _ _) <- businesses
         $with (isSelected,theId) <- (elem bid selectedBusinesses,pack $ show $ fromSqlKey bid)
           $with scrollParams <- [(paramX1,pack $ show scrollX1),(paramX3,pack $ show scrollX3)]
             <md-filter-chip label=#{name} :isSelected:selected onclick="this.querySelector('a[href]').click()">
