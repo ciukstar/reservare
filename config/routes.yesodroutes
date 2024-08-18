@@ -70,11 +70,12 @@
     /services/#ServiceId/assignments                         ServiceAssignmentsR    GET POST
 
     
-    /services/#ServiceId/photos/#ServicePhotoId/dele ServicePhotoDeleR POST
-    /services/#ServiceId/photos/#ServicePhotoId/edit ServicePhotoEditR GET
-    /services/#ServiceId/photos/new/form             ServicePhotoNewR  GET
-    /services/#ServiceId/photos/#ServicePhotoId      ServicePhotoR     GET POST
-    /services/#ServiceId/photos                      ServicePhotosR    GET POST
+    /services/#ServiceId/photos/#ServicePhotoId/dele ServicePhotoDeleR    POST
+    /services/#ServiceId/photos/#ServicePhotoId/edit ServicePhotoEditR    GET
+    /services/#ServiceId/photos/new/form             ServicePhotoNewR     GET
+    /services/#ServiceId/photos/#ServicePhotoId      ServicePhotoR        GET POST
+    /services/#ServiceId/photo                       ServicePhotoDefaultR GET
+    /services/#ServiceId/photos                      ServicePhotosR       GET POST
     
     /services/#ServiceId/delete    ServiceDeleR   POST
     /services/#ServiceId/form/edit ServiceEditR   GET
@@ -104,6 +105,8 @@
     /staff/#StaffId/assignments/new/form                StaffAssignmentNewR  GET
     /staff/#StaffId/assignments/#AssignmentId           StaffAssignmentR     GET POST
     /staff/#StaffId/assignments                         StaffAssignmentsR    GET POST
+
+    /staff/#StaffId/photo EmployeePhotoR GET
 
     /staff/#StaffId/delete    EmployeeDeleR POST
     /staff/#StaffId/form/edit EmployeeEditR GET

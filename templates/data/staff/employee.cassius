@@ -19,6 +19,8 @@ main
 
     figure
         text-align: center
+        img
+            clip-path: circle(50%)
     dl
         margin: 0 2rem
         dt + dd

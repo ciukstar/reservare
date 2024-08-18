@@ -103,6 +103,7 @@ import Handler.Data.Services
     , postServiceAssignmentR
     , getServicePhotoR, postServicePhotoR
     , getServicePhotosR, postServicePhotosR
+    , getServicePhotoDefaultR
     , getServicePhotoEditR
     , getServicePhotoNewR
     , postServicePhotoDeleR
@@ -125,7 +126,7 @@ import Handler.Data.Staff
     , getStaffScheduleSlotR, postStaffScheduleSlotR
     , getStaffScheduleSlotNewR, getStaffScheduleSlotEditR
     , postStaffScheduleSlotDeleR, postStaffScheduleFillFromWorkingHoursR
-    , postStaffScheduleFillFromPreviousMonthR
+    , postStaffScheduleFillFromPreviousMonthR, getEmployeePhotoR
     )
 
 import Handler.Data.Business

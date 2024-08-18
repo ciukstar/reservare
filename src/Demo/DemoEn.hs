@@ -53,7 +53,15 @@ import Model
       , payOptionDescr, payOptionIcon
       )
     , PayMethod (PayNow, PayAtVenue)
-    , PayGateway (PayGatewayStripe), Sector (Sector, sectorName, sectorDescr, sectorParent)
+    , PayGateway (PayGatewayStripe)
+    , Sector (Sector, sectorName, sectorDescr, sectorParent)
+    , BusinessLogo
+      ( BusinessLogo, businessLogoBusiness, businessLogoMime, businessLogoAttribution
+      , businessLogoPhoto
+      )
+    , StaffPhoto
+      ( StaffPhoto, staffPhotoStaff, staffPhotoMime, staffPhotoPhoto, staffPhotoAttribution
+      )
     )
 
 import Settings (AppSettings)
@@ -167,15 +175,21 @@ fillDemoEn appSettings = do
                       }
 
     let business1 = Business { businessOwner = usr1
-                             , businessName = "ML & Co"
-                             , businessFullName = Just "Mary Lopez & Co"
-                             , businessDescr = Just "Mary Lopez & Company"
+                             , businessName = "FinCo"
+                             , businessFullName = Just "Finance consulting, Mary Lopez & Co"
+                             , businessDescr = Just "Finco provides financial advice to help you start and grow your business."
                              }
 
     b1 <- insert business1
 
+    insert_ $ BusinessLogo { businessLogoBusiness = b1
+                           , businessLogoMime = "image/svg+xml"
+                           , businessLogoPhoto = $(embedFile "demo/logo_finco_120x120.svg")
+                           , businessLogoAttribution = Nothing
+                           }
+
     let workspace11 = Workspace { workspaceBusiness = b1
-                                , workspaceName = "ML & Co Central"
+                                , workspaceName = "FinCo Central"
                                 , workspaceAddress = "9796 Cherry Court Taylors, SC 29687"
                                 , workspaceTzo = utc
                                 , workspaceCurrency = "GBP"
@@ -274,34 +288,34 @@ fillDemoEn appSettings = do
     sec8 <- insert sector8
 
     let service111 = Service { serviceWorkspace = w11
-                             , serviceName = "Leisure travel"
-                             , serviceDescr = Just "Travel as you like"
+                             , serviceName = "Banking Risk & Resilience"
+                             , serviceDescr = Just "We help financial services clients achieve extraordinary risk-adjusted performance"
                              , servicePrice = 10000
                              , serviceAvailable = True
                              , serviceDuration = oneHour
-                             , serviceType = Nothing
+                             , serviceType = Just sec3
                              }
     
     s111 <- insert service111
 
     let service112 = Service { serviceWorkspace = w11
-                             , serviceName = "Italia travel"
-                             , serviceDescr = Just "Italian joy"
+                             , serviceName = "Corporate & Investment Banking"
+                             , serviceDescr = Just "We help investment banking clients meet a wide range of strategic, organizational, and operational demands"
                              , servicePrice = 20000
                              , serviceAvailable = True
                              , serviceDuration = oneHour
-                             , serviceType = Just sec1
+                             , serviceType = Just sec3
                              }
 
     s112 <- insert service112
 
     let service113 = Service { serviceWorkspace = w11
-                             , serviceName = "Hello Paris"
-                             , serviceDescr = Just "France awaits"
+                             , serviceName = "Law Firms & Professional Services"
+                             , serviceDescr = Just "We advise professional services institutions, including law firms, accounting firms, corporate legal departments, and other knowledge worker organizations, on a broad range of strategic, organizational, and operational issues"
                              , servicePrice = 25000
                              , serviceAvailable = True
                              , serviceDuration = oneHour
-                             , serviceType = Just sec1
+                             , serviceType = Just sec3
                              }
 
     s113 <- insert service113
@@ -543,6 +557,16 @@ fillDemoEn appSettings = do
 
     empl1 <- insert employee1
 
+    insert_ $ StaffPhoto { staffPhotoStaff = empl1
+                         , staffPhotoMime = "image/avif"
+                         , staffPhotoPhoto = $(embedFile "demo/2148728586.avif")
+                         , staffPhotoAttribution = Just [shamlet|
+                                                            Designed by #
+                                                            <a href="https://www.freepik.com/" target=_blank>
+                                                              Freepik
+                                                            |]
+                         }
+
     let employee2 = Staff { staffName = fromMaybe (userEmail user2) (userName user2)
                           , staffAccount = Just usr2
                           , staffMobile = Just "+44 01788 494865"
@@ -550,6 +574,16 @@ fillDemoEn appSettings = do
                           }
 
     empl2 <- insert employee2
+
+    insert_ $ StaffPhoto { staffPhotoStaff = empl2
+                         , staffPhotoMime = "image/avif"
+                         , staffPhotoPhoto = $(embedFile "demo/222.avif")
+                         , staffPhotoAttribution = Just [shamlet|
+                                                            Designed by #
+                                                            <a href="https://www.freepik.com/" target=_blank>
+                                                              Freepik
+                                                            |]
+                         }
 
     let employee3 = Staff { staffName = fromMaybe (userEmail user3) (userName user3)
                           , staffAccount = Just usr3
@@ -559,6 +593,16 @@ fillDemoEn appSettings = do
 
     empl3 <- insert employee3
 
+    insert_ $ StaffPhoto { staffPhotoStaff = empl3
+                         , staffPhotoMime = "image/avif"
+                         , staffPhotoPhoto = $(embedFile "demo/2148213406.avif")
+                         , staffPhotoAttribution = Just [shamlet|
+                                                            Designed by #
+                                                            <a href="https://www.freepik.com/" target=_blank>
+                                                              Freepik
+                                                            |]
+                         }
+
     let employee4 = Staff { staffName = fromMaybe (userEmail user4) (userName user4)
                           , staffAccount = Just usr4
                           , staffMobile = Just "+44 4759604365"
@@ -566,6 +610,16 @@ fillDemoEn appSettings = do
                           }
 
     empl4 <- insert employee4
+
+    insert_ $ StaffPhoto { staffPhotoStaff = empl4
+                         , staffPhotoMime = "image/avif"
+                         , staffPhotoPhoto = $(embedFile "demo/2148728638.avif")
+                         , staffPhotoAttribution = Just [shamlet|
+                                                            Designed by #
+                                                            <a href="https://www.freepik.com/" target=_blank>
+                                                              Freepik
+                                                            |]
+                         }
 
     let assignment111 = Assignment { assignmentStaff = empl1
                                    , assignmentService = s111

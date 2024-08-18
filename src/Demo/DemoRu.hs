@@ -53,7 +53,16 @@ import Model
       , payOptionDescr, payOptionIcon, PayOption
       )
     , PayMethod (PayNow, PayAtVenue)
-    , PayGateway (PayGatewayYookassa), Sector (Sector, sectorName, sectorDescr, sectorParent)
+    , PayGateway (PayGatewayYookassa)
+    , Sector (Sector, sectorName, sectorDescr, sectorParent)
+    , StaffPhoto
+      ( StaffPhoto, staffPhotoStaff, staffPhotoMime, staffPhotoPhoto
+      , staffPhotoAttribution
+      )
+    , BusinessLogo
+      ( BusinessLogo, businessLogoBusiness, businessLogoMime, businessLogoPhoto
+      , businessLogoAttribution
+      )
     )
 
 import Settings (AppSettings)
@@ -167,12 +176,18 @@ fillDemoRu appSettings = do
                       }
 
     let business1 = Business { businessOwner = usr1
-                             , businessName = "БЛМ и Ко"
-                             , businessFullName = Just "Буланова Любовь Михайловна и Ко"
-                             , businessDescr = Just "Буланова Любовь Михайловна и Компания"
+                             , businessName = "ФинКо"
+                             , businessFullName = Just "Финансовый консалтинг, Буланова Любовь Михайловна и Ко"
+                             , businessDescr = Just "ФинКо предоставляет финансовые консультации, которые помогут вам начать и развить свой бизнес."
                              }
 
     b1 <- insert business1
+
+    insert_ $ BusinessLogo { businessLogoBusiness = b1
+                           , businessLogoMime = "image/svg+xml"
+                           , businessLogoPhoto = $(embedFile "demo/logo_finco_120x120_ru.svg")
+                           , businessLogoAttribution = Nothing
+                           }
 
     let workspace11 = Workspace { workspaceBusiness = b1
                                 , workspaceName = "БЛМ и Ко Центральный"
@@ -274,34 +289,34 @@ fillDemoRu appSettings = do
     sec8 <- insert sector8
 
     let service111 = Service { serviceWorkspace = w11
-                             , serviceName = "Путешествие на отдых"
-                             , serviceDescr = Just "Путешествуйте так, как вам нравится"
+                             , serviceName = "Банковский риск и устойчивость"
+                             , serviceDescr = Just "Мы помогаем клиентам сферы финансовых услуг достигать исключительных показателей с поправкой на риск"
                              , servicePrice = 1000000
                              , serviceAvailable = True
                              , serviceDuration = oneHour
-                             , serviceType = Just sec1
+                             , serviceType = Just sec3
                              }
 
     s111 <- insert service111
 
     let service112 = Service { serviceWorkspace = w11
-                             , serviceName = "Путешествие по Италии"
-                             , serviceDescr = Just "Итальянская радость"
+                             , serviceName = "Корпоративный и инвестиционный банкинг"
+                             , serviceDescr = Just "Мы помогаем клиентам инвестиционного банкинга удовлетворять широкий спектр стратегических, организационных и операционных потребностей."
                              , servicePrice = 2000000
                              , serviceAvailable = True
                              , serviceDuration = oneHour
-                             , serviceType = Just sec1
+                             , serviceType = Just sec3
                              }
 
     s112 <- insert service112
 
     let service113 = Service { serviceWorkspace = w11
-                             , serviceName = "Привет, Париж."
-                             , serviceDescr = Just "Франция ждет"
+                             , serviceName = "Юридические фирмы и профессиональные услуги"
+                             , serviceDescr = Just "Мы консультируем учреждения профессиональных услуг, включая юридические фирмы, бухгалтерские фирмы, корпоративные юридические отделы и другие организации работников умственного труда, по широкому кругу стратегических, организационных и операционных вопросов."
                              , servicePrice = 2500000
                              , serviceAvailable = True
                              , serviceDuration = oneHour
-                             , serviceType = Just sec1
+                             , serviceType = Just sec3
                              }
 
     s113 <- insert service113
@@ -494,6 +509,16 @@ fillDemoRu appSettings = do
 
     empl1 <- insert employee1
 
+    insert_ $ StaffPhoto { staffPhotoStaff = empl1
+                         , staffPhotoMime = "image/avif"
+                         , staffPhotoPhoto = $(embedFile "demo/2148728586.avif")
+                         , staffPhotoAttribution = Just [shamlet|
+                                                            Designed by #
+                                                            <a href="https://www.freepik.com/" target=_blank>
+                                                              Freepik
+                                                            |]
+                         }
+
     let employee2 = Staff { staffName = fromMaybe (userEmail user2) (userName user2)
                           , staffAccount = Just usr2
                           , staffMobile = Just "+7 (276) 529-24-34"
@@ -501,6 +526,16 @@ fillDemoRu appSettings = do
                           }
 
     empl2 <- insert employee2
+
+    insert_ $ StaffPhoto { staffPhotoStaff = empl2
+                         , staffPhotoMime = "image/avif"
+                         , staffPhotoPhoto = $(embedFile "demo/222.avif")
+                         , staffPhotoAttribution = Just [shamlet|
+                                                            Designed by #
+                                                            <a href="https://www.freepik.com/" target=_blank>
+                                                              Freepik
+                                                            |]
+                         }
 
     let employee3 = Staff { staffName = fromMaybe (userEmail user3) (userName user3)
                           , staffAccount = Just usr3
@@ -510,6 +545,16 @@ fillDemoRu appSettings = do
 
     empl3 <- insert employee3
 
+    insert_ $ StaffPhoto { staffPhotoStaff = empl3
+                         , staffPhotoMime = "image/avif"
+                         , staffPhotoPhoto = $(embedFile "demo/2148213406.avif")
+                         , staffPhotoAttribution = Just [shamlet|
+                                                            Designed by #
+                                                            <a href="https://www.freepik.com/" target=_blank>
+                                                              Freepik
+                                                            |]
+                         }
+
     let employee4 = Staff { staffName = fromMaybe (userEmail user4) (userName user4)
                           , staffAccount = Just usr4
                           , staffMobile = Just "+7 (565) 242-29-46"
@@ -517,6 +562,16 @@ fillDemoRu appSettings = do
                           }
 
     empl4 <- insert employee4
+
+    insert_ $ StaffPhoto { staffPhotoStaff = empl4
+                         , staffPhotoMime = "image/avif"
+                         , staffPhotoPhoto = $(embedFile "demo/2148728638.avif")
+                         , staffPhotoAttribution = Just [shamlet|
+                                                            Designed by #
+                                                            <a href="https://www.freepik.com/" target=_blank>
+                                                              Freepik
+                                                            |]
+                         }
 
     let assignment111 = Assignment { assignmentStaff = empl1
                                    , assignmentService = s111

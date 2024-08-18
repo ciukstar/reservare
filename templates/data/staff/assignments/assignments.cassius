@@ -14,6 +14,11 @@ header
     
 main
 
+    figure
+        text-align: center
+        img
+            clip-path: circle(50%)
+
     ##{idFabAdd}
         position: fixed
         right: 1rem

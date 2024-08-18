@@ -12,6 +12,7 @@ module Handler.Data.Staff
   , getEmployeeEditR
   , postEmployeeDeleR
   , postEmployeeR
+  , getEmployeePhotoR
   , getStaffAssignmentsR
   , postStaffAssignmentsR
   , getStaffAssignmentR
@@ -31,11 +32,13 @@ module Handler.Data.Staff
   , postStaffScheduleFillFromPreviousMonthR
   ) where
 
-import Control.Monad (void, forM_)
+import Control.Monad (void, forM_, join)
 
+import Data.Bifunctor (Bifunctor(second, bimap))
 import qualified Data.Map as M (Map, fromListWith, member, notMember, lookup)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
+import Data.Text.Encoding (encodeUtf8)
 import Data.Time
     ( nominalDiffTimeToSeconds, secondsToNominalDiffTime
     , DayPeriod (periodFirstDay, periodLastDay), weekFirstDay
@@ -52,22 +55,23 @@ import Data.Time.Format.ISO8601 (iso8601Show)
 
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, desc, asc, selectOne, where_, val
-    , (^.), (==.), (:&)((:&))
-    , innerJoin, on, between, subSelect, just
+    , (^.), (?.), (==.), (:&)((:&)), (=.)
+    , innerJoin, on, between, subSelect, just, leftJoin, Value (unValue)
+    , SqlExpr, subSelectCount, update, set
     )
 import Database.Persist
-    ( Entity (Entity), entityVal, entityKey, insert_)
-import qualified Database.Persist as P (delete, PersistStoreWrite (replace))
+    ( Entity (Entity), entityVal, entityKey, insert, insert_, upsert)
+import qualified Database.Persist as P ((=.), delete, PersistStoreWrite (replace))
     
 import Foundation
     ( Handler, Form
-    , Route (DataR)
+    , Route (DataR, StaticR)
     , DataR
       ( EmployeeR, EmployeeNewR, StaffR, EmployeeEditR, EmployeeDeleR
       , StaffAssignmentsR, StaffAssignmentR, StaffAssignmentNewR
       , StaffAssignmentEditR, StaffAssignmentDeleR, StaffScheduleR
       , StaffScheduleSlotsR, StaffScheduleSlotR, StaffScheduleSlotNewR
-      , StaffScheduleSlotEditR, StaffScheduleSlotDeleR
+      , StaffScheduleSlotEditR, StaffScheduleSlotDeleR, EmployeePhotoR
       , StaffScheduleFillFromWorkingHoursR, StaffScheduleFillFromPreviousMonthR
       )
     , AppMessage
@@ -81,13 +85,13 @@ import Foundation
       , MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
       , MsgSymbolHour, MsgSymbolMinute, MsgWorkingHours, MsgStartTime
       , MsgEndTime, MsgDay, MsgFillFromPreviousMonth, MsgFillFromWorkingSchedule
-      , MsgPriority, MsgRole, MsgAlreadyExists
+      , MsgPriority, MsgRole, MsgAlreadyExists, MsgPhoto, MsgAttribution
       )
     )
     
 import Material3
     ( md3mreq, md3telField, md3textField, md3mopt, md3selectField
-    , md3datetimeLocalField, md3intField, md3timeField
+    , md3datetimeLocalField, md3intField, md3timeField, md3htmlField
     )
 
 import Model
@@ -107,11 +111,13 @@ import Model
       ( StaffId, UserName, UserId, AssignmentService, ServiceId
       , ServiceWorkspace, WorkspaceId, WorkspaceBusiness, BusinessId
       , AssignmentStaff, AssignmentId, ServiceName, ScheduleAssignment
-      , ScheduleDay, ScheduleId, WorkingHoursDay, WorkingHoursWorkspace, AssignmentRole
-      ), WorkingHours (WorkingHours)
+      , ScheduleDay, ScheduleId, WorkingHoursDay, WorkingHoursWorkspace
+      , AssignmentRole, StaffPhotoStaff, StaffPhotoAttribution, StaffPhotoMime, StaffPhotoPhoto
+      ), WorkingHours (WorkingHours), StaffPhoto (StaffPhoto)
     )
 
 import Settings (widgetFile)
+import Settings.StaticFiles (img_account_circle_24dp_FILL0_wght400_GRAD0_opsz24_svg)
 
 import Text.Hamlet (Html)
 import Text.Printf (printf)
@@ -121,6 +127,7 @@ import Widgets (widgetMenu, widgetAccount, widgetBanner, widgetSnackbar)
 import Yesod.Core
     ( Yesod(defaultLayout), newIdent, getMessages, whamlet, addMessageI, redirect
     , MonadHandler (liftHandler), SomeMessage (SomeMessage), MonadIO (liftIO)
+    , TypedContent (TypedContent), ToContent (toContent), FileInfo (fileContentType), fileSourceByteString
     )
 import Yesod.Core.Handler (getMessageRender)
 import Yesod.Core.Widget (setTitleI)
@@ -128,8 +135,8 @@ import Yesod.Form
     ( FieldSettings
       ( FieldSettings, fsLabel, fsTooltip, fsId, fsName, fsAttrs
       )
-    , FormResult (FormSuccess), FieldView (fvInput), optionsPairs, runFormPost
-    , Field
+    , FormResult (FormSuccess), FieldView (fvInput, fvId, fvErrors), optionsPairs, runFormPost
+    , Field, mopt, fileField
     )
 import Yesod.Form.Functions (generateFormPost, checkM)
 import Yesod.Persist (YesodPersist(runDB))
@@ -581,6 +588,11 @@ getStaffAssignmentsR eid = do
         where_ $ x ^. AssignmentStaff ==. val eid
         orderBy [desc (x ^. AssignmentId)]
         return (x,(e,(s,(w,b))))
+
+    attribution <- (unValue =<<) <$> runDB ( selectOne $ do
+        x <- from $ table @StaffPhoto
+        where_ $ x ^. StaffPhotoStaff ==. val eid
+        return (x ^. StaffPhotoAttribution) )
         
     msgs <- getMessages
     defaultLayout $ do
@@ -615,8 +627,21 @@ postEmployeeR eid = do
     ((fr,fw),et) <- runFormPost $ formEmployee employee
 
     case fr of
-      FormSuccess r -> do
+      FormSuccess (r,(Just fi,attrib)) -> do
           void $ runDB $ P.replace eid r
+          bs <- fileSourceByteString fi
+          void $ runDB $ upsert (StaffPhoto eid (fileContentType fi) bs attrib)
+              [ StaffPhotoMime P.=. fileContentType fi
+              , StaffPhotoPhoto P.=. bs
+              , StaffPhotoAttribution P.=. attrib
+              ]
+          addMessageI statusSuccess MsgRecordEdited
+          redirect $ DataR $ EmployeeR eid
+      FormSuccess (r,(Nothing,attrib)) -> do
+          runDB $ P.replace eid r
+          runDB $ update $ \x -> do
+                set x [ StaffPhotoAttribution =. val attrib ]
+                where_ $ x ^. StaffPhotoStaff ==. val eid
           addMessageI statusSuccess MsgRecordEdited
           redirect $ DataR $ EmployeeR eid
       _otherwise -> do    
@@ -650,7 +675,17 @@ postStaffR = do
     ((fr,fw),et) <- runFormPost $ formEmployee Nothing
 
     case fr of
-      FormSuccess r -> do
+      FormSuccess (r,(Just fi,attrib)) -> do
+          eid <- runDB $ insert r
+          bs <- fileSourceByteString fi
+          void $ runDB $ upsert (StaffPhoto eid (fileContentType fi) bs attrib)
+                    [ StaffPhotoMime P.=. fileContentType fi
+                    , StaffPhotoPhoto P.=. bs
+                    , StaffPhotoAttribution P.=. attrib
+                    ]
+          addMessageI statusSuccess MsgRecordAdded
+          redirect $ DataR StaffR
+      FormSuccess (r,_) -> do
           runDB $ insert_ r
           addMessageI statusSuccess MsgRecordAdded
           redirect $ DataR StaffR
@@ -674,7 +709,7 @@ getEmployeeNewR = do
         $(widgetFile "data/staff/new")
 
 
-formEmployee :: Maybe (Entity Staff) -> Form Staff
+formEmployee :: Maybe (Entity Staff) -> Form (Staff,(Maybe FileInfo,Maybe Html))
 formEmployee staff extra = do
 
     msgr <- getMessageRender
@@ -708,8 +743,31 @@ formEmployee staff extra = do
         , fsAttrs = [("label", msgr MsgPhone)]
         } (staffPhone . entityVal <$> staff)
 
-    return ( Staff <$> nameR <*> accountR <*> mobileR <*> phoneR
-           , [whamlet|#{extra} ^{fvInput nameV} ^{fvInput accountV} ^{fvInput mobileV} ^{fvInput phoneV}|]
+    (photoR,photoV) <- mopt fileField FieldSettings
+        { fsLabel = SomeMessage MsgPhoto
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("style","display:none")]
+        } Nothing
+
+    attrib <- (unValue =<<) <$> case staff of
+      Just (Entity eid _) -> liftHandler $ runDB $ selectOne $ do
+          x <- from $ table @StaffPhoto
+          where_ $ x ^. StaffPhotoStaff ==. val eid
+          return $ x ^. StaffPhotoAttribution
+      Nothing -> return Nothing
+    
+    (attribR,attribV) <- md3mopt md3htmlField FieldSettings
+        { fsLabel = SomeMessage MsgAttribution
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgAttribution)]
+        } (Just attrib)
+
+    idFigurePhoto <- newIdent
+    idLabelPhoto <- newIdent
+    idImgPhoto <- newIdent 
+
+    return ( (,) <$> (Staff <$> nameR <*> accountR <*> mobileR <*> phoneR) <*> ((,) <$> photoR <*> attribR)
+           , $(widgetFile "data/staff/form")
            )
         
   where
@@ -723,6 +781,11 @@ getEmployeeR eid = do
         x <- from $ table @Staff
         where_ $ x ^. StaffId ==. val eid
         return x
+
+    attribution <- (unValue =<<) <$> runDB ( selectOne $ do
+        x <- from $ table @StaffPhoto
+        where_ $ x ^. StaffPhotoStaff ==. val eid
+        return (x ^. StaffPhotoAttribution) )
 
     (fw2,et2) <- generateFormPost formEmployeeDelete
     
@@ -741,10 +804,17 @@ formEmployeeDelete extra = return (pure (), [whamlet|#{extra}|])
 getStaffR :: Handler Html
 getStaffR = do
 
-    staff <- runDB $ select $ do
-        x <- from $ table @Staff
+    staff <- (bimap (second (join . unValue)) unValue <$>) <$> runDB ( select $ do
+        x :& f <- from $ table @Staff
+            `leftJoin` table @StaffPhoto `on` (\(x :& f) -> just (x ^. StaffId) ==. f ?. StaffPhotoStaff)
+
+        let assignments :: SqlExpr (Value Int)
+            assignments = subSelectCount $ do
+                y <- from $ table @Assignment
+                where_ $ y ^. AssignmentStaff ==. x ^. StaffId
+            
         orderBy [desc (x ^. StaffId)]
-        return x
+        return ((x, f ?. StaffPhotoAttribution), assignments) )
     
     msgs <- getMessages
     defaultLayout $ do
@@ -752,3 +822,13 @@ getStaffR = do
         idFabAdd <- newIdent
         $(widgetFile "data/staff/staff")
 
+
+getEmployeePhotoR :: StaffId -> Handler TypedContent
+getEmployeePhotoR eid = do
+    photo <- runDB $ selectOne $ do
+        x <- from $ table @StaffPhoto
+        where_ $ x ^. StaffPhotoStaff ==. val eid
+        return x
+    case photo of
+      Just (Entity _ (StaffPhoto _ mime bs _)) -> return $ TypedContent (encodeUtf8 mime) $ toContent bs
+      Nothing -> redirect $ StaticR img_account_circle_24dp_FILL0_wght400_GRAD0_opsz24_svg

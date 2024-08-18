@@ -27,6 +27,14 @@
 
 <main>
 
+  <figure>
+    <img slot=start src=@{DataR $ EmployeePhotoR eid} width=64 height=64 loading=lazy alt=_{MsgPhoto}>
+    <figcaption>
+      $maybe attrib <- attribution
+        <div.app-attribution>
+          <div.app-attribution-wrapper.md-typescale-body-small>
+            ^{attrib}
+
   <md-tabs>
   
     <md-primary-tab ##{idTabDetails} aria-cotrols=#{idPanelDetails} active onclick="this.querySelector('a[href]').click()">

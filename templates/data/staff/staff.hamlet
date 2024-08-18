@@ -22,11 +22,18 @@
           _{MsgYouMightWantToAddAFew}
   $else
     <md-list>
-      $forall Entity sid (Staff name _ _ _) <- staff
-        <md-list-item type=link href=@{DataR $ EmployeeR sid}>
+      $forall ((Entity eid (Staff name _ _ _), attrib), assignments) <- staff
+        <md-list-item type=link href=@{DataR $ EmployeeR eid}>
+          <img slot=start src=@{DataR $ EmployeePhotoR eid} width=56 height=56 loading=lazy>
           <div slot=headline>
             #{name}
+          <div slot=supporting-text>
+            _{MsgServiceAssignments}: #{show assignments}
           <md-icon slot=end>arrow_forward_ios
+        $maybe attrib <- attrib
+          <div.app-attribution>
+            <div.app-attribution-wrapper.md-typescale-body-small>
+              #{attrib}
         <md-divider>
 
   <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">

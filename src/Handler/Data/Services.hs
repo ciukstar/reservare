@@ -20,13 +20,14 @@ module Handler.Data.Services
   , postServiceAssignmentR
   , getServicePhotoR, postServicePhotoR
   , getServicePhotosR, postServicePhotosR
+  , getServicePhotoDefaultR
   , getServicePhotoEditR
   , getServicePhotoNewR
   , postServicePhotoDeleR
   ) where
 
 
-import Control.Monad (void, unless, when, forM)
+import Control.Monad (void, unless, when, join)
 
 import qualified Data.Aeson as A (toJSON)
 import Data.Bifunctor (Bifunctor(bimap, second))
@@ -40,9 +41,9 @@ import Data.Time.LocalTime (utcToLocalTime, localTimeToUTC, utc)
 
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, desc, asc, selectOne, where_, val
-    , (^.), (==.), (:&)((:&)), (=.)
+    , (^.), (?.), (==.), (:&)((:&)), (=.)
     , innerJoin, on, isNothing_, valList, justList, in_, Value (unValue)
-    , update, set
+    , update, set, just, leftJoin
     )
 import Database.Persist
     (Entity (Entity), entityVal, entityKey, insert_)
@@ -57,7 +58,7 @@ import Foundation
       , ServiceAssignmentsR, ServiceAssignmentNewR, ServiceAssignmentR
       , ServiceAssignmentEditR, ServiceAssignmentDeleR, SectorsR
       , DataBusinessesR, ServicePhotoR, ServicePhotosR, ServicePhotoEditR
-      , ServicePhotoNewR, ServicePhotoDeleR
+      , ServicePhotoNewR, ServicePhotoDeleR, ServicePhotoDefaultR, EmployeePhotoR
       )
     , AppMessage
       ( MsgServices, MsgAdd, MsgYouMightWantToAddAFew, MsgThereAreNoDataYet
@@ -99,12 +100,14 @@ import Model
       ( ServicePhoto, servicePhotoAttribution, servicePhotoService, servicePhotoMime
       , servicePhotoPhoto
       )
+    , BusinessLogo (BusinessLogo), StaffPhoto
     , EntityField
       ( ServiceId, WorkspaceName, WorkspaceId, AssignmentId, WorkspaceBusiness
       , StaffName, StaffId, AssignmentService, ServiceWorkspace, BusinessId
       , AssignmentStaff, ServiceName, AssignmentRole, SectorName, SectorParent
       , ServiceType, BusinessName, ServicePhotoService, ServicePhotoId
       , ServicePhotoMime, ServicePhotoPhoto, ServicePhotoAttribution
+      , BusinessLogoBusiness, StaffPhotoStaff, StaffPhotoAttribution
       )
     )
 
@@ -330,15 +333,16 @@ getServiceAssignmentsR :: ServiceId -> Handler Html
 getServiceAssignmentsR sid = do
     stati <- reqGetParams <$> getRequest
 
-    assignments <- runDB $ select $ do
-        x :& s :& w :& b :& e <- from $ table @Assignment
+    assignments <- (second (second (second (second(second (join . unValue))))) <$>) <$> runDB ( select $ do
+        x :& s :& w :& b :& e :& f <- from $ table @Assignment
             `innerJoin` table @Service `on` (\(x :& s) -> x ^. AssignmentService ==. s ^. ServiceId)
             `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
             `innerJoin` table @Business `on` (\(_ :& _ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)
             `innerJoin` table @Staff `on` (\(x :& _ :& _ :& _ :& e) -> x ^. AssignmentStaff ==. e ^. StaffId)
+            `leftJoin` table @StaffPhoto `on` (\(_ :& _ :& _ :& _ :& e :& f) -> just (e ^. StaffId) ==. f ?. StaffPhotoStaff)
         where_ $ x ^. AssignmentService ==. val sid
         orderBy [desc (x ^. AssignmentId)]
-        return (x,(e,(s,(w,b))))
+        return (x,(e,(s,(w,(b, f ?. StaffPhotoAttribution))))) )
 
     msgs <- getMessages
     defaultLayout $ do
@@ -572,21 +576,14 @@ getServicesR = do
     selectedBusinesses <- mapMaybe ((toSqlKey <$>) . readMaybe . unpack) <$> lookupGetParams paramBusiness
     selectedWorkspaces <- mapMaybe ((toSqlKey <$>) . readMaybe . unpack) <$> lookupGetParams paramWorkspace
 
-    services <- do
-        xs <- runDB $ select $ do
-            x :& w <- from $ table @Service
-                `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
-            unless (null selectedSectors) $ where_ $ x ^. ServiceType `in_` justList (valList selectedSectors)
-            unless (null selectedBusinesses) $ where_ $ w ^. WorkspaceBusiness `in_` valList selectedBusinesses
-            unless (null selectedWorkspaces) $ where_ $ w ^. WorkspaceId `in_` valList selectedWorkspaces
-            orderBy [desc (x ^. ServiceId)]
-            return (x,w)
-        forM xs $ \(s@(Entity sid _),w) -> do
-            f <- runDB $ selectOne $ do
-                x <- from $ table @ServicePhoto
-                where_ $ x ^. ServicePhotoService ==. val sid
-                return x
-            return (s,w,f)
+    services <- runDB $ select $ do
+        x :& w <- from $ table @Service
+            `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
+        unless (null selectedSectors) $ where_ $ x ^. ServiceType `in_` justList (valList selectedSectors)
+        unless (null selectedBusinesses) $ where_ $ w ^. WorkspaceBusiness `in_` valList selectedBusinesses
+        unless (null selectedWorkspaces) $ where_ $ w ^. WorkspaceId `in_` valList selectedWorkspaces
+        orderBy [desc (x ^. ServiceId)]
+        return (x,w)
 
     msgs <- getMessages
     defaultLayout $ do
@@ -775,11 +772,32 @@ getServicePhotosR sid = do
         $(widgetFile "data/services/photos/photos")
 
 
+getServicePhotoDefaultR :: ServiceId -> Handler TypedContent
+getServicePhotoDefaultR sid = do
+    photo <- runDB $ selectOne $ do
+        x <- from $ table @ServicePhoto
+        where_ $ x ^. ServicePhotoService ==. val sid
+        return x
+    case photo of
+      Just (Entity _ (ServicePhoto _ mime bs _)) -> return $ TypedContent (encodeUtf8 mime) $ toContent bs
+      Nothing -> do
+          logo <- runDB $ selectOne $ do
+              x :& _ :& l <- from $ table @Service
+                  `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
+                  `innerJoin` table @BusinessLogo `on` (\(_ :& w :& l) -> w ^. WorkspaceBusiness ==. l ^. BusinessLogoBusiness)
+              where_ $ x ^. ServiceId ==. val sid
+              return l
+          case logo of
+            Just (Entity _ (BusinessLogo _ mime bs _)) -> return $ TypedContent (encodeUtf8 mime) $ toContent bs
+            Nothing -> redirect $ StaticR img_rule_settings_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg
+
+
 getServicePhotoR :: ServiceId -> ServicePhotoId -> Handler TypedContent
 getServicePhotoR sid fid = do
     photo <- runDB $ selectOne $ do
         x <- from $ table @ServicePhoto
         where_ $ x ^. ServicePhotoId ==. val fid
+        where_ $ x ^. ServicePhotoService ==. val sid
         return x
     case photo of
       Just (Entity _ (ServicePhoto _ mime bs _)) -> return $ TypedContent (encodeUtf8 mime) $ toContent bs

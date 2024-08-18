@@ -1,0 +1,31 @@
+
+#{extra}
+  
+<label for=#{fvId photoV} ##{idLabelPhoto}>
+  <figure ##{idFigurePhoto}>
+    $maybe Entity eid _ <- staff
+      <img src=@{DataR $ EmployeePhotoR eid} width=auto height=56 ##{idImgPhoto} loading=lazy alt=_{MsgPhoto}>
+    $nothing
+      <img src=@{StaticR img_account_circle_24dp_FILL0_wght400_GRAD0_opsz24_svg} width=auto height=56
+           ##{idImgPhoto} loading=lazy alt=_{MsgPhoto}>
+    <figcaption>
+
+      $maybe errs <- fvErrors photoV
+        <div.body-medium style="color:var(--md-sys-color-error)">
+          #{errs}
+   
+      <md-outlined-button type=button onclick="document.getElementById('#{idLabelPhoto}').click()">
+        <md-icon slot=icon>upload_file
+        _{MsgPhoto}
+        
+^{fvInput photoV}
+
+^{fvInput attribV}
+
+^{fvInput nameV} 
+
+^{fvInput accountV} 
+
+^{fvInput mobileV} 
+
+^{fvInput phoneV}
