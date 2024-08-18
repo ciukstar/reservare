@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="135.46666mm"
+   height="135.46666mm"
+   viewBox="0 0 135.46666 135.46666"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   sodipodi:docname="logo_medcab_120x120.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="false"
+     inkscape:document-units="mm"
+     showgrid="false"
+     showborder="true"
+     inkscape:zoom="0.63250561"
+     inkscape:cx="397.62493"
+     inkscape:cy="561.25984"
+     inkscape:window-width="1920"
+     inkscape:window-height="1003"
+     inkscape:window-x="0"
+     inkscape:window-y="40"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <defs
+     id="defs2">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient52176">
+      <stop
+         style="stop-color:#ffccaa;stop-opacity:1;"
+         offset="0"
+         id="stop52172" />
+      <stop
+         style="stop-color:#ffccaa;stop-opacity:0;"
+         offset="1"
+         id="stop52174" />
+    </linearGradient>
+    <rect
+       x="163.8006"
+       y="192.68588"
+       width="261.60947"
+       height="71.616646"
+       id="rect4062" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient52176"
+       id="radialGradient52246"
+       cx="100.32285"
+       cy="135.45108"
+       fx="100.32285"
+       fy="135.45108"
+       r="35.611637"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.05152292,1.9511493,-5.8999476,0.15579665,861.71869,-149.11436)" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <circle
+       style="fill:url(#radialGradient52246);fill-opacity:1;stroke:none;stroke-width:0.110973;stroke-linecap:round;stroke-linejoin:round;stop-color:#000000"
+       id="path846"
+       cx="67.73333"
+       cy="67.73333"
+       r="60" />
+    <g
+       aria-label="MedCab"
+       transform="matrix(0.43647189,0,0,0.5043993,-61.460645,-42.755927)"
+       id="text4060"
+       style="font-size:64px;line-height:1.05;font-family:Roboto;-inkscape-font-specification:Roboto;text-align:center;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect4062);fill:#ff0000;stroke:#ff0000">
+      <path
+         d="m 171.01172,196.2543 h 9.40625 l 11.90625,31.75 11.96875,-31.75 h 9.40625 v 46.65625 h -6.15625 V 201.9418 l -12.03125,32 h -6.34375 l -12.03125,-32 v 40.96875 h -6.125 z"
+         style="fill:#aa0000;stroke:#aa0000"
+         id="path4074" />
+      <path
+         d="m 255.91797,223.97305 v 2.8125 h -26.4375 q 0.375,5.9375 3.5625,9.0625 3.21875,3.09375 8.9375,3.09375 3.3125,0 6.40625,-0.8125 3.125,-0.8125 6.1875,-2.4375 v 5.4375 q -3.09375,1.3125 -6.34375,2 -3.25,0.6875 -6.59375,0.6875 -8.375,0 -13.28125,-4.875 -4.875,-4.875 -4.875,-13.1875 0,-8.59375 4.625,-13.625 4.65625,-5.0625 12.53125,-5.0625 7.0625,0 11.15625,4.5625 4.125,4.53125 4.125,12.34375 z m -5.75,-1.6875 q -0.0625,-4.71875 -2.65625,-7.53125 -2.5625,-2.8125 -6.8125,-2.8125 -4.8125,0 -7.71875,2.71875 -2.875,2.71875 -3.3125,7.65625 z"
+         style="fill:#aa0000;stroke:#aa0000"
+         id="path4076" />
+      <path
+         d="m 288.38672,213.22305 v -18.9375 h 5.75 v 48.625 h -5.75 v -5.25 q -1.8125,3.125 -4.59375,4.65625 -2.75,1.5 -6.625,1.5 -6.34375,0 -10.34375,-5.0625 -3.96875,-5.0625 -3.96875,-13.3125 0,-8.25 3.96875,-13.3125 4,-5.0625 10.34375,-5.0625 3.875,0 6.625,1.53125 2.78125,1.5 4.59375,4.625 z m -19.59375,12.21875 q 0,6.34375 2.59375,9.96875 2.625,3.59375 7.1875,3.59375 4.5625,0 7.1875,-3.59375 2.625,-3.625 2.625,-9.96875 0,-6.34375 -2.625,-9.9375 -2.625,-3.625 -7.1875,-3.625 -4.5625,0 -7.1875,3.625 -2.59375,3.59375 -2.59375,9.9375 z"
+         style="fill:#aa0000;stroke:#aa0000"
+         id="path4078" />
+      <path
+         d="m 341.16797,199.84805 v 6.65625 q -3.1875,-2.96875 -6.8125,-4.4375 -3.59375,-1.46875 -7.65625,-1.46875 -8,0 -12.25,4.90625 -4.25,4.875 -4.25,14.125 0,9.21875 4.25,14.125 4.25,4.875 12.25,4.875 4.0625,0 7.65625,-1.46875 3.625,-1.46875 6.8125,-4.4375 v 6.59375 q -3.3125,2.25 -7.03125,3.375 -3.6875,1.125 -7.8125,1.125 -10.59375,0 -16.6875,-6.46875 -6.09375,-6.5 -6.09375,-17.71875 0,-11.25 6.09375,-17.71875 6.09375,-6.5 16.6875,-6.5 4.1875,0 7.875,1.125 3.71875,1.09375 6.96875,3.3125 z"
+         style="fill:#000080;stroke:#000080"
+         id="path4080" />
+      <path
+         d="m 366.57422,225.3168 q -6.96875,0 -9.65625,1.59375 -2.6875,1.59375 -2.6875,5.4375 0,3.0625 2,4.875 2.03125,1.78125 5.5,1.78125 4.78125,0 7.65625,-3.375 2.90625,-3.40625 2.90625,-9.03125 v -1.28125 z m 11.46875,-2.375 v 19.96875 h -5.75 v -5.3125 q -1.96875,3.1875 -4.90625,4.71875 -2.9375,1.5 -7.1875,1.5 -5.375,0 -8.5625,-3 -3.15625,-3.03125 -3.15625,-8.09375 0,-5.90625 3.9375,-8.90625 3.96875,-3 11.8125,-3 h 8.0625 v -0.5625 q 0,-3.96875 -2.625,-6.125 -2.59375,-2.1875 -7.3125,-2.1875 -3,0 -5.84375,0.71875 -2.84375,0.71875 -5.46875,2.15625 v -5.3125 q 3.15625,-1.21875 6.125,-1.8125 2.96875,-0.625 5.78125,-0.625 7.59375,0 11.34375,3.9375 3.75,3.9375 3.75,11.9375 z"
+         style="fill:#000080;stroke:#000080"
+         id="path4082" />
+      <path
+         d="m 415.01172,225.4418 q 0,-6.34375 -2.625,-9.9375 -2.59375,-3.625 -7.15625,-3.625 -4.5625,0 -7.1875,3.625 -2.59375,3.59375 -2.59375,9.9375 0,6.34375 2.59375,9.96875 2.625,3.59375 7.1875,3.59375 4.5625,0 7.15625,-3.59375 2.625,-3.625 2.625,-9.96875 z m -19.5625,-12.21875 q 1.8125,-3.125 4.5625,-4.625 2.78125,-1.53125 6.625,-1.53125 6.375,0 10.34375,5.0625 4,5.0625 4,13.3125 0,8.25 -4,13.3125 -3.96875,5.0625 -10.34375,5.0625 -3.84375,0 -6.625,-1.5 -2.75,-1.53125 -4.5625,-4.65625 v 5.25 h -5.78125 v -48.625 h 5.78125 z"
+         style="fill:#000080;stroke:#000080"
+         id="path4084" />
+    </g>
+  </g>
+</svg>

@@ -321,19 +321,25 @@ fillDemoEn appSettings = do
     s113 <- insert service113
 
     let business2 = Business { businessOwner = usr2
-                             , businessName = "JJ & Co"
-                             , businessFullName = Just "John Johnson & Co"
-                             , businessDescr = Just "John Johnson & Company"
+                             , businessName = "MedCab"
+                             , businessFullName = Just "MedCab, John Johnson & Co"
+                             , businessDescr = Just "We provide patient-centered healthcare with excellence in quality, service, and access"
                              }
 
     b2 <- insert business2
 
+    insert_ $ BusinessLogo { businessLogoBusiness = b2
+                           , businessLogoMime = "image/svg+xml"
+                           , businessLogoPhoto = $(embedFile "demo/logo_medcab_120x120.svg")
+                           , businessLogoAttribution = Nothing
+                           }
+
     let workspace21 = Workspace { workspaceBusiness = b2
-                                 , workspaceName = "JJ & Co Office #1"
-                                 , workspaceAddress = "9 Queensway SOUTHALL UB72 2KS"
-                                 , workspaceTzo = utc
-                                 , workspaceCurrency = "GBP"
-                                 }
+                                , workspaceName = "MedCab, Office #1"
+                                , workspaceAddress = "9 Queensway SOUTHALL UB72 2KS"
+                                , workspaceTzo = utc
+                                , workspaceCurrency = "GBP"
+                                }
 
     w21 <- insert workspace21
 
@@ -378,40 +384,40 @@ fillDemoEn appSettings = do
                       }
 
     let service211 = Service { serviceWorkspace = w21
-                             , serviceName = "Leisure travel"
-                             , serviceDescr = Just "Travel as you like"
+                             , serviceName = "Community physiotherapy"
+                             , serviceDescr = Just "Community Physiotherapy aims to optimise physical function and enhance independence and quality of life for eligible people within the community"
                              , servicePrice = 10000
                              , serviceAvailable = True
                              , serviceDuration = oneHour
-                             , serviceType = Just sec1
+                             , serviceType = Just sec4
                              }
 
     s211 <- insert service211
 
     let service212 = Service { serviceWorkspace = w21
-                             , serviceName = "Italia travel"
-                             , serviceDescr = Just "Italian joy"
+                             , serviceName = "Musculoskeletal therapy"
+                             , serviceDescr = Just "Musculoskeletal physiotherapy will focus on the biomechanical and structural rehabilitation of the client"
                              , servicePrice = 20000
                              , serviceAvailable = True
                              , serviceDuration = oneHour
-                             , serviceType = Just sec1
+                             , serviceType = Just sec4
                              }
 
     s212 <- insert service212
 
     let service213 = Service { serviceWorkspace = w21
-                             , serviceName = "Hello Paris"
-                             , serviceDescr = Just "France awaits"
+                             , serviceName = "Community podiatry"
+                             , serviceDescr = Just "Provides assessment, diagnosis and treatment to a range of patients with lower limb and foot problems, including"
                              , servicePrice = 25000
                              , serviceAvailable = True
                              , serviceDuration = oneHour
-                             , serviceType = Just sec1
+                             , serviceType = Just sec4
                              }
 
     s213 <- insert service213
 
     let workspace22 = Workspace { workspaceBusiness = b2
-                                , workspaceName = "JJ & Co Office #2"
+                                , workspaceName = "MedCab, Office #2"
                                 , workspaceAddress = "9811 Grove Road NORTHAMPTON NN81 7MQ"
                                 , workspaceTzo = utc
                                 , workspaceCurrency = "GBP"
@@ -460,34 +466,34 @@ fillDemoEn appSettings = do
                       }
 
     let service221 = Service { serviceWorkspace = w22
-                             , serviceName = "Leisure travel"
-                             , serviceDescr = Just "Travel as you like"
+                             , serviceName = "Community speech and language therapy"
+                             , serviceDescr = Just "The Community Speech and Language team provides assessment, therapy and advice to adults with speech, language, communication and swallowing difficulties"
                              , servicePrice = 10000
                              , serviceAvailable = True
                              , serviceDuration = oneHour
-                             , serviceType = Just sec1
+                             , serviceType = Just sec4
                              }
 
     s221 <- insert service221
 
     let service222 = Service { serviceWorkspace = w22
-                             , serviceName = "Italia travel"
-                             , serviceDescr = Just "Italian joy"
+                             , serviceName = "Falls prevention services"
+                             , serviceDescr = Just "Our falls prevention service provides assessment, advice and exercise for older people who are at risk of falling"
                              , servicePrice = 20000
                              , serviceAvailable = True
                              , serviceDuration = oneHour
-                             , serviceType = Just sec1
+                             , serviceType = Just sec4
                              }
 
     s222 <- insert service222
 
     let service223 = Service { serviceWorkspace = w22
-                             , serviceName = "Hello Paris"
-                             , serviceDescr = Just "France awaits"
+                             , serviceName = "Bed-based community rehabilitation"
+                             , serviceDescr = Just "The team will offer you time limited support you to regain your independence after a hospital admission and help you plan a safe departure home when you are ‘functionally fit’"
                              , servicePrice = 25000
                              , serviceAvailable = True
                              , serviceDuration = oneHour
-                             , serviceType = Just sec1
+                             , serviceType = Just sec4
                              }
 
     s223 <- insert service223
@@ -623,7 +629,7 @@ fillDemoEn appSettings = do
 
     let assignment111 = Assignment { assignmentStaff = empl1
                                    , assignmentService = s111
-                                   , assignmentRole = "Tourism agent"
+                                   , assignmentRole = "Senior Risk Manager"
                                    , assignmentTime = now
                                    , assignmentSlotInterval = quarterHour
                                    , assignmentPriority = 1
@@ -657,7 +663,7 @@ fillDemoEn appSettings = do
 
     let assignment221 = Assignment { assignmentStaff = empl2
                                    , assignmentService = s112
-                                   , assignmentRole = "Tourism agent"
+                                   , assignmentRole = "Analyst"
                                    , assignmentTime = now
                                    , assignmentSlotInterval = halfHour
                                    , assignmentPriority = 1
@@ -691,7 +697,7 @@ fillDemoEn appSettings = do
 
     let assignment331 = Assignment { assignmentStaff = empl3
                                     , assignmentService = s113
-                                    , assignmentRole = "Tourism agent"
+                                    , assignmentRole = "Associate Attorney"
                                     , assignmentTime = now
                                     , assignmentSlotInterval = oneHour
                                     , assignmentPriority = 1

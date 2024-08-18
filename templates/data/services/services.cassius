@@ -15,6 +15,9 @@ header
 
 main
 
+    div[slot=headline]
+        white-space: nowrap
+        
     margin-bottom: 5rem
 
     ##{idFabAdd}

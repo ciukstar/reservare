@@ -19,12 +19,9 @@
         _{MsgNoServicesWereFoundForSearchTerms}.
   $else
     <md-list>
-      $forall (Entity sid (Service _ name _ price _ _ _),Entity _ (Workspace _ _ _ _ currency),photo) <- services
+      $forall (Entity sid (Service _ name _ price _ _ _),Entity _ (Workspace _ _ _ _ currency)) <- services
         <md-list-item type=link href=@{CatalogServiceR sid}>
-          $maybe Entity fid _ <- photo
-            <img slot=start src=@{CatalogServicePhotoR sid fid} width=56 height=56 loading=lazy>
-          $nothing
-            <md-icon slot=start>rule_settings
+          <img slot=start src=@{CatalogServicePhotoDefaultR sid} width=56 height=56 loading=lazy>
           <div slot=headline>
             #{name}
           <div.currency slot=supporting-text data-value=#{price} data-currency=#{currency}>

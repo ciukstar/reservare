@@ -16,7 +16,7 @@ module Handler.Appointments
 
 import qualified AtVenue.Data as V (Route(CheckoutR))
 
-import Control.Monad (when, unless, forM_)
+import Control.Monad (when, unless, forM_, join)
 
 import qualified Data.Aeson as A (toJSON)
 import Data.Bifunctor (Bifunctor(first,bimap, second))
@@ -34,8 +34,8 @@ import Data.Time.Calendar.Month (addMonths, pattern YearMonth, Month)
 import Data.Time.LocalTime (utcToLocalTime, utc, localTimeToUTC)
 
 import Database.Esqueleto.Experimental
-    ( select, from, table, orderBy, asc, innerJoin, on, in_
-    , (^.), (==.), (:&)((:&))
+    ( select, from, table, orderBy, asc, innerJoin, leftJoin, on, in_
+    , (^.), (?.), (==.), (:&)((:&))
     , toSqlKey, val, where_, selectOne, Value (unValue), between, valList
     , distinct, subSelectList, just, isNothing_, justList
     )
@@ -47,7 +47,7 @@ import Foundation
     , Route
       ( AuthR, HomeR
       , AppointmentStaffR, AppointmentTimingR, AppointmentTimeSlotsR
-      , AppointmentPaymentR, StripeR, YookassaR, AtVenueR
+      , AppointmentPaymentR, StripeR, YookassaR, AtVenueR, StaffPhotoR
       )
     , AppMessage
       ( MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
@@ -81,7 +81,8 @@ import Model
       , bookCharge, bookCurrency
       )
     , PayGateway (PayGatewayStripe, PayGatewayYookassa)
-    , Sector (Sector)
+    , SectorId, Sector (Sector)
+    , StaffPhoto
     , EntityField
       ( ServiceWorkspace, WorkspaceId, WorkspaceBusiness
       , BusinessId, ServiceName, AssignmentStaff, StaffId, StaffName
@@ -89,14 +90,15 @@ import Model
       , AssignmentSlotInterval, ScheduleAssignment, AssignmentId
       , ScheduleDay, PayOptionId, PayOptionWorkspace, AssignmentRole
       , ServiceAvailable, ServicePrice, WorkspaceCurrency, SectorParent
-      , SectorName, ServiceType
-      ), SectorId
+      , SectorName, ServiceType, StaffPhotoStaff, StaffPhotoAttribution
+      )
     )
 
 import Settings (widgetFile)
     
 import qualified Stripe.Data as S (Route(CheckoutR))
 
+import Text.Cassius (cassius)
 import Text.Hamlet (Html)
 import Text.Read (readMaybe)
 
@@ -104,9 +106,9 @@ import Widgets (widgetSnackbar, widgetBanner)
 
 import Yesod.Auth (maybeAuth, Route (LoginR))
 import Yesod.Core.Handler
-    ( getMessages, newIdent, addMessageI
-    , getRequest, YesodRequest (reqGetParams), redirect
-    , getMessageRender, setUltDestCurrent, setUltDest, setUltDestReferer, lookupGetParams
+    ( getMessages, newIdent, addMessageI, getRequest, redirect, lookupGetParams
+    , YesodRequest (reqGetParams), getMessageRender, setUltDestCurrent
+    , setUltDest, setUltDestReferer
     )
 import Yesod.Core
     ( Yesod(defaultLayout), MonadIO (liftIO), whamlet
@@ -114,7 +116,7 @@ import Yesod.Core
     , SomeMessage (SomeMessage)
     )
 import Yesod.Core.Types (HandlerFor)
-import Yesod.Core.Widget (setTitleI)
+import Yesod.Core.Widget (setTitleI, toWidget)
 import Yesod.Form
     ( FieldView(fvInput), Field (fieldView)
     , FormResult (FormSuccess, FormFailure, FormMissing)    
@@ -833,12 +835,13 @@ formAssignments :: [SectorId] -> [BusinessId] -> [WorkspaceId] -> [ServiceId] ->
                 -> Maybe AssignmentId -> Form (AssignmentId,(StaffId,ServiceId))
 formAssignments tids bids wids sids roles aid extra = do
 
-    assignments <- liftHandler $ runDB $ select $ do
-        x :& e :& s :& w :& b <- from $ table @Assignment
+    assignments <- (second (join . unValue) <$>) <$> liftHandler ( runDB ( select $ do
+        x :& e :& s :& w :& b :& f <- from $ table @Assignment
             `innerJoin` table @Staff `on` (\(x :& e) -> x ^. AssignmentStaff ==. e ^. StaffId)
             `innerJoin` table @Service `on` (\(x :& _ :& s) -> x ^. AssignmentService ==. s ^. ServiceId)
             `innerJoin` table @Workspace `on` (\(_ :& _ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
             `innerJoin` table @Business `on` (\(_ :& _ :& _ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)
+            `leftJoin` table @StaffPhoto `on` (\(_ :& e :& _ :& _ :& _ :& f) -> just (e ^. StaffId) ==. f ?. StaffPhotoStaff)
 
         where_ $ s ^. ServiceAvailable ==. val True
 
@@ -849,14 +852,14 @@ formAssignments tids bids wids sids roles aid extra = do
         unless (null tids) $ where_ $ s ^. ServiceType `in_` justList (valList tids)
         
         orderBy [asc (e ^. StaffName), asc (e ^. StaffId)]
-        return (x,(e,(s,(w,b))))
+        return ((x,(e,(s,(w,b)))),f ?. StaffPhotoAttribution) ))
 
     let getDefault :: Maybe AssignmentId
-                   -> [(Entity Assignment,(Entity Staff,(Entity Service,(Entity Workspace,Entity Business))))]
+                   -> [((Entity Assignment,(Entity Staff,(Entity Service,(Entity Workspace,Entity Business)))),Maybe Html)]
                    -> Maybe (AssignmentId,(StaffId,ServiceId))
         getDefault (Just aid') assignments' =
-            ((\(Entity aid'' _,(Entity eid'' _,(Entity sid'' _,_))) -> (aid'',(eid'',sid''))) <$>)
-               . find (\(Entity aid'' _,(_,_)) -> aid'' == aid') $ assignments'
+            ((\((Entity aid'' _,(Entity eid'' _,(Entity sid'' _,_))),_) -> (aid'',(eid'',sid''))) <$>)
+               . find (\((Entity aid'' _,(_,_)),_) -> aid'' == aid') $ assignments'
         getDefault Nothing _ = Nothing
 
     (assigmentR,assigmentV) <- mreq (md3radioFieldList assignments) "" (getDefault aid assignments)
@@ -868,10 +871,10 @@ formAssignments tids bids wids sids roles aid extra = do
 
   where
       
-      pairs assignments = (\(Entity aid' _,(Entity eid' (Staff name _ _ _),(Entity sid' _,_))) -> (name, (aid',(eid',sid'))))
+      pairs assignments = (\((Entity aid' _,(Entity eid' (Staff name _ _ _),(Entity sid' _,_))),_) -> (name, (aid',(eid',sid'))))
           <$> assignments
 
-      md3radioFieldList :: [(Entity Assignment,(Entity Staff,(Entity Service,(Entity Workspace,Entity Business))))]
+      md3radioFieldList :: [((Entity Assignment,(Entity Staff,(Entity Service,(Entity Workspace,Entity Business)))),Maybe Html)]
                         -> Field (HandlerFor App) (AssignmentId,(StaffId,ServiceId))
       md3radioFieldList assignments = (radioField (optionsPairs (pairs assignments)))
           { fieldView = \theId name attrs x isReq -> do
@@ -881,7 +884,25 @@ formAssignments tids bids wids sids roles aid extra = do
                 let sel (Left _) _ = False
                     sel (Right y) opt = optionInternalValue opt == y
 
-                let findAssigment opt = find (\(Entity aid' _,(_,_)) -> aid' == fst (optionInternalValue opt))
+                let findAssigment opt = find (\((Entity aid' _,(_,_)),_) -> aid' == fst (optionInternalValue opt))
+                toWidget [cassius|
+                                 img[slot=start]
+                                     clip-path: circle(50%)
+
+                                 div[slot=headline], div[slot=supporting-text]
+                                     white-space: nowrap
+
+                                 .app-attribution
+                                     position: relative
+                                     margin: 0
+                                     padding: 0
+                                     line-height: 0
+                                     .app-attribution-wrapper
+                                         position: absolute
+                                         bottom: 0
+                                         left: 0.4rem
+                                         font-size: 0.5rem
+                                 |]
 
                 [whamlet|
 $if null opts
@@ -892,8 +913,9 @@ $if null opts
 $else
   <md-list ##{theId} *{attrs}>
     $forall (i,opt) <- opts
-      $maybe (assignment,(Entity _ (Staff ename _ _ _),(service,(workspace,business)))) <- findAssigment opt assignments
+      $maybe ((assignment,(Entity eid (Staff ename _ _ _),(service,(workspace,business)))),attrib) <- findAssigment opt assignments
         <md-list-item type=text onclick="this.querySelector('md-radio').click()">
+          <img slot=start src=@{StaffPhotoR eid} width=56 height=56 loading=lazy>
           <div slot=headline>
             #{ename}
           <div slot=supporting-text>
@@ -901,15 +923,19 @@ $else
               #{role}
             $with (Entity _ (Business _ bname _ _),Entity _ (Workspace _ wname _ _ _)) <- (business,workspace)
               \ (#{bname} - #{wname})
-          <div slot=supporting-text>
-            $with (Entity _ (Workspace _ _ _ _ currency),Entity _ (Service _ name _ price _ _ _)) <- (workspace,service)
-              #{name} (
+          $with (Entity _ (Workspace _ _ _ _ currency),Entity _ (Service _ name _ price _ _ _)) <- (workspace,service)
+            <div slot=supporting-text>
+              #{name}
+            <div slot=supporting-text>
               <span.currency data-value=#{price} data-currency=#{currency}>
                 #{show price} #{currency}
-              )
           <div slot=end>
             <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
               :sel x opt:checked touch-target=wrapper>
+        $maybe attrib <- attrib
+          <div.app-attribution>
+            <div.app-attribution-wrapper.md-typescale-body-small>
+              #{attrib}
       <md-divider>
 |]
               }

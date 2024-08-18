@@ -6,11 +6,13 @@ module Handler.Catalog
   ( getCatalogR
   , getCatalogServiceR
   , getCatalogServiceBusinessR
+  , getCatalogServicePhotoDefaultR
+  , getStaffPhotoR
   , getCatalogServicePhotoR
   , getCatalogServiceAssignmentsR
   ) where
 
-import Control.Monad (unless, forM)
+import Control.Monad (unless)
 
 import Data.Maybe (mapMaybe)
 import Data.Text (unpack)
@@ -28,15 +30,15 @@ import Foundation
     ( Handler
     , Route
       ( CatalogR, HomeR, StaticR, CatalogServicePhotoR, CatalogServiceR
-      , CatalogServiceBusinessR, CatalogServiceAssignmentsR
-      , AccountPhotoR
+      , CatalogServiceBusinessR, CatalogServiceAssignmentsR, AccountPhotoR
+      , CatalogServicePhotoDefaultR
       )
     , AppMessage
       ( MsgCatalogue, MsgServiceCatalog, MsgNoServicesWereFoundForSearchTerms
       , MsgBack, MsgService, MsgDetails, MsgDescription, MsgTheName, MsgPrice
       , MsgPhoto, MsgServiceAssignments, MsgDuration, MsgBookNow, MsgBusiness
-      , MsgAddress, MsgTimeZone, MsgCurrency, MsgOwner, MsgEmail
-      , MsgRegistrant, MsgNoStaffAssignedYet
+      , MsgAddress, MsgTimeZone, MsgCurrency, MsgOwner, MsgEmail, MsgRegistrant
+      , MsgNoStaffAssignedYet
       )
     )
 
@@ -49,18 +51,20 @@ import Model
     , ServicePhotoId, ServicePhoto (ServicePhoto)
     , Business (Business)
     , User (User)
-    , Assignment (Assignment), Staff (Staff)
+    , Assignment (Assignment)
+    , StaffId, Staff (Staff)
+    , BusinessLogo (BusinessLogo)
     , EntityField
       ( ServiceAvailable, ServicePhotoService, ServiceWorkspace, WorkspaceId
       , ServiceType, WorkspaceBusiness, ServiceId, ServicePhotoId, BusinessId
       , BusinessOwner, UserId, AssignmentStaff, StaffId, AssignmentService
-      , StaffAccount
-      )
+      , StaffAccount, BusinessLogoBusiness, StaffPhotoStaff
+      ), StaffPhoto (StaffPhoto)
     )
 
 import Settings (widgetFile)
 import Settings.StaticFiles
-    ( img_rule_settings_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg )
+    ( img_rule_settings_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg, img_account_circle_24dp_FILL0_wght400_GRAD0_opsz24_svg )
 
 import Text.Hamlet (Html)
 import Text.Read (readMaybe)
@@ -144,27 +148,51 @@ getCatalogR = do
     selectedBusinesses <- mapMaybe ((toSqlKey <$>) . readMaybe . unpack) <$> lookupGetParams paramBusiness
     selectedWorkspaces <- mapMaybe ((toSqlKey <$>) . readMaybe . unpack) <$> lookupGetParams paramWorkspace
 
-    services <- do
-        xs <- runDB $ select $ do
-            x :& w <- from $ table @Service
-                `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
-            where_ $ x ^. ServiceAvailable ==. val True
-            unless (null selectedSectors) $ where_ $ x ^. ServiceType `in_` justList (valList selectedSectors)
-            unless (null selectedBusinesses) $ where_ $ w ^. WorkspaceBusiness `in_` valList selectedBusinesses
-            unless (null selectedWorkspaces) $ where_ $ w ^. WorkspaceId `in_` valList selectedWorkspaces
-            orderBy [desc (x ^. ServiceId)]
-            return (x,w)
-        forM xs $ \(s@(Entity sid _),w) -> do
-            f <- runDB $ selectOne $ do
-                x <- from $ table @ServicePhoto
-                where_ $ x ^. ServicePhotoService ==. val sid
-                return x
-            return (s,w,f)
+    services <- runDB $ select $ do
+        x :& w <- from $ table @Service
+            `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
+        where_ $ x ^. ServiceAvailable ==. val True
+        unless (null selectedSectors) $ where_ $ x ^. ServiceType `in_` justList (valList selectedSectors)
+        unless (null selectedBusinesses) $ where_ $ w ^. WorkspaceBusiness `in_` valList selectedBusinesses
+        unless (null selectedWorkspaces) $ where_ $ w ^. WorkspaceId `in_` valList selectedWorkspaces
+        orderBy [desc (x ^. ServiceId)]
+        return (x,w)
 
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceCatalog
         $(widgetFile "catalog/services")
+
+
+getStaffPhotoR :: StaffId -> Handler TypedContent
+getStaffPhotoR eid = do
+    photo <- runDB $ selectOne $ do
+        x <- from $ table @StaffPhoto
+        where_ $ x ^. StaffPhotoStaff ==. val eid
+        return x
+    case photo of
+      Just (Entity _ (StaffPhoto _ mime bs _)) -> return $ TypedContent (encodeUtf8 mime) $ toContent bs
+      Nothing -> redirect $ StaticR img_account_circle_24dp_FILL0_wght400_GRAD0_opsz24_svg
+
+
+getCatalogServicePhotoDefaultR :: ServiceId -> Handler TypedContent
+getCatalogServicePhotoDefaultR sid = do
+    photo <- runDB $ selectOne $ do
+        x <- from $ table @ServicePhoto
+        where_ $ x ^. ServicePhotoService ==. val sid
+        return x
+    case photo of
+      Just (Entity _ (ServicePhoto _ mime bs _)) -> return $ TypedContent (encodeUtf8 mime) $ toContent bs
+      Nothing -> do
+          logo <- runDB $ selectOne $ do
+              x :& _ :& l <- from $ table @Service
+                  `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
+                  `innerJoin` table @BusinessLogo `on` (\(_ :& w :& l) -> w ^. WorkspaceBusiness ==. l ^. BusinessLogoBusiness)
+              where_ $ x ^. ServiceId ==. val sid
+              return l
+          case logo of
+            Just (Entity _ (BusinessLogo _ mime bs _)) -> return $ TypedContent (encodeUtf8 mime) $ toContent bs
+            Nothing -> redirect $ StaticR img_rule_settings_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg 
 
 
 getCatalogServicePhotoR :: ServiceId -> ServicePhotoId -> Handler TypedContent

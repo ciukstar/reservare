@@ -14,6 +14,10 @@ header
         margin-left: auto
 
 main
+
+    div[slot=headline], div[slot=supporting-text]
+        white-space: nowrap
+
     .app-attribution
         position: relative
         margin: 0
@@ -24,6 +28,8 @@ main
             bottom: 0
             left: 0.4rem
             font-size: 0.5rem
+        
+    margin-bottom: 5rem
 
     ##{idFabAdd}
         position: fixed

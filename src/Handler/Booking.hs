@@ -19,7 +19,7 @@ module Handler.Booking
 
 import qualified AtVenue.Data as V (Route(CheckoutR))
 
-import Control.Monad (unless, forM_, when)
+import Control.Monad (unless, forM_, when, join)
 
 import qualified Data.Aeson as A (toJSON)
 import Data.Bifunctor (Bifunctor(first,bimap, second))
@@ -38,9 +38,9 @@ import Data.Time.LocalTime (utcToLocalTime, utc, localTimeToUTC)
 
 import Database.Esqueleto.Experimental
     ( select, from, table, orderBy, asc, innerJoin, on, in_
-    , (^.), (==.), (:&)((:&))
+    , (^.), (?.), (==.), (:&)((:&))
     , toSqlKey, val, where_, selectOne, Value (unValue), between
-    , valList, just, subSelectList, justList, isNothing_
+    , valList, just, subSelectList, justList, isNothing_, leftJoin
     )
 import Database.Persist (Entity (Entity), entityKey, insert)
 import Database.Persist.Sql (fromSqlKey)
@@ -49,7 +49,8 @@ import Foundation
     ( Handler, Form, App, Widget
     , Route
       ( HomeR, BookServicesR, BookStaffR, BookTimingR, BookTimeSlotsR
-      , BookPaymentR, AuthR, StripeR, YookassaR, AtVenueR
+      , BookPaymentR, AuthR, StripeR, YookassaR, AtVenueR, StaffPhotoR
+      , CatalogServicePhotoDefaultR
       )
     , AppMessage
       ( MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
@@ -76,7 +77,7 @@ import Model
     , ServiceId, Service(Service)
     , WorkspaceId, Workspace (Workspace)
     , BusinessId, Business (Business)
-    , Assignment
+    , Assignment (Assignment)
     , StaffId, Staff (Staff)
     , PayMethod (PayNow, PayAtVenue)
     , Schedule (Schedule)
@@ -89,15 +90,16 @@ import Model
     , Payment (Payment)
     , PayGateway (PayGatewayStripe, PayGatewayYookassa)
     , SectorId, Sector (Sector)
+    , StaffPhoto
     , EntityField
-      ( ServiceWorkspace, WorkspaceId, WorkspaceBusiness
-      , BusinessId, ServiceName, AssignmentStaff, StaffId, StaffName
-      , ServiceId, AssignmentService
-      , AssignmentSlotInterval, ScheduleAssignment, AssignmentId
-      , ScheduleDay, BookId, BookService, BookStaff, ServiceAvailable
-      , PayOptionWorkspace, PayOptionId, ServicePrice, WorkspaceCurrency
-      , PaymentBook, PaymentOption, ServiceType, SectorParent, SectorName
-      , BusinessName, WorkspaceName
+      ( ServiceWorkspace, WorkspaceId, WorkspaceBusiness, BusinessId
+      , ServiceName, AssignmentStaff, StaffId, StaffName, ServiceId
+      , AssignmentService, AssignmentSlotInterval, ScheduleAssignment
+      , AssignmentId, ScheduleDay, BookId, BookService, BookStaff
+      , ServiceAvailable, PayOptionWorkspace, PayOptionId, ServicePrice
+      , WorkspaceCurrency, PaymentBook, PaymentOption, ServiceType
+      , SectorParent, SectorName, BusinessName, StaffPhotoAttribution
+      , WorkspaceName, StaffPhotoStaff
       )
     )
 
@@ -105,6 +107,7 @@ import Settings ( widgetFile )
     
 import qualified Stripe.Data as S (Route(CheckoutR))
 
+import Text.Cassius (cassius)
 import Text.Hamlet (Html)
 import Text.Read (readMaybe)
 
@@ -119,7 +122,7 @@ import Yesod.Core.Handler
 import Yesod.Core
     ( Yesod(defaultLayout), MonadIO (liftIO), whamlet
     , MonadHandler (liftHandler), handlerToWidget
-    , SomeMessage (SomeMessage)
+    , SomeMessage (SomeMessage), ToWidget (toWidget)
     )
 import Yesod.Core.Types (HandlerFor)
 import Yesod.Core.Widget (setTitleI)
@@ -809,14 +812,15 @@ getBookStaffR = do
 formStaff :: Maybe ServiceId -> Maybe StaffId -> Form (ServiceId,StaffId)
 formStaff sid eid extra = do
 
-    staff <- liftHandler $ runDB $ select $ do
-        x :& e <- from $ table @Assignment
+    staff <- (second (join . unValue) <$>) <$> liftHandler ( runDB ( select $ do
+        x :& e :& f <- from $ table @Assignment
             `innerJoin` table @Staff `on` (\(x :& e) -> x ^. AssignmentStaff ==. e ^. StaffId)
+            `leftJoin` table @StaffPhoto `on` (\(_ :& e :& f) -> just (e ^. StaffId) ==. f ?. StaffPhotoStaff)
         case sid of
           Just y -> where_ $ x ^. AssignmentService ==. val y
           Nothing -> where_ $ val False
         orderBy [asc (e ^. StaffName), asc (e ^. StaffId)]
-        return (x,e)
+        return ((x,e),f ?. StaffPhotoAttribution) ))
 
     msgr <- getMessageRender
 
@@ -834,9 +838,9 @@ formStaff sid eid extra = do
     return (r,w)
 
   where
-      pairs staff = (\(_,Entity eid' (Staff name _ _ _)) -> (name, eid')) <$> staff
+      pairs staff = (\((_,Entity eid' (Staff name _ _ _)),_) -> (name, eid')) <$> staff
 
-      md3radioFieldList :: [(Entity Assignment,Entity Staff)]
+      md3radioFieldList :: [((Entity Assignment,Entity Staff),Maybe Html)]
                         -> Field (HandlerFor App) StaffId
       md3radioFieldList staff = (radioField (optionsPairs (pairs staff)))
           { fieldView = \theId name attrs x isReq -> do
@@ -846,8 +850,25 @@ formStaff sid eid extra = do
                 let sel (Left _) _ = False
                     sel (Right y) opt = optionInternalValue opt == y
 
-                let findStaff opt = find (\(_,Entity eid' _) -> eid' == optionInternalValue opt)
+                let findStaff opt = find (\((_,Entity eid' _),_) -> eid' == optionInternalValue opt)
+                toWidget [cassius|
+                                 img[slot=start]
+                                     clip-path: circle(50%)
 
+                                 div[slot=headline], div[slot=supporting-text]
+                                     white-space: nowrap
+
+                                 .app-attribution
+                                     position: relative
+                                     margin: 0
+                                     padding: 0
+                                     line-height: 0
+                                     .app-attribution-wrapper
+                                         position: absolute
+                                         bottom: 0
+                                         left: 0.4rem
+                                         font-size: 0.5rem
+                                 |]
                 [whamlet|
 $if null opts
     <figure style="text-align:center">
@@ -857,13 +878,20 @@ $if null opts
 $else
   <md-list ##{theId} *{attrs}>
     $forall (i,opt) <- opts
-      $maybe (_,Entity _ (Staff ename _ _ _)) <- findStaff opt staff
+      $maybe ((Entity _ (Assignment _ _ role _ _ _),Entity eid (Staff ename _ _ _)),attrib) <- findStaff opt staff
         <md-list-item type=text onclick="this.querySelector('md-radio').click()">
+          <img slot=start src=@{StaffPhotoR eid} width=56 height=56 loading=lazy>
           <div slot=headline>
             #{ename}
+          <div slot=supporting-text>
+            #{role}
           <div slot=end>
             <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
               :sel x opt:checked touch-target=wrapper>
+        $maybe attrib <- attrib
+          <div.app-attribution>
+            <div.app-attribution-wrapper.md-typescale-body-small>
+              #{attrib}
       <md-divider>
 |]
               }
@@ -971,6 +999,13 @@ formService tids bids wids sid extra = do
                     sel (Right y) opt = optionInternalValue opt == y
 
                 let findService opt = find (\(Entity sid' _,_) -> sid' == optionInternalValue opt)
+                toWidget [cassius|
+                                 img[slot=start]
+                                     clip-path: circle(50%)
+
+                                 div[slot=headline], div[slot=supporting-text]
+                                     white-space: nowrap
+                                 |]
 
                 [whamlet|
 $if null opts
@@ -981,8 +1016,9 @@ $if null opts
 $else
   <md-list ##{theId} *{attrs}>
     $forall (i,opt) <- opts
-      $maybe (Entity _ (Service _ sname _ price _ _ _),(workspace,business)) <- findService opt services
+      $maybe (Entity sid (Service _ sname _ price _ _ _),(workspace,business)) <- findService opt services
         <md-list-item type=button onclick="this.querySelector('md-radio').click()">
+          <img slot=start src=@{CatalogServicePhotoDefaultR sid} width=56 height=56 loading=lazy>
           <div slot=headline>
             #{sname}
           $with (Entity _ (Workspace _ wname _ _ currency),Entity _ (Business _ bname _ _)) <- (workspace,business)

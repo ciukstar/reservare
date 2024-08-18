@@ -57,6 +57,8 @@ import Handler.Catalog
     , getCatalogServiceR
     , getCatalogServiceBusinessR
     , getCatalogServicePhotoR
+    , getCatalogServicePhotoDefaultR
+    , getStaffPhotoR
     , getCatalogServiceAssignmentsR
     )
 
