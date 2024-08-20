@@ -27,8 +27,9 @@ ARG YESOD_YANDEX_VERIFICATION
 
 WORKDIR /opt/reservare
 COPY reservare /opt/reservare
-COPY static /opt/reservare/static
-COPY config /opt/reservare/config
+COPY static    /opt/reservare/static
+COPY config    /opt/reservare/config
+COPY demo      /opt/reservare/demo
 
 ENV YESOD_PORT=8080
 ENV YESOD_DEMO_LANG=${YESOD_DEMO_LANG}
