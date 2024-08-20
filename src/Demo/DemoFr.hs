@@ -9,7 +9,7 @@ import Control.Monad (unless, when, forM_)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Control.Monad.Trans.Reader (ReaderT) 
 
-import Data.FileEmbed (embedFile)
+import qualified Data.ByteString as BS (readFile)
 import Data.Maybe (fromMaybe)
 import Data.Time
     ( getCurrentTime, utc, nominalDay, dayOfWeek, utctDay
@@ -63,6 +63,10 @@ import Model
       ( BusinessLogo, businessLogoBusiness, businessLogoMime, businessLogoPhoto
       , businessLogoAttribution
       )
+    , ServicePhoto
+      ( ServicePhoto, servicePhotoService, servicePhotoMime, servicePhotoPhoto
+      , servicePhotoAttribution
+      )
     )
 
 import Settings (AppSettings)
@@ -95,15 +99,16 @@ fillDemoFr appSettings = do
 
     usr1 <- insert user1
 
-    insert_ UserPhoto { userPhotoUser = usr1
-                      , userPhotoMime = "image/avif"
-                      , userPhotoPhoto = $(embedFile "demo/2148728586.avif")
-                      , userPhotoAttribution = Just [shamlet|
+    liftIO (BS.readFile "demo/2148728586.avif") >>= \bs ->
+      insert_ UserPhoto { userPhotoUser = usr1
+                        , userPhotoMime = "image/avif"
+                        , userPhotoPhoto = bs
+                        , userPhotoAttribution = Just [shamlet|
                                                             Designed by #
                                                             <a href="https://www.freepik.com/" target=_blank>
                                                               Freepik
                                                             |]
-                      }
+                        }
 
     pass2 <- liftIO $ saltPass "thomasgr"
     let user2 = User { userEmail = "thomasgr@mail.fr"
@@ -118,15 +123,16 @@ fillDemoFr appSettings = do
 
     usr2 <- insert user2
 
-    insert_ UserPhoto { userPhotoUser = usr2
-                      , userPhotoMime = "image/avif"
-                      , userPhotoPhoto = $(embedFile "demo/222.avif")
-                      , userPhotoAttribution = Just [shamlet|
+    liftIO (BS.readFile "demo/222.avif") >>= \bs ->
+      insert_ UserPhoto { userPhotoUser = usr2
+                        , userPhotoMime = "image/avif"
+                        , userPhotoPhoto = bs
+                        , userPhotoAttribution = Just [shamlet|
                                                             Designed by #
                                                             <a href="https://www.freepik.com/" target=_blank>
                                                               Freepik
                                                             |]
-                      }
+                        }
 
     pass3 <- liftIO $ saltPass "richardal"
     let user3 = User { userEmail = "richardal@mail.fr"
@@ -141,15 +147,16 @@ fillDemoFr appSettings = do
 
     usr3 <- insert user3
 
-    insert_ UserPhoto { userPhotoUser = usr3
-                      , userPhotoMime = "image/avif"
-                      , userPhotoPhoto = $(embedFile "demo/2148213406.avif")
-                      , userPhotoAttribution = Just [shamlet|
+    liftIO (BS.readFile "demo/2148213406.avif") >>= \bs ->
+      insert_ UserPhoto { userPhotoUser = usr3
+                        , userPhotoMime = "image/avif"
+                        , userPhotoPhoto = bs
+                        , userPhotoAttribution = Just [shamlet|
                                                             Designed by #
                                                             <a href="https://www.freepik.com/" target=_blank>
                                                               Freepik
                                                             |]
-                      }
+                        }
 
     pass4 <- liftIO $ saltPass "duboisaa"
     let user4 = User { userEmail = "duboisaa@mail.fr"
@@ -164,16 +171,17 @@ fillDemoFr appSettings = do
 
     usr4 <- insert user4
 
-    insert_ UserPhoto { userPhotoUser = usr4
-                      , userPhotoMime = "image/avif"
-                      , userPhotoPhoto = $(embedFile "demo/2148728638.avif")
-                      , userPhotoAttribution = Just [shamlet|
+    liftIO (BS.readFile "demo/2148728638.avif") >>= \bs ->
+      insert_ UserPhoto { userPhotoUser = usr4
+                        , userPhotoMime = "image/avif"
+                        , userPhotoPhoto = bs
+                        , userPhotoAttribution = Just [shamlet|
                                                             Designed by #
                                                             <a href="https://www.freepik.com/" target=_blank>
                                                               Freepik
                                                             |]
 
-                      }
+                        }
 
     let business1 = Business { businessOwner = usr1
                              , businessName = "FinCo"
@@ -183,11 +191,12 @@ fillDemoFr appSettings = do
 
     b1 <- insert business1
 
-    insert_ $ BusinessLogo { businessLogoBusiness = b1
-                           , businessLogoMime = "image/svg+xml"
-                           , businessLogoPhoto = $(embedFile "demo/logo_finco_120x120.svg")
-                           , businessLogoAttribution = Nothing
-                           }
+    liftIO (BS.readFile "demo/logo_finco_120x120.svg") >>= \bs ->
+      insert_ $ BusinessLogo { businessLogoBusiness = b1
+                             , businessLogoMime = "image/svg+xml"
+                             , businessLogoPhoto = bs
+                             , businessLogoAttribution = Nothing
+                             }
 
     let workspace11 = Workspace { workspaceBusiness = b1
                                 , workspaceName = "FinCo Centrale"
@@ -329,11 +338,12 @@ fillDemoFr appSettings = do
 
     b2 <- insert business2
 
-    insert_ $ BusinessLogo { businessLogoBusiness = b2
-                           , businessLogoMime = "image/svg+xml"
-                           , businessLogoPhoto = $(embedFile "demo/logo_medcab_120x120.svg")
-                           , businessLogoAttribution = Nothing
-                           }
+    liftIO (BS.readFile "demo/logo_medcab_120x120.svg") >>= \bs ->
+      insert_ $ BusinessLogo { businessLogoBusiness = b2
+                             , businessLogoMime = "image/svg+xml"
+                             , businessLogoPhoto = bs
+                             , businessLogoAttribution = Nothing
+                             }
 
     let workspace21 = Workspace { workspaceBusiness = b2
                                 , workspaceName = "MedCab, Bureau #1"
@@ -488,6 +498,34 @@ fillDemoFr appSettings = do
 
     s222 <- insert service222
 
+    liftIO (BS.readFile "demo/logo_medcab_120x120.svg") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s222
+                           , servicePhotoMime = "image/svg+xml"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Nothing
+                           }
+
+    liftIO (BS.readFile "demo/AdobeStock_144297416.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s222
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Nothing
+                           }
+
+    liftIO (BS.readFile "demo/AdobeStock_232406830.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s222
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Nothing
+                           }
+
+    liftIO (BS.readFile "demo/AdobeStock_393507521.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s222
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Nothing
+                           }
+
     let service223 = Service { serviceWorkspace = w22
                              , serviceName = "Réadaptation communautaire au lit"
                              , serviceDescr = Just "L'équipe vous offrira un soutien limité dans le temps pour vous permettre de retrouver votre indépendance après une hospitalisation et vous aidera à planifier un retour à la maison en toute sécurité lorsque vous serez « fonctionnellement apte »."
@@ -498,6 +536,24 @@ fillDemoFr appSettings = do
                              }
 
     s223 <- insert service223
+
+    liftIO (BS.readFile "demo/logo_medcab_120x120.svg") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s223
+                           , servicePhotoMime = "image/svg+xml"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Nothing
+                           }
+
+    liftIO (BS.readFile "demo/female-patient-undergoing-therapy-with-physiotherapist_23-2148836500.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s223
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Just [shamlet|
+                                                                Designed by #
+                                                                <a href="https://www.freepik.com/" target=_blank>
+                                                                  Freepik
+                                                            |]
+                           }
 
     let business3 = Business { businessOwner = usr3
                              , businessName = "RAL & Cie"
@@ -515,15 +571,16 @@ fillDemoFr appSettings = do
 
     empl1 <- insert employee1
 
-    insert_ $ StaffPhoto { staffPhotoStaff = empl1
-                         , staffPhotoMime = "image/avif"
-                         , staffPhotoPhoto = $(embedFile "demo/2148728586.avif")
-                         , staffPhotoAttribution = Just [shamlet|
+    liftIO (BS.readFile "demo/2148728586.avif") >>= \bs ->
+      insert_ $ StaffPhoto { staffPhotoStaff = empl1
+                           , staffPhotoMime = "image/avif"
+                           , staffPhotoPhoto = bs
+                           , staffPhotoAttribution = Just [shamlet|
                                                             Designed by #
                                                             <a href="https://www.freepik.com/" target=_blank>
                                                               Freepik
                                                             |]
-                         }
+                           }
 
     let employee2 = Staff { staffName = fromMaybe (userEmail user2) (userName user2)
                           , staffAccount = Just usr2
@@ -533,15 +590,16 @@ fillDemoFr appSettings = do
 
     empl2 <- insert employee2
 
-    insert_ $ StaffPhoto { staffPhotoStaff = empl2
-                         , staffPhotoMime = "image/avif"
-                         , staffPhotoPhoto = $(embedFile "demo/222.avif")
-                         , staffPhotoAttribution = Just [shamlet|
+    liftIO (BS.readFile "demo/222.avif") >>= \bs ->
+      insert_ $ StaffPhoto { staffPhotoStaff = empl2
+                           , staffPhotoMime = "image/avif"
+                           , staffPhotoPhoto = bs
+                           , staffPhotoAttribution = Just [shamlet|
                                                             Designed by #
                                                             <a href="https://www.freepik.com/" target=_blank>
                                                               Freepik
                                                             |]
-                         }
+                           }
 
     let employee3 = Staff { staffName = fromMaybe (userEmail user3) (userName user3)
                           , staffAccount = Just usr3
@@ -551,15 +609,16 @@ fillDemoFr appSettings = do
 
     empl3 <- insert employee3
 
-    insert_ $ StaffPhoto { staffPhotoStaff = empl3
-                         , staffPhotoMime = "image/avif"
-                         , staffPhotoPhoto = $(embedFile "demo/2148213406.avif")
-                         , staffPhotoAttribution = Just [shamlet|
+    liftIO (BS.readFile "demo/2148213406.avif") >>= \bs ->
+      insert_ $ StaffPhoto { staffPhotoStaff = empl3
+                           , staffPhotoMime = "image/avif"
+                           , staffPhotoPhoto = bs
+                           , staffPhotoAttribution = Just [shamlet|
                                                             Designed by #
                                                             <a href="https://www.freepik.com/" target=_blank>
                                                               Freepik
                                                             |]
-                         }
+                           }
 
     let employee4 = Staff { staffName = fromMaybe (userEmail user4) (userName user4)
                           , staffAccount = Just usr4
@@ -569,15 +628,16 @@ fillDemoFr appSettings = do
 
     empl4 <- insert employee4
 
-    insert_ $ StaffPhoto { staffPhotoStaff = empl4
-                         , staffPhotoMime = "image/avif"
-                         , staffPhotoPhoto = $(embedFile "demo/2148728638.avif")
-                         , staffPhotoAttribution = Just [shamlet|
+    liftIO (BS.readFile "demo/2148728638.avif") >>= \bs ->
+      insert_ $ StaffPhoto { staffPhotoStaff = empl4
+                           , staffPhotoMime = "image/avif"
+                           , staffPhotoPhoto = bs
+                           , staffPhotoAttribution = Just [shamlet|
                                                             Designed by #
                                                             <a href="https://www.freepik.com/" target=_blank>
                                                               Freepik
                                                             |]
-                         }
+                           }
 
     let assignment111 = Assignment { assignmentStaff = empl1
                                    , assignmentService = s111

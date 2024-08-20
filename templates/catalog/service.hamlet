@@ -1,6 +1,6 @@
 
 <header>
-  <md-icon-button href=@{CatalogR} aria-label=_{MsgBack}>
+  <md-icon-button href=@?{(CatalogR,stati)} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
   <span.md-typescale-title-large>
@@ -31,7 +31,7 @@
       <div.app-carousel>
         $forall Entity fid (ServicePhoto _ _ _ attrib) <- photos
           <figure>
-            <img src=@{CatalogServicePhotoR sid fid} width=128 height=128 loading=lazy alt=_{MsgPhoto}>
+            <img src=@{CatalogServicePhotoR sid fid} width=auto height=128 loading=lazy alt=_{MsgPhoto}>
             $maybe attribution <- attrib
               <div.app-attribution.md-typescale-body-small>
                 #{attribution}

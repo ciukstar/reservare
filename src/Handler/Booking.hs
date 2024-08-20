@@ -14,7 +14,8 @@ module Handler.Booking
   , getBookTimeSlotsR, postBookTimeSlotsR
   , getBookPaymentR, postBookPaymentR
   , getBookDetailsR
-  , widgetFilterChips, paramSector, paramBusiness, paramWorkspace
+  , widgetFilterChips
+  , paramSector, paramBusiness, paramWorkspace, paramScrollY
   ) where
 
 import qualified AtVenue.Data as V (Route(CheckoutR))
@@ -24,7 +25,9 @@ import Control.Monad (unless, forM_, when, join)
 import qualified Data.Aeson as A (toJSON)
 import Data.Bifunctor (Bifunctor(first,bimap, second))
 import Data.Foldable (find)
-import qualified Data.Map as M (member, Map, fromListWith, findWithDefault)
+import qualified Data.Map as M
+    ( member, Map, fromListWith, findWithDefault, fromList, insert, toList
+    )
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Text (pack, unpack, Text)
 import Data.Time
@@ -117,7 +120,7 @@ import Yesod.Auth (maybeAuth, Route (LoginR))
 import Yesod.Core.Handler
     ( getMessages, newIdent, addMessageI, getRequest
     , YesodRequest (reqGetParams), redirect, getMessageRender
-    , setUltDestCurrent, setUltDest, setUltDestReferer
+    , setUltDestCurrent, setUltDest, setUltDestReferer, lookupGetParam
     )
 import Yesod.Core
     ( Yesod(defaultLayout), MonadIO (liftIO), whamlet
@@ -169,8 +172,9 @@ getBookDetailsR bid = do
 
 postBookPaymentR :: Handler Html
 postBookPaymentR = do
-    
     stati <- reqGetParams <$> getRequest
+    scrollY5 <- lookupGetParam paramScrollY5
+    
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
     tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
@@ -185,11 +189,11 @@ postBookPaymentR = do
     
     case (fr,user) of
       (FormSuccess (sid',eid',tid',oid'), Nothing) -> do
-          setUltDest ( BookPaymentR, [ ("sid", pack $ show $ fromSqlKey sid')
-                                     , ("eid", pack $ show $ fromSqlKey eid')
-                                     , ("tid", pack $ show (utcToLocalTime utc tid'))
-                                     , ("oid", pack $ show $ fromSqlKey oid')
-                                     ]
+          setUltDest ( BookPaymentR, listUpsert [ ("sid", pack $ show $ fromSqlKey sid')
+                                                , ("eid", pack $ show $ fromSqlKey eid')
+                                                , ("tid", pack $ show (utcToLocalTime utc tid'))
+                                                , ("oid", pack $ show $ fromSqlKey oid')
+                                                ] stati
                      )
           redirect $ AuthR LoginR
           
@@ -215,11 +219,11 @@ postBookPaymentR = do
                                              , bookCharge = charge
                                              , bookCurrency = currency
                                              }
-                let params = [ ("sid", pack $ show $ fromSqlKey sid')
-                             , ("eid", pack $ show $ fromSqlKey eid')
-                             , ("tid", pack $ show (utcToLocalTime utc tid'))
-                             , ("oid", pack $ show $ fromSqlKey oid')
-                             ]
+                let params = listUpsert [ ("sid", pack $ show $ fromSqlKey sid')
+                                        , ("eid", pack $ show $ fromSqlKey eid')
+                                        , ("tid", pack $ show (utcToLocalTime utc tid'))
+                                        , ("oid", pack $ show $ fromSqlKey oid')
+                                        ] stati
                 setUltDest (BookPaymentR, params)
                 redirect (StripeR $ S.CheckoutR bid oid', params)
                     
@@ -289,6 +293,8 @@ postBookPaymentR = do
 getBookPaymentR :: Handler Html
 getBookPaymentR = do
     stati <- reqGetParams <$> getRequest
+    scrollY5 <- lookupGetParam paramScrollY5
+    
     sid <- toSqlKey <$> runInputGet ( ireq intField "sid" )
     eid <- toSqlKey <$> runInputGet ( ireq intField "eid" )
     tid <- localTimeToUTC utc <$> runInputGet ( ireq datetimeLocalField "tid" )
@@ -468,6 +474,8 @@ formPayment sid eid time option extra = do
 postBookTimeSlotsR :: Day -> Handler Html
 postBookTimeSlotsR day = do
     stati <- reqGetParams <$> getRequest
+    scrollY4 <- lookupGetParam paramScrollY4
+    
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
     tid <- runInputGet ( iopt datetimeLocalField "tid" )
@@ -480,10 +488,10 @@ postBookTimeSlotsR day = do
     case fr of
       FormSuccess (sid',eid',tid') -> redirect
           ( BookTimingR month
-          , [ ( "sid", pack $ show $ fromSqlKey sid')
-            , ( "eid", pack $ show $ fromSqlKey eid')
-            , ( "tid", pack $ show tid')
-            ]
+          , listUpsert [ ("sid", pack $ show $ fromSqlKey sid')
+                       , ("eid", pack $ show $ fromSqlKey eid')
+                       , ("tid", pack $ show tid')
+                       ] stati
           )
       FormFailure errs -> do
           forM_ errs $ \err -> addMessageI statusError err
@@ -491,6 +499,7 @@ postBookTimeSlotsR day = do
           defaultLayout $ do
               setTitleI MsgAppointmentTime
               idFormSlots <- newIdent
+              idFabSelect <- newIdent
               $(widgetFile "book/timing/slots/slots")
       FormMissing -> do
           addMessageI statusError MsgInvalidFormData
@@ -498,12 +507,15 @@ postBookTimeSlotsR day = do
           defaultLayout $ do
               setTitleI MsgAppointmentTime
               idFormSlots <- newIdent
+              idFabSelect <- newIdent
               $(widgetFile "book/timing/slots/slots")
 
 
 getBookTimeSlotsR :: Day -> Handler Html
 getBookTimeSlotsR day = do
     stati <- reqGetParams <$> getRequest
+    scrollY4 <- lookupGetParam paramScrollY4
+    
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
     tid <- runInputGet ( iopt datetimeLocalField "tid" )
@@ -518,6 +530,7 @@ getBookTimeSlotsR day = do
     defaultLayout $ do
         setTitleI MsgAppointmentTime
         idFormSlots <- newIdent
+        idFabSelect <- newIdent
         $(widgetFile "book/timing/slots/slots")
 
 
@@ -609,6 +622,8 @@ formTimeSlot slots sid eid tid extra = do
 postBookTimingR :: Month -> Handler Html
 postBookTimingR month = do
     stati <- reqGetParams <$> getRequest
+    scrollY3 <- lookupGetParam paramScrollY3
+    
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
     tid <- runInputGet ( iopt datetimeLocalField "tid" )
@@ -617,10 +632,10 @@ postBookTimingR month = do
 
     case fr of
       FormSuccess (sid',eid',tid') -> redirect ( BookPaymentR
-                                               , [ ( "sid", pack $ show $ fromSqlKey sid' )
-                                                 , ( "eid", pack $ show $ fromSqlKey eid' )
-                                                 , ( "tid", pack $ show tid' )
-                                                 ]
+                                               , listUpsert [ ("sid", pack $ show $ fromSqlKey sid')
+                                                            , ("eid", pack $ show $ fromSqlKey eid')
+                                                            , ("tid", pack $ show tid')
+                                                            ] stati
                                                )
       FormFailure errs -> do
 
@@ -688,6 +703,8 @@ postBookTimingR month = do
 getBookTimingR :: Month -> Handler Html
 getBookTimingR month = do
     stati <- reqGetParams <$> getRequest
+    scrollY3 <- lookupGetParam paramScrollY3
+    
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
     tid <- runInputGet ( iopt datetimeLocalField "tid" )
@@ -713,7 +730,6 @@ getBookTimingR month = do
           Nothing -> where_ $ val False
         where_ $ x ^. ScheduleDay `between` (val today, val $ periodLastDay month)
         return x )
-
 
     msgs <- getMessages
     defaultLayout $ do
@@ -759,8 +775,9 @@ formTiming sid eid time extra = do
 
 postBookStaffR :: Handler Html
 postBookStaffR = do
-
     stati <- reqGetParams <$> getRequest
+    scrollY2 <- lookupGetParam paramScrollY2
+
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
 
@@ -770,9 +787,9 @@ postBookStaffR = do
     ((fr,fw),et) <- runFormPost $ formStaff sid eid
     case fr of
       FormSuccess (sid',eid') -> redirect ( BookTimingR month
-                                          , [ ( "sid", pack $ show $ fromSqlKey sid')
-                                            , ( "eid", pack $ show $ fromSqlKey eid')
-                                            ]
+                                          , listUpsert [ ("sid", pack $ show $ fromSqlKey sid')
+                                                       , ("eid", pack $ show $ fromSqlKey eid')
+                                                       ] stati
                                           )
       FormFailure errs -> do
           forM_ errs $ \err -> addMessageI statusError err
@@ -794,8 +811,9 @@ postBookStaffR = do
 
 getBookStaffR :: Handler Html
 getBookStaffR = do
-
     stati <- reqGetParams <$> getRequest
+    scrollY2 <- lookupGetParam paramScrollY2
+    
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
 
@@ -897,9 +915,15 @@ $else
               }
 
 
+listUpsert :: Ord k => [(k,a)] -> [(k,a)] -> [(k,a)]
+listUpsert [] xs = xs
+listUpsert ((k,a):ks) xs = listUpsert ks (M.toList (M.insert k a (M.fromList xs)))
+
+
 postBookServicesR :: Handler Html
 postBookServicesR = do
     stati <- reqGetParams <$> getRequest
+    scrollY <- lookupGetParam paramScrollY
 
     let inputSectors = filter (\(x,_) -> x == paramSector) stati
         selectedSectors = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputSectors
@@ -917,7 +941,7 @@ postBookServicesR = do
         Nothing
 
     case fr of
-      FormSuccess sid -> redirect (BookStaffR, [("sid",pack $ show $ fromSqlKey sid)])
+      FormSuccess sid -> redirect (BookStaffR, listUpsert [("sid",pack $ show $ fromSqlKey sid)] stati)
       FormFailure errs -> do
           forM_ errs $ \err -> addMessageI statusError err
           msgs <- getMessages
@@ -939,6 +963,7 @@ postBookServicesR = do
 getBookServicesR :: Handler Html
 getBookServicesR = do
     stati <- reqGetParams <$> getRequest
+    scrollY <- lookupGetParam paramScrollY
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
 
     let inputSectors = filter (\(x,_) -> x == paramSector) stati
@@ -1006,7 +1031,6 @@ formService tids bids wids sid extra = do
                                  div[slot=headline], div[slot=supporting-text]
                                      white-space: nowrap
                                  |]
-
                 [whamlet|
 $if null opts
   <figure style="text-align:center">
@@ -1101,6 +1125,21 @@ paramBusiness = "b"
 paramWorkspace :: Text
 paramWorkspace = "w"
 
+
+paramScrollY5 :: Text
+paramScrollY5 = "y5"
+
+paramScrollY4 :: Text
+paramScrollY4 = "y4"
+
+paramScrollY3 :: Text
+paramScrollY3 = "y3"
+
+paramScrollY2 :: Text
+paramScrollY2 = "y2"
+
+paramScrollY :: Text
+paramScrollY = "y"
 
 paramX3 :: Text
 paramX3 = "x3"

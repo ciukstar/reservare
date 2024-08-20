@@ -14,8 +14,8 @@ module Handler.Catalog
 
 import Control.Monad (unless)
 
-import Data.Maybe (mapMaybe)
-import Data.Text (unpack)
+import Data.Maybe (mapMaybe, fromMaybe)
+import Data.Text (unpack, pack)
 import Data.Text.Encoding (encodeUtf8)
 
 import Database.Esqueleto.Experimental
@@ -24,7 +24,7 @@ import Database.Esqueleto.Experimental
     , justList, valList, orderBy, desc, leftJoin
     )
 import Database.Persist (Entity (Entity))
-import Database.Persist.Sql (toSqlKey)
+import Database.Persist.Sql (toSqlKey, fromSqlKey)
 
 import Foundation
     ( Handler
@@ -43,7 +43,7 @@ import Foundation
     )
 
 import Handler.Booking
-    ( widgetFilterChips, paramSector, paramBusiness, paramWorkspace )
+    ( widgetFilterChips, paramSector, paramBusiness, paramWorkspace, paramScrollY )
 
 import Model
     ( ServiceId, Service (Service)
@@ -73,7 +73,7 @@ import Widgets (widgetBanner, widgetSnackbar)
 
 import Yesod.Core
     ( Yesod(defaultLayout), setTitleI, lookupGetParams, getMessages
-    , TypedContent (TypedContent), ToContent (toContent), redirect, newIdent
+    , TypedContent (TypedContent), ToContent (toContent), redirect, newIdent, lookupGetParam, YesodRequest (reqGetParams), getRequest
     )
 import Yesod.Persist (YesodPersist(runDB))
 
@@ -119,6 +119,8 @@ getCatalogServiceBusinessR sid = do
 getCatalogServiceR :: ServiceId -> Handler Html
 getCatalogServiceR sid = do
 
+    stati <- reqGetParams <$> getRequest
+
     service <- do
         service <- runDB $ selectOne $ do
             x :& w <- from $ table @Service
@@ -143,7 +145,9 @@ getCatalogServiceR sid = do
 
 getCatalogR :: Handler Html
 getCatalogR = do
-
+    scrollY <- lookupGetParam paramScrollY
+    paramSid <- lookupGetParam "sid"
+    
     selectedSectors <- mapMaybe ((toSqlKey <$>) . readMaybe . unpack) <$> lookupGetParams paramSector
     selectedBusinesses <- mapMaybe ((toSqlKey <$>) . readMaybe . unpack) <$> lookupGetParams paramBusiness
     selectedWorkspaces <- mapMaybe ((toSqlKey <$>) . readMaybe . unpack) <$> lookupGetParams paramWorkspace

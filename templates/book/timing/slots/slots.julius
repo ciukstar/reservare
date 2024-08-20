@@ -1,4 +1,6 @@
 
+window.scroll("0",#{fromMaybe "0" scrollY4});
+
 Array.from(
   document.querySelectorAll('time.day[datetime]')
 ).forEach(function (x) {
@@ -21,4 +23,14 @@ Array.from(
       minute: 'numeric'
     }
   );
+});
+
+document.getElementById(#{idFabSelect}).addEventListener('click',function (e) {
+  const form = document.getElementById(#{idFormSlots});
+  form.action = [new window.URL(form.action)].map(y => {
+    y.searchParams.set(#{paramScrollY4}, window.scrollY);
+    return y.href;
+  })[0];
+  
+  form.submit();
 });

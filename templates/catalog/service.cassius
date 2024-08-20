@@ -19,12 +19,15 @@ main
         margin: 0 2rem
 
         .app-carousel
+            padding: 1rem 0
             display: flex
             flex-wrap: nowrap
             overflow-x: auto
             column-gap: 0.5rem
 
             figure
+                margin: 0
+                padding: 0
                 text-align: center
                 img
                     border-radius: 0.5rem

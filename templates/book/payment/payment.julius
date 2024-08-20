@@ -1,0 +1,12 @@
+
+window.scroll("0",#{fromMaybe "0" scrollY5});
+
+document.getElementById(#{idFabNext}).addEventListener('click',function (e) {
+  const form = document.getElementById(#{idFormPayment});
+  form.action = [new window.URL(form.action)].map(y => {
+    y.searchParams.set(#{paramScrollY5}, window.scrollY);
+    return y.href;
+  })[0];
+  
+  form.submit();
+});

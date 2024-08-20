@@ -1,4 +1,6 @@
 
+window.scroll("0",#{fromMaybe "0" scrollY});
+
 Array.from(
   document.querySelectorAll('.currency[data-value][data-currency]')
 ).forEach(function (x) {
@@ -9,4 +11,14 @@ Array.from(
     maximumFractionDigits: 2,
     useGrouping: true
   }).format(x.dataset.value / 100);
+});
+
+document.getElementById(#{idFabNext}).addEventListener('click',function (e) {
+  const form = document.getElementById(#{idFormService});
+  form.action = [new window.URL(form.action)].map(y => {
+    y.searchParams.set(#{paramScrollY}, window.scrollY);
+    return y.href;
+  })[0];
+  
+  form.submit();
 });

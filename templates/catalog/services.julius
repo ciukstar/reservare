@@ -1,4 +1,6 @@
 
+window.scroll("0",#{fromMaybe "0" scrollY});
+
 Array.from(
   document.querySelectorAll('.currency[data-value][data-currency]')
 ).forEach(function (x) {
@@ -9,4 +11,15 @@ Array.from(
     maximumFractionDigits: 2,
     useGrouping: true
   }).format(x.dataset.value / 100);
+});
+
+Array.from(
+  document.body.querySelectorAll('md-list-item[href]')
+).forEach(function (x) {
+  x.addEventListener('click',function (e) {
+    x.href = [new window.URL(x.href)].map(y => {
+      y.searchParams.set(#{paramScrollY}, window.scrollY);
+      return y.href;
+    })[0];
+  });
 });

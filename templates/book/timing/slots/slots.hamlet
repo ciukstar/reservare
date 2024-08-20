@@ -31,7 +31,7 @@
       <div.actions>
         <md-text-button type=button href=@?{(BookTimingR month,stati)}>
           _{MsgCancel}
-        <md-filled-button type=submit>
+        <md-filled-button type=button ##{idFabSelect}>
           _{MsgSelect}
 
   ^{widgetSnackbar msgs}

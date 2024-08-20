@@ -14,12 +14,12 @@
   <div.calendar ##{idCalendarPage}>
     <div.header>
       <md-icon-button type=link href=@?{(BookTimingR prev,stati)} rel=nofollow aria-label=_{MsgPrevious}>
-        <md-icon>arrow_back
+        <md-icon>arrow_back_ios
       $with m <- show month
         <time.month-of-year datetime=#{m}>
           #{m}
       <md-icon-button type=link href=@?{(BookTimingR next,stati)} rel=nofollow aria-label=_{MsgNext}>
-        <md-icon>arrow_forward
+        <md-icon>arrow_forward_ios
 
     $forall wd <- [MsgMon,MsgTue,MsgWed,MsgThu,MsgFri,MsgSat,MsgSun]
       <div.col-header>
@@ -64,8 +64,7 @@
   <form method=post action=@?{(BookTimingR month,stati)} enctype=#{et} ##{idFormTiming}>
     ^{fw}
 
-  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext}
-    onclick="document.getElementById('#{idFormTiming}').submit()">
+  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext}>
     <md-icon slot=icon>arrow_forward
 
 ^{widgetSnackbar msgs}

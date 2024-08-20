@@ -16,8 +16,7 @@
   <form method=post action=@?{(BookServicesR,stati)} enctype=#{et} ##{idFormService}>
     ^{fw}
 
-  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext} 
-    onclick="document.getElementById('#{idFormService}').submit()">
+  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext}>
     <md-icon slot=icon>arrow_forward
 
 ^{widgetSnackbar msgs}

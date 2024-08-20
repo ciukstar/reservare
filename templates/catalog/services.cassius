@@ -12,6 +12,8 @@ header
 
 main
 
+    md-list-item[active]
+        background-color: var(--md-sys-color-surface-dim)
     div[slot=headline]
         white-space: nowrap
 

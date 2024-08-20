@@ -9,9 +9,6 @@ header
     justify-content: flex-start
     align-items: center
     column-gap: 0.5rem
-    
-    #headerEnd
-        margin-left: auto
 
 main
     display: flex
@@ -33,7 +30,7 @@ main
             grid-area: head
             display: flex
             flex-direction: row
-            justify-content: space-between
+            justify-content: space-around
             align-items: center
         div.col-header
             text-align: center

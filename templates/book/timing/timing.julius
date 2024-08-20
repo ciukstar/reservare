@@ -1,4 +1,6 @@
 
+window.scroll("0",#{fromMaybe "0" scrollY3});
+
 Array.from(
   document.querySelectorAll('time.month-of-year[datetime]')
 ).forEach(function (x) {
@@ -34,4 +36,14 @@ Array.from(
       minute: 'numeric'
     }
   );
+});
+
+document.getElementById(#{idFabNext}).addEventListener('click',function (e) {
+  const form = document.getElementById(#{idFormTiming});
+  form.action = [new window.URL(form.action)].map(y => {
+    y.searchParams.set(#{paramScrollY3}, window.scrollY);
+    return y.href;
+  })[0];
+  
+  form.submit();
 });
