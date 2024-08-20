@@ -10,9 +10,10 @@ module Handler.Catalog
   , getStaffPhotoR
   , getCatalogServicePhotoR
   , getCatalogServiceAssignmentsR
+  , getCatalogBusinessLogoR
   ) where
 
-import Control.Monad (unless)
+import Control.Monad (unless, join)
 
 import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Text (unpack, pack)
@@ -21,7 +22,7 @@ import Data.Text.Encoding (encodeUtf8)
 import Database.Esqueleto.Experimental
     ( select, selectOne, from, table, where_, val, innerJoin, on, in_
     , (^.), (?.), (==.), (:&) ((:&))
-    , justList, valList, orderBy, desc, leftJoin
+    , justList, valList, orderBy, desc, leftJoin, just, Value (unValue)
     )
 import Database.Persist (Entity (Entity))
 import Database.Persist.Sql (toSqlKey, fromSqlKey)
@@ -31,7 +32,7 @@ import Foundation
     , Route
       ( CatalogR, HomeR, StaticR, CatalogServicePhotoR, CatalogServiceR
       , CatalogServiceBusinessR, CatalogServiceAssignmentsR, AccountPhotoR
-      , CatalogServicePhotoDefaultR
+      , CatalogServicePhotoDefaultR, CatalogBusinessLogoR
       )
     , AppMessage
       ( MsgCatalogue, MsgServiceCatalog, MsgNoServicesWereFoundForSearchTerms
@@ -49,22 +50,26 @@ import Model
     ( ServiceId, Service (Service)
     , Workspace (Workspace)
     , ServicePhotoId, ServicePhoto (ServicePhoto)
-    , Business (Business)
+    , BusinessId, Business (Business)
     , User (User)
     , Assignment (Assignment)
     , StaffId, Staff (Staff)
     , BusinessLogo (BusinessLogo)
+    , StaffPhoto (StaffPhoto)
     , EntityField
       ( ServiceAvailable, ServicePhotoService, ServiceWorkspace, WorkspaceId
       , ServiceType, WorkspaceBusiness, ServiceId, ServicePhotoId, BusinessId
       , BusinessOwner, UserId, AssignmentStaff, StaffId, AssignmentService
-      , StaffAccount, BusinessLogoBusiness, StaffPhotoStaff
-      ), StaffPhoto (StaffPhoto)
+      , StaffAccount, BusinessLogoBusiness, StaffPhotoStaff, BusinessLogoAttribution
+      )
     )
 
 import Settings (widgetFile)
 import Settings.StaticFiles
-    ( img_rule_settings_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg, img_account_circle_24dp_FILL0_wght400_GRAD0_opsz24_svg )
+    ( img_rule_settings_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg
+    , img_account_circle_24dp_FILL0_wght400_GRAD0_opsz24_svg
+    , img_broken_image_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg
+    )
 
 import Text.Hamlet (Html)
 import Text.Read (readMaybe)
@@ -73,9 +78,11 @@ import Widgets (widgetBanner, widgetSnackbar)
 
 import Yesod.Core
     ( Yesod(defaultLayout), setTitleI, lookupGetParams, getMessages
-    , TypedContent (TypedContent), ToContent (toContent), redirect, newIdent, lookupGetParam, YesodRequest (reqGetParams), getRequest
+    , TypedContent (TypedContent), ToContent (toContent), redirect
+    , newIdent, lookupGetParam, YesodRequest (reqGetParams), getRequest
     )
 import Yesod.Persist (YesodPersist(runDB))
+import Data.Bifunctor (Bifunctor(second, first))
 
 
 getCatalogServiceAssignmentsR :: ServiceId -> Handler Html
@@ -99,14 +106,15 @@ getCatalogServiceAssignmentsR sid = do
 getCatalogServiceBusinessR :: ServiceId -> Handler Html
 getCatalogServiceBusinessR sid = do
 
-    workspace <- runDB $ selectOne $ do
-        x :& w :& b :& o <- from $ table @Service
+    workspace <- (first (second (second (join . unValue))) <$>) <$> runDB ( selectOne $ do
+        x :& w :& b :& l :& o <- from $ table @Service
             `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
             `innerJoin` table @Business `on` (\(_ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)
-            `innerJoin` table @User `on` (\(_ :& _ :& b :& o) -> b ^. BusinessOwner ==. o ^. UserId)
+            `leftJoin` table @BusinessLogo `on` (\(_ :& _ :& b :& l) -> just (b ^. BusinessId) ==. l ?. BusinessLogoBusiness)
+            `innerJoin` table @User `on` (\(_ :& _ :& b :& _ :& o) -> b ^. BusinessOwner ==. o ^. UserId)
         where_ $ x ^. ServiceId ==. val sid
-        return ((w,b),o)
-
+        return ((w,(b,l ?. BusinessLogoAttribution)),o) )
+        
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
@@ -209,3 +217,14 @@ getCatalogServicePhotoR sid fid = do
     case photo of
       Just (Entity _ (ServicePhoto _ mime bs _)) -> return $ TypedContent (encodeUtf8 mime) $ toContent bs
       Nothing -> redirect $ StaticR img_rule_settings_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg
+
+
+getCatalogBusinessLogoR :: BusinessId -> Handler TypedContent
+getCatalogBusinessLogoR bid = do
+    photo <- runDB $ selectOne $ do
+        x <- from $ table @BusinessLogo
+        where_ $ x ^. BusinessLogoBusiness ==. val bid
+        return x
+    case photo of
+      Just (Entity _ (BusinessLogo _ mime bs _)) -> return $ TypedContent (encodeUtf8 mime) $ toContent bs
+      Nothing -> redirect $ StaticR img_broken_image_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg

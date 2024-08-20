@@ -60,6 +60,7 @@ import Handler.Catalog
     , getCatalogServicePhotoDefaultR
     , getStaffPhotoR
     , getCatalogServiceAssignmentsR
+    , getCatalogBusinessLogoR
     )
 
 import Handler.Appointments
@@ -160,6 +161,9 @@ import Handler.Data.Business
     , getPayOptionNewR
     , getPayOptionEditR
     , postPayOptionDeleR
+    , getWorkspaceServicesR, postWorkspaceServicesR
+    , getWorkspaceServiceR
+    , getWorkspaceServiceNewR
     )
 
 import Handler.Data.Users

@@ -1,5 +1,5 @@
 
-<header>
+<header.background>
   <md-icon-button href=@{CatalogR} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
@@ -29,7 +29,14 @@
   
     ^{widgetBanner msgs}
 
-    $maybe ((Entity _ (Workspace _ wname address tzo currency),business),owner) <- workspace
+    $maybe ((Entity _ (Workspace _ wname address tzo currency),(business,attrib)),owner) <- workspace
+      $with Entity bid _ <- business
+        <figure.logo>
+          <img src=@{CatalogBusinessLogoR bid} width=auto height=128 loading=lazy alt=_{MsgPhoto}>
+          $maybe attribution <- attrib
+            <div.app-attribution.md-typescale-body-small>
+              #{attribution}
+   
       <dl>
         <dt.md-typescale-label-large scope=row>_{MsgTheName}
         <dd.md-typescale-body-medium>
@@ -47,7 +54,7 @@
         <dd.md-typescale-body-medium.currency>
           #{currency}
 
-      <fieldset>
+      <fieldset.shape-medium>
         <legend>_{MsgOwner}
         $with (Entity _ (Business _ bname _ _),Entity _ (User email _ _ _ _ oname _ _)) <- (business,owner) 
           <dl>

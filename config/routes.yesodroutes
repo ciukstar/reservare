@@ -2,6 +2,7 @@
 -- Syntax for this file here: https://www.yesodweb.com/book/routing-and-handlers
 
 
+/catalog/#BusinessId/logo                  CatalogBusinessLogoR        GET
 /catalog/#ServiceId/assignments            CatalogServiceAssignmentsR  GET
 /catalog/#ServiceId/business               CatalogServiceBusinessR     GET
 /catalog/#ServiceId                        CatalogServiceR             GET
@@ -117,6 +118,11 @@
     /staff/#StaffId           EmployeeR     GET POST
     /staff                    StaffR        GET POST
 
+
+                          
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/new/form   WorkspaceServiceNewR GET
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId WorkspaceServiceR    GET
+    /bids/#BusinessId/wids/#WorkspaceId/sevices            WorkspaceServicesR   GET POST
 
     /bids/#BusinessId/wids/#WorkspaceId/options/#PayOptionId/form/dele PayOptionDeleR POST
     /bids/#BusinessId/wids/#WorkspaceId/options/#PayOptionId/form/edit PayOptionEditR GET

@@ -35,6 +35,9 @@ module Handler.Data.Business
   , getPayOptionNewR
   , getPayOptionEditR
   , postPayOptionDeleR
+  , getWorkspaceServicesR, postWorkspaceServicesR
+  , getWorkspaceServiceR
+  , getWorkspaceServiceNewR
   ) where
 
 import Control.Monad (join, void)
@@ -48,6 +51,7 @@ import Data.Text.Encoding (encodeUtf8)
 import Data.Time
     ( UTCTime(utctDay), getCurrentTime, LocalTime (LocalTime)
     , DayPeriod (periodLastDay), diffLocalTime, nominalDiffTimeToSeconds
+    , secondsToNominalDiffTime
     )
 import Data.Time.Calendar
     ( DayOfWeek (Monday), DayPeriod (periodFirstDay)
@@ -78,6 +82,7 @@ import Foundation
       , DataWorkingSlotsR, DataWorkingSlotNewR, DataWorkingSlotR
       , DataWorkingSlotEditR, DataWorkingSlotDeleR
       , PayOptionsR, PayOptionR, PayOptionNewR, PayOptionEditR, PayOptionDeleR
+      , WorkspaceServicesR, WorkspaceServiceR, WorkspaceServiceNewR, ServicePhotoDefaultR
       )
     , AppMessage
       ( MsgBusinesses, MsgThereAreNoDataYet, MsgYouMightWantToAddAFew
@@ -90,13 +95,14 @@ import Foundation
       , MsgDay, MsgSymbolHour, MsgSymbolMinute, MsgPaymentOptions, MsgPayOptions
       , MsgPaymentOption, MsgPayNow, MsgPayAtVenue, MsgType, MsgYooKassa
       , MsgStripe, MsgDescription, MsgPaymentGateway, MsgPayOption, MsgIcon
-      , MsgLogotype, MsgLogo, MsgAttribution, MsgBusinessFullName
+      , MsgLogotype, MsgLogo, MsgAttribution, MsgBusinessFullName, MsgServices
+      , MsgService, MsgUnitMinutes, MsgDuration, MsgAvailable, MsgPrice
       )
     )
 
 import Material3
     ( md3selectField, md3mreq, md3textField, md3textareaField, md3timeField
-    , md3mopt, md3htmlField
+    , md3mopt, md3htmlField, md3intField, md3switchField
     )
 
 import Model
@@ -115,12 +121,17 @@ import Model
       )
     , PayMethod (PayNow, PayAtVenue), PayGateway (PayGatewayStripe, PayGatewayYookassa)
     , BusinessLogo (BusinessLogo)
+    , Service
+      ( Service, serviceType, serviceDuration, serviceAvailable, servicePrice
+      , serviceDescr, serviceName
+      )
+    , ServiceId, Sector (sectorName)
     , EntityField
       ( UserName, UserId, BusinessId, BusinessOwner, WorkspaceId
       , WorkspaceBusiness, BusinessName, WorkspaceName, WorkingHoursWorkspace
       , WorkingHoursDay, WorkingHoursId, PayOptionWorkspace, PayOptionId, PayOptionType
       , PayOptionName, BusinessLogoBusiness, BusinessLogoAttribution, BusinessLogoPhoto
-      , BusinessLogoMime
+      , BusinessLogoMime, ServiceWorkspace, ServiceName, SectorName
       )
     )
 
@@ -143,12 +154,161 @@ import Yesod.Core
 import Yesod.Core.Handler (newIdent)
 import Yesod.Core.Widget (setTitleI)
 import Yesod.Form
-    ( Field, FieldSettings (FieldSettings, fsName, fsLabel, fsTooltip, fsId, fsAttrs)
-    , FieldView (fvInput, fvId, fvErrors), FormResult (FormSuccess), Textarea (Textarea), fileField
+    ( Field
+    , FieldSettings (FieldSettings, fsName, fsLabel, fsTooltip, fsId, fsAttrs)
+    , FieldView (fvInput, fvId, fvErrors, fvLabel), FormResult (FormSuccess)
+    , Textarea (Textarea), fileField
     )
 import Yesod.Form.Functions (generateFormPost, runFormPost, checkM)
 import Yesod.Form.Fields (optionsPairs)
 import Yesod.Persist.Core (runDB)
+
+
+getWorkspaceServiceNewR :: BusinessId -> WorkspaceId -> Handler Html
+getWorkspaceServiceNewR bid wid = do
+
+    stati <- reqGetParams <$> getRequest
+
+    (fw,et) <- generateFormPost $ formServiceWorkspace wid Nothing
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgService
+        idFormService <- newIdent
+        $(widgetFile "data/business/workspaces/services/new")
+
+
+formServiceWorkspace :: WorkspaceId -> Maybe (Entity Service) -> Form Service
+formServiceWorkspace wid service extra = do
+
+    msgr <- getMessageRender
+
+    (nameR,nameV) <- md3mreq (uniqueNameField wid) FieldSettings
+        { fsLabel = SomeMessage MsgTheName
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgTheName)]
+        } (serviceName . entityVal <$> service)
+
+    (descrR,descrV) <- md3mopt md3textareaField FieldSettings
+        { fsLabel = SomeMessage MsgDescription
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgDescription)]
+        } (serviceDescr . entityVal <$> service)
+
+    (priceR,priceV) <- md3mreq md3intField FieldSettings
+        { fsLabel = SomeMessage MsgPrice
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgPrice)]
+        } (servicePrice . entityVal <$> service)
+
+    (availableR,availableV) <- md3mreq md3switchField FieldSettings
+        { fsLabel = SomeMessage MsgAvailable
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgAvailable)]
+        } (serviceAvailable . entityVal <$> service)
+
+    (durationR,durationV) <- md3mreq md3intField FieldSettings
+        { fsLabel = SomeMessage MsgDuration
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgDuration),("supporting-text", msgr MsgUnitMinutes)]
+        } (truncate . (/ 60) . nominalDiffTimeToSeconds . serviceDuration . entityVal <$> service)
+
+    sectors <- liftHandler $ runDB $ select $ do
+        x <- from $ table @Sector
+        orderBy [asc (x ^. SectorName)]
+        return x
+
+    (typeR, typeV) <- md3mopt (md3selectField (optionsPairs (optionsType <$> sectors))) FieldSettings
+        { fsLabel = SomeMessage MsgType
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgType)]
+        } (serviceType . entityVal <$> service)
+
+    let r = Service wid <$> nameR <*> descrR <*> priceR <*> availableR
+             <*> ((* 60) . secondsToNominalDiffTime . fromIntegral <$> durationR)
+             <*> typeR
+
+    let w = [whamlet|
+                    #{extra}
+                    ^{fvInput nameV}
+                    ^{fvInput descrV}
+                    ^{fvInput priceV}
+
+                    <div style="display:flex;align-items:center;gap:1rem">
+                      ^{fvInput availableV}
+                      <label.body-large for=#{fvId availableV}>
+                        #{fvLabel availableV}
+
+                    ^{fvInput durationV}
+                    ^{fvInput typeV}
+                    |]
+    return (r,w)
+
+  where
+      optionsType e = (sectorName . entityVal $ e, entityKey e)
+
+      uniqueNameField :: WorkspaceId -> Field Handler Text
+      uniqueNameField wid' = checkM (uniqueName wid') md3textField
+
+      uniqueName :: WorkspaceId -> Text -> Handler (Either AppMessage Text)
+      uniqueName wid' name = do
+          x <- runDB $ selectOne $ do
+              x <- from $ table @Service
+              where_ $ x ^. ServiceWorkspace ==. val wid'
+              where_ $ x ^. ServiceName ==. val name
+              return x
+          return $ case x of
+            Nothing -> Right name
+            Just (Entity sid _) -> case service of
+              Nothing -> Left MsgAlreadyExists
+              Just (Entity sid' _) | sid == sid' -> Right name
+                                   | otherwise -> Left MsgAlreadyExists
+
+
+getWorkspaceServiceR :: BusinessId -> WorkspaceId -> ServiceId -> Handler Html
+getWorkspaceServiceR bid wid sid = undefined
+
+
+postWorkspaceServicesR :: BusinessId -> WorkspaceId -> Handler Html
+postWorkspaceServicesR bid wid = do
+    
+    stati <- reqGetParams <$> getRequest
+    ((fr,fw),et) <- runFormPost $ formServiceWorkspace wid Nothing
+    
+    case fr of
+      FormSuccess r -> do
+          runDB $ insert_ r
+          addMessageI statusSuccess MsgRecordAdded
+          redirect (DataR $ WorkspaceServicesR bid wid,stati)
+      _otherwise -> do
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgService
+              idFormService <- newIdent
+              $(widgetFile "data/business/workspaces/services/new")
+
+
+getWorkspaceServicesR :: BusinessId -> WorkspaceId -> Handler Html
+getWorkspaceServicesR bid wid = do
+
+    stati <- reqGetParams <$> getRequest
+
+    month <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
+
+    services <- runDB $ select $ do
+        x :& w <- from $ table @Service
+            `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
+        where_ $ x ^. ServiceWorkspace ==. val wid
+        return (x,w)
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgServices
+        idTabServices <- newIdent
+        idPanelServices <- newIdent
+        idFabAdd <- newIdent 
+        $(widgetFile "data/business/workspaces/services/services")
+    
 
 
 postPayOptionDeleR :: BusinessId -> WorkspaceId -> PayOptionId -> Handler Html

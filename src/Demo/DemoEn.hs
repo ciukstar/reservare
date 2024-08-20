@@ -6,7 +6,7 @@ module Demo.DemoEn (fillDemoEn) where
 
 import Control.Monad (unless, when, forM_)
 import Control.Monad.IO.Class (MonadIO (liftIO))
-import Control.Monad.Trans.Reader (ReaderT) 
+import Control.Monad.Trans.Reader (ReaderT)
 
 import qualified Data.ByteString as BS (readFile)
 
@@ -76,11 +76,11 @@ fillDemoEn appSettings = do
 
     now <- liftIO getCurrentTime
     let today = utctDay now
-    
+
     let oneHour = nominalDay / 24
     let halfHour = oneHour / 2
     let quarterHour = halfHour / 2
-    
+
     pass1 <- liftIO $ saltPass "marylopez"
     let user1 = User { userEmail = "marylopez@xmail.edu"
                      , userAuthType = UserAuthTypeEmail
@@ -94,15 +94,17 @@ fillDemoEn appSettings = do
 
     usr1 <- insert user1
 
+    let freepik = [shamlet|
+                          Designed by #
+                          <a href="https://www.freepik.com/" target=_blank>
+                            Freepik
+                          |]
+
     liftIO (BS.readFile "demo/2148728586.avif") >>= \bs ->
       insert_ UserPhoto { userPhotoUser = usr1
                         , userPhotoMime = "image/avif"
                         , userPhotoPhoto = bs
-                        , userPhotoAttribution = Just [shamlet|
-                                                            Designed by #
-                                                            <a href="https://www.freepik.com/" target=_blank>
-                                                              Freepik
-                                                            |]
+                        , userPhotoAttribution = Just freepik
                         }
 
     pass2 <- liftIO $ saltPass "jjohnson"
@@ -122,11 +124,7 @@ fillDemoEn appSettings = do
       insert_ UserPhoto { userPhotoUser = usr2
                         , userPhotoMime = "image/avif"
                         , userPhotoPhoto = bs
-                        , userPhotoAttribution = Just [shamlet|
-                                                            Designed by #
-                                                            <a href="https://www.freepik.com/" target=_blank>
-                                                              Freepik
-                                                            |]
+                        , userPhotoAttribution = Just freepik
                         }
 
     pass3 <- liftIO $ saltPass "jmaulsby"
@@ -146,11 +144,7 @@ fillDemoEn appSettings = do
       insert_ UserPhoto { userPhotoUser = usr3
                         , userPhotoMime = "image/avif"
                         , userPhotoPhoto = bs
-                        , userPhotoAttribution = Just [shamlet|
-                                                            Designed by #
-                                                            <a href="https://www.freepik.com/" target=_blank>
-                                                              Freepik
-                                                            |]
+                        , userPhotoAttribution = Just freepik
                         }
 
     pass4 <- liftIO $ saltPass "vschoen"
@@ -170,11 +164,7 @@ fillDemoEn appSettings = do
       insert_ UserPhoto { userPhotoUser = usr4
                         , userPhotoMime = "image/avif"
                         , userPhotoPhoto = bs
-                        , userPhotoAttribution = Just [shamlet|
-                                                            Designed by #
-                                                            <a href="https://www.freepik.com/" target=_blank>
-                                                              Freepik
-                                                            |]
+                        , userPhotoAttribution = Just freepik
 
                         }
 
@@ -300,8 +290,29 @@ fillDemoEn appSettings = do
                              , serviceDuration = oneHour
                              , serviceType = Just sec3
                              }
-    
+
     s111 <- insert service111
+
+    liftIO (BS.readFile "demo/logo_finco_120x120.svg") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s111
+                           , servicePhotoMime = "image/svg+xml"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Nothing
+                           }
+
+    liftIO (BS.readFile "demo/banking_risk_resilience_1.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s111
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Just freepik
+                           }
+
+    liftIO (BS.readFile "demo/banking_risk_resilience_2.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s111
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Just freepik
+                           }
 
     let service112 = Service { serviceWorkspace = w11
                              , serviceName = "Corporate & Investment Banking"
@@ -314,6 +325,27 @@ fillDemoEn appSettings = do
 
     s112 <- insert service112
 
+    liftIO (BS.readFile "demo/logo_finco_120x120.svg") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s112
+                           , servicePhotoMime = "image/svg+xml"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Nothing
+                           }
+
+    liftIO (BS.readFile "demo/corporate_investment_banking_1.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s112
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Just freepik
+                           }
+
+    liftIO (BS.readFile "demo/corporate_investment_banking_2.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s112
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Just freepik
+                           }
+
     let service113 = Service { serviceWorkspace = w11
                              , serviceName = "Law Firms & Professional Services"
                              , serviceDescr = Just "We advise professional services institutions, including law firms, accounting firms, corporate legal departments, and other knowledge worker organizations, on a broad range of strategic, organizational, and operational issues"
@@ -324,6 +356,27 @@ fillDemoEn appSettings = do
                              }
 
     s113 <- insert service113
+
+    liftIO (BS.readFile "demo/logo_finco_120x120.svg") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s113
+                           , servicePhotoMime = "image/svg+xml"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Nothing
+                           }
+
+    liftIO (BS.readFile "demo/law_firms_professional_services_1.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s113
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Just freepik
+                           }
+
+    liftIO (BS.readFile "demo/law_firms_professional_services_2.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s113
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Just freepik
+                           }
 
     let business2 = Business { businessOwner = usr2
                              , businessName = "MedCab"
@@ -400,6 +453,27 @@ fillDemoEn appSettings = do
 
     s211 <- insert service211
 
+    liftIO (BS.readFile "demo/logo_medcab_120x120.svg") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s211
+                           , servicePhotoMime = "image/svg+xml"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Nothing
+                           }
+
+    liftIO (BS.readFile "demo/community_physiotherapy_1.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s211
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Just freepik
+                           }
+
+    liftIO (BS.readFile "demo/community_physiotherapy_2.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s211
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Just freepik
+                           }
+
     let service212 = Service { serviceWorkspace = w21
                              , serviceName = "Musculoskeletal therapy"
                              , serviceDescr = Just "Musculoskeletal physiotherapy will focus on the biomechanical and structural rehabilitation of the client"
@@ -410,6 +484,28 @@ fillDemoEn appSettings = do
                              }
 
     s212 <- insert service212
+
+    liftIO (BS.readFile "demo/logo_medcab_120x120.svg") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s212
+                           , servicePhotoMime = "image/svg+xml"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Nothing
+                           }
+
+    liftIO (BS.readFile "demo/musculoskeletal_therapy_1.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s212
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Just freepik
+                           }
+
+    liftIO (BS.readFile "demo/musculoskeletal_therapy_2.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s212
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Just freepik
+                           }
+
 
     let service213 = Service { serviceWorkspace = w21
                              , serviceName = "Community podiatry"
@@ -422,6 +518,27 @@ fillDemoEn appSettings = do
 
     s213 <- insert service213
 
+    liftIO (BS.readFile "demo/logo_medcab_120x120.svg") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s213
+                           , servicePhotoMime = "image/svg+xml"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Nothing
+                           }
+
+    liftIO (BS.readFile "demo/community_podiatry_1.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s213
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Just freepik
+                           }
+
+    liftIO (BS.readFile "demo/community_podiatry_2.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s213
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Just freepik
+                           }
+    
     let workspace22 = Workspace { workspaceBusiness = b2
                                 , workspaceName = "MedCab, Office #2"
                                 , workspaceAddress = "9811 Grove Road NORTHAMPTON NN81 7MQ"
@@ -482,6 +599,27 @@ fillDemoEn appSettings = do
 
     s221 <- insert service221
 
+    liftIO (BS.readFile "demo/logo_medcab_120x120.svg") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s221
+                           , servicePhotoMime = "image/svg+xml"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Nothing
+                           }
+
+    liftIO (BS.readFile "demo/community_speech_and_language_therapy_1.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s221
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Just freepik
+                           }
+
+    liftIO (BS.readFile "demo/community_speech_and_language_therapy_2.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s221
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Just freepik
+                           }
+
     let service222 = Service { serviceWorkspace = w22
                              , serviceName = "Falls prevention services"
                              , serviceDescr = Just "Our falls prevention service provides assessment, advice and exercise for older people who are at risk of falling"
@@ -539,15 +677,11 @@ fillDemoEn appSettings = do
                            , servicePhotoAttribution = Nothing
                            }
 
-    liftIO (BS.readFile "demo/female-patient-undergoing-therapy-with-physiotherapist_23-2148836500.avif") >>= \bs ->
+    liftIO (BS.readFile "demo/bed_based_community_rehabilitation_1.avif") >>= \bs ->
       insert_ ServicePhoto { servicePhotoService = s223
                            , servicePhotoMime = "image/avif"
                            , servicePhotoPhoto = bs
-                           , servicePhotoAttribution = Just [shamlet|
-                                                                Designed by #
-                                                                <a href="https://www.freepik.com/" target=_blank>
-                                                                  Freepik
-                                                            |]
+                           , servicePhotoAttribution = Just freepik
                            }
 
     let business3 = Business { businessOwner = usr3
@@ -619,11 +753,7 @@ fillDemoEn appSettings = do
       insert_ $ StaffPhoto { staffPhotoStaff = empl1
                            , staffPhotoMime = "image/avif"
                            , staffPhotoPhoto = bs
-                           , staffPhotoAttribution = Just [shamlet|
-                                                            Designed by #
-                                                            <a href="https://www.freepik.com/" target=_blank>
-                                                              Freepik
-                                                            |]
+                           , staffPhotoAttribution = Just freepik
                            }
 
     let employee2 = Staff { staffName = fromMaybe (userEmail user2) (userName user2)
@@ -638,11 +768,7 @@ fillDemoEn appSettings = do
       insert_ $ StaffPhoto { staffPhotoStaff = empl2
                            , staffPhotoMime = "image/avif"
                            , staffPhotoPhoto = bs
-                           , staffPhotoAttribution = Just [shamlet|
-                                                            Designed by #
-                                                            <a href="https://www.freepik.com/" target=_blank>
-                                                              Freepik
-                                                            |]
+                           , staffPhotoAttribution = Just freepik
                            }
 
     let employee3 = Staff { staffName = fromMaybe (userEmail user3) (userName user3)
@@ -657,11 +783,7 @@ fillDemoEn appSettings = do
       insert_ $ StaffPhoto { staffPhotoStaff = empl3
                            , staffPhotoMime = "image/avif"
                            , staffPhotoPhoto = bs
-                           , staffPhotoAttribution = Just [shamlet|
-                                                            Designed by #
-                                                            <a href="https://www.freepik.com/" target=_blank>
-                                                              Freepik
-                                                            |]
+                           , staffPhotoAttribution = Just freepik
                            }
 
     let employee4 = Staff { staffName = fromMaybe (userEmail user4) (userName user4)
@@ -676,11 +798,7 @@ fillDemoEn appSettings = do
       insert_ $ StaffPhoto { staffPhotoStaff = empl4
                            , staffPhotoMime = "image/avif"
                            , staffPhotoPhoto = bs
-                           , staffPhotoAttribution = Just [shamlet|
-                                                            Designed by #
-                                                            <a href="https://www.freepik.com/" target=_blank>
-                                                              Freepik
-                                                            |]
+                           , staffPhotoAttribution = Just freepik
                            }
 
     let assignment111 = Assignment { assignmentStaff = empl1

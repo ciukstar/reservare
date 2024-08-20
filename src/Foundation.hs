@@ -210,6 +210,7 @@ instance Yesod App where
     isAuthorized :: Route App -> Bool -> Handler AuthResult
 
     
+    isAuthorized (CatalogBusinessLogoR _) _ = return Authorized
     isAuthorized (CatalogServiceAssignmentsR _) _ = return Authorized
     isAuthorized (CatalogServiceBusinessR _) _ = return Authorized
     isAuthorized (CatalogServiceR _) _ = return Authorized
@@ -300,6 +301,11 @@ instance Yesod App where
     isAuthorized (DataR (EmployeeR _)) _ = isAdmin
     isAuthorized r@(DataR StaffR) _ = setUltDest r >> isAdmin
 
+    
+    
+    isAuthorized (DataR (WorkspaceServiceNewR _ _)) _ = isAdmin
+    isAuthorized (DataR (WorkspaceServiceR {})) _ = isAdmin
+    isAuthorized (DataR (WorkspaceServicesR _ _)) _ = isAdmin
     
     isAuthorized (DataR (PayOptionDeleR {})) _ = isAdmin
     isAuthorized (DataR (PayOptionEditR {})) _ = isAdmin

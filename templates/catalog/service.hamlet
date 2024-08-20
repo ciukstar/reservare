@@ -1,5 +1,5 @@
 
-<header>
+<header.background>
   <md-icon-button href=@?{(CatalogR,stati)} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
@@ -35,27 +35,28 @@
             $maybe attribution <- attrib
               <div.app-attribution.md-typescale-body-small>
                 #{attribution}
-          
-      $maybe (Entity _ (Service _ name descr price _ duration _),Entity _ (Workspace _ _ _ _ currency)) <- service
-        <dl>
-          <dt.md-typescale-label-large scope=row>_{MsgTheName}
-          <dd.md-typescale-body-medium>
-            #{name}
+                
+      <div.main>
+        $maybe (Entity _ (Service _ name descr price _ duration _),Entity _ (Workspace _ _ _ _ currency)) <- service
+          <dl>
+            <dt.md-typescale-label-large scope=row>_{MsgTheName}
+            <dd.md-typescale-body-medium>
+              #{name}
 
-          <dt.md-typescale-label-large scope=row>_{MsgDescription}
-          <dd.md-typescale-body-medium>
-            $maybe descr <- descr
-              #{descr}
+            <dt.md-typescale-label-large scope=row>_{MsgDescription}
+            <dd.md-typescale-body-medium>
+              $maybe descr <- descr
+                #{descr}
 
-          <dt.md-typescale-label-large scope=row>_{MsgPrice}
-          <dd.md-typescale-body-medium.currency data-value=#{price} data-currency=#{currency}>
-            #{currency}#{price}
+            <dt.md-typescale-label-large scope=row>_{MsgPrice}
+            <dd.md-typescale-body-medium.currency data-value=#{price} data-currency=#{currency}>
+              #{currency}#{price}
 
-          <dt.md-typescale-label-large>_{MsgDuration}
-          <dd.md-typescale-body-medium>
-            #{show duration}
+            <dt.md-typescale-label-large>_{MsgDuration}
+            <dd.md-typescale-body-medium>
+              #{show duration}
 
-    <md-filled-button>_{MsgBookNow}
+        <md-filled-button>_{MsgBookNow}
 
     ^{widgetSnackbar msgs}
 

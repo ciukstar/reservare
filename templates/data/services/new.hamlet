@@ -10,10 +10,10 @@
 
   ^{widgetBanner msgs}
 
-  <form method=post action=@?{(DataR ServicesR,stati)} enctype=#{et} novalidate ##{idFormStaff}>
+  <form method=post action=@?{(DataR ServicesR,stati)} enctype=#{et} novalidate ##{idFormService}>
     ^{fw}
     <div.form-actions>
-      <md-text-button type=button href=@{DataR ServicesR}>
+      <md-text-button type=button href=@?{(DataR ServicesR,stati)}>
         _{MsgCancel}
       <md-filled-button type=submit>
         _{MsgSave}
