@@ -162,8 +162,20 @@ import Handler.Data.Business
     , getPayOptionEditR
     , postPayOptionDeleR
     , getWorkspaceServicesR, postWorkspaceServicesR
-    , getWorkspaceServiceR
+    , getWorkspaceServiceR, postWorkspaceServiceR
     , getWorkspaceServiceNewR
+    , getWorkspaceServiceEditR
+    , postWorkspaceServiceDeleR
+    , getWorkspaceServicePhotosR, postWorkspaceServicePhotosR
+    , getWorkspaceServicePhotoEditR
+    , getWorkspaceServicePhotoNewR
+    , getWorkspaceServicePhotoR, postWorkspaceServicePhotoR
+    , postWorkspaceServicePhotoDeleR
+    , getWorkspaceServiceAssignmentsR, postWorkspaceServiceAssignmentsR
+    , getWorkspaceServiceAssignmentNewR
+    , getWorkspaceServiceAssignmentR, postWorkspaceServiceAssignmentR
+    , getWorkspaceServiceAssignmentEditR
+    , postWorkspaceServiceAssignmentDeleR
     )
 
 import Handler.Data.Users

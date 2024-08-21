@@ -1,5 +1,5 @@
 <header.background>
-  <md-icon-button href=@{DataR $ ServicePhotosR sid} aria-label=_{MsgBack}>
+  <md-icon-button href=@{DataR $ WorkspaceServicePhotosR bid wid sid} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
   <span.md-typescale-title-large>
@@ -17,7 +17,7 @@
   <div slot=actions>
     <md-text-button type=button onclick="document.getElementById('idDialogDelete').close()">
       _{MsgCancel}
-    <form slot=content method=post action=@{DataR $ ServicePhotoDeleR sid fid} enctype=#{et2}>
+    <form slot=content method=post action=@{DataR $ WorkspaceServicePhotoDeleR bid wid sid fid} enctype=#{et2}>
       ^{fw2}
       <md-filled-button type=submit>
         _{MsgDele}
@@ -26,10 +26,10 @@
 
   ^{widgetBanner msgs}
 
-  <form method=post action=@{DataR $ ServicePhotoR sid fid} enctype=#{et} novalidate ##{idFormEdit}>
+  <form method=post action=@{DataR $ WorkspaceServicePhotoR bid wid sid fid} enctype=#{et} novalidate ##{idFormEdit}>
     ^{fw}
     <div.form-actions>
-      <md-text-button type=button href=@{DataR $ ServicePhotosR sid}>
+      <md-text-button type=button href=@{DataR $ WorkspaceServicePhotosR bid wid sid}>
         _{MsgCancel}
       <md-filled-button type=submit>
         _{MsgSave}

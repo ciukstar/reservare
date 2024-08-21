@@ -302,7 +302,21 @@ instance Yesod App where
     isAuthorized r@(DataR StaffR) _ = setUltDest r >> isAdmin
 
     
+    isAuthorized (DataR (WorkspaceServiceAssignmentDeleR {})) _ = isAdmin
+    isAuthorized (DataR (WorkspaceServiceAssignmentEditR {})) _ = isAdmin
+    isAuthorized (DataR (WorkspaceServiceAssignmentR {})) _ = isAdmin
+    isAuthorized (DataR (WorkspaceServiceAssignmentNewR {})) _ = isAdmin
+    isAuthorized (DataR (WorkspaceServiceAssignmentsR {})) _ = isAdmin
+
     
+    isAuthorized (DataR (WorkspaceServicePhotoDeleR {})) _ = isAdmin
+    isAuthorized (DataR (WorkspaceServicePhotoEditR {})) _ = isAdmin
+    isAuthorized (DataR (WorkspaceServicePhotoNewR {})) _ = isAdmin
+    isAuthorized (DataR (WorkspaceServicePhotoR {})) _ = isAdmin
+    isAuthorized (DataR (WorkspaceServicePhotosR {})) _ = isAdmin
+    
+    isAuthorized (DataR (WorkspaceServiceDeleR {})) _ = isAdmin
+    isAuthorized (DataR (WorkspaceServiceEditR {})) _ = isAdmin
     isAuthorized (DataR (WorkspaceServiceNewR _ _)) _ = isAdmin
     isAuthorized (DataR (WorkspaceServiceR {})) _ = isAdmin
     isAuthorized (DataR (WorkspaceServicesR _ _)) _ = isAdmin

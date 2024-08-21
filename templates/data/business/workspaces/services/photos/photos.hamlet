@@ -1,6 +1,6 @@
 
 <header>
-  <md-icon-button href=@?{(DataR ServicesR,stati)} aria-label=_{MsgBack}>
+  <md-icon-button href=@?{(DataR $ WorkspaceServicesR bid wid,stati)} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
   <span.md-typescale-title-large>
@@ -11,15 +11,15 @@
   <md-tabs>
   
     <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails onclick="this.querySelector('a[href]').click()">
-      <a href=@?{(DataR $ ServiceR sid,stati)}>
+      <a href=@?{(DataR $ WorkspaceServiceR bid wid sid,stati)}>
       _{MsgDetails}
       
     <md-primary-tab ##{idTabPhotos} aria-cotrols=#{idPanelPhotos} active onclick="this.querySelector('a[href]').click()">
-      <a href=@?{(DataR $ ServicePhotosR sid,stati)}>
+      <a href=@?{(DataR $ WorkspaceServicePhotosR bid wid sid,stati)}>
       _{MsgPhoto}
       
     <md-primary-tab #idTabAssignments aria-cotrols=idPanelAssignments onclick="this.querySelector('a[href]').click()">
-      <a href=@?{(DataR $ ServiceAssignmentsR sid,stati)}>
+      <a href=@?{(DataR $ WorkspaceServiceAssignmentsR bid wid sid,stati)}>
       _{MsgServiceAssignments}
       
 
@@ -39,7 +39,7 @@
     $else
       <md-list>
         $forall Entity fid (ServicePhoto _ _ _ attrib) <- photos
-          <md-list-item type=link href=@?{(DataR $ ServicePhotoEditR sid fid,stati)}>
+          <md-list-item type=link href=@?{(DataR $ WorkspaceServicePhotoEditR bid wid sid fid,stati)}>
             <img slot=start src=@{DataR $ ServicePhotoR sid fid} width=64 height=64 loading=lazy>
             <div slot=supporting-text>
             <md-icon slot=end>arrow_forward_ios
@@ -50,7 +50,7 @@
           <md-divider>
 
     <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-      <a href=@?{(DataR $ ServicePhotoNewR sid,stati)}>
+      <a href=@?{(DataR $ WorkspaceServicePhotoNewR bid wid sid,stati)}>
       <md-icon slot=icon>add
 
     ^{widgetSnackbar msgs}

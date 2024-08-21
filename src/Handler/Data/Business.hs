@@ -36,8 +36,20 @@ module Handler.Data.Business
   , getPayOptionEditR
   , postPayOptionDeleR
   , getWorkspaceServicesR, postWorkspaceServicesR
-  , getWorkspaceServiceR
+  , getWorkspaceServiceR, postWorkspaceServiceR
   , getWorkspaceServiceNewR
+  , getWorkspaceServiceEditR
+  , postWorkspaceServiceDeleR
+  , getWorkspaceServicePhotosR, postWorkspaceServicePhotosR
+  , getWorkspaceServicePhotoEditR
+  , getWorkspaceServicePhotoNewR
+  , getWorkspaceServicePhotoR, postWorkspaceServicePhotoR
+  , postWorkspaceServicePhotoDeleR
+  , getWorkspaceServiceAssignmentsR, postWorkspaceServiceAssignmentsR
+  , getWorkspaceServiceAssignmentNewR
+  , getWorkspaceServiceAssignmentR, postWorkspaceServiceAssignmentR
+  , getWorkspaceServiceAssignmentEditR
+  , postWorkspaceServiceAssignmentDeleR
   ) where
 
 import Control.Monad (join, void)
@@ -51,7 +63,7 @@ import Data.Text.Encoding (encodeUtf8)
 import Data.Time
     ( UTCTime(utctDay), getCurrentTime, LocalTime (LocalTime)
     , DayPeriod (periodLastDay), diffLocalTime, nominalDiffTimeToSeconds
-    , secondsToNominalDiffTime
+    , secondsToNominalDiffTime, utcToLocalTime, utc, localTimeToUTC
     )
 import Data.Time.Calendar
     ( DayOfWeek (Monday), DayPeriod (periodFirstDay)
@@ -59,6 +71,7 @@ import Data.Time.Calendar
     )
 import Data.Time.Calendar.Month (Month, addMonths, pattern YearMonth)
 import Data.Time.Clock (NominalDiffTime)
+import Data.Time.Format.ISO8601 (iso8601Show)
 import Data.Time.Format (formatTime, defaultTimeLocale)
 
 import Database.Esqueleto.Experimental
@@ -70,7 +83,7 @@ import Database.Persist
     ( Entity (Entity), PersistStoreWrite (delete)
     , entityVal, entityKey, insert, insert_, replace, upsert
     )
-import qualified Database.Persist as P ((=.))
+import qualified Database.Persist as P ((=.), delete, replace)
 
 import Foundation
     ( Handler, Form
@@ -80,9 +93,14 @@ import Foundation
       , DataBusinessDeleR, DataBusinessLogoR, DataWorkspacesR, DataWorkspaceNewR
       , DataWorkspaceR, DataWorkspaceEditR, DataWorkspaceDeleR, DataWorkingHoursR
       , DataWorkingSlotsR, DataWorkingSlotNewR, DataWorkingSlotR
-      , DataWorkingSlotEditR, DataWorkingSlotDeleR
+      , DataWorkingSlotEditR, DataWorkingSlotDeleR, EmployeePhotoR
       , PayOptionsR, PayOptionR, PayOptionNewR, PayOptionEditR, PayOptionDeleR
       , WorkspaceServicesR, WorkspaceServiceR, WorkspaceServiceNewR, ServicePhotoDefaultR
+      , WorkspaceServiceEditR, WorkspaceServiceDeleR, WorkspaceServicePhotosR
+      , WorkspaceServiceAssignmentsR, ServicePhotoR, WorkspaceServicePhotoEditR
+      , WorkspaceServicePhotoNewR, WorkspaceServiceAssignmentNewR, WorkspaceServicePhotoDeleR
+      , WorkspaceServiceAssignmentR, WorkspaceServicePhotoR, WorkspaceServiceAssignmentEditR
+      , WorkspaceServiceAssignmentDeleR
       )
     , AppMessage
       ( MsgBusinesses, MsgThereAreNoDataYet, MsgYouMightWantToAddAFew
@@ -96,13 +114,15 @@ import Foundation
       , MsgPaymentOption, MsgPayNow, MsgPayAtVenue, MsgType, MsgYooKassa
       , MsgStripe, MsgDescription, MsgPaymentGateway, MsgPayOption, MsgIcon
       , MsgLogotype, MsgLogo, MsgAttribution, MsgBusinessFullName, MsgServices
-      , MsgService, MsgUnitMinutes, MsgDuration, MsgAvailable, MsgPrice
+      , MsgService, MsgUnitMinutes, MsgDuration, MsgAvailable, MsgPrice, MsgPhoto
+      , MsgServiceAssignments, MsgServiceAssignment, MsgEmployee, MsgRole
+      , MsgAssignmentDate, MsgSchedulingInterval, MsgPriority, MsgTheStart
       )
     )
 
 import Material3
     ( md3selectField, md3mreq, md3textField, md3textareaField, md3timeField
-    , md3mopt, md3htmlField, md3intField, md3switchField
+    , md3mopt, md3htmlField, md3intField, md3switchField, md3datetimeLocalField
     )
 
 import Model
@@ -126,17 +146,35 @@ import Model
       , serviceDescr, serviceName
       )
     , ServiceId, Sector (sectorName)
+    , ServicePhotoId
+    , ServicePhoto
+      ( ServicePhoto, servicePhotoAttribution, servicePhotoService, servicePhotoMime
+      , servicePhotoPhoto
+      )
+    , AssignmentId
+    , Assignment
+      ( Assignment, assignmentStaff, assignmentRole, assignmentTime, assignmentSlotInterval
+      , assignmentPriority
+      )
+    , StaffId, Staff (Staff, staffName), StaffPhoto
     , EntityField
       ( UserName, UserId, BusinessId, BusinessOwner, WorkspaceId
       , WorkspaceBusiness, BusinessName, WorkspaceName, WorkingHoursWorkspace
       , WorkingHoursDay, WorkingHoursId, PayOptionWorkspace, PayOptionId, PayOptionType
       , PayOptionName, BusinessLogoBusiness, BusinessLogoAttribution, BusinessLogoPhoto
-      , BusinessLogoMime, ServiceWorkspace, ServiceName, SectorName
+      , BusinessLogoMime, ServiceWorkspace, ServiceName, SectorName, ServicePhotoService
+      , ServiceId, AssignmentService, AssignmentStaff, StaffId, StaffPhotoAttribution
+      , StaffPhotoStaff, AssignmentId, ServicePhotoId, ServicePhotoMime, ServicePhotoPhoto
+      , ServicePhotoAttribution, StaffName, AssignmentRole
       )
     )
 
 import Settings (widgetFile)
-import Settings.StaticFiles (img_broken_image_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg)
+import Settings.StaticFiles
+    ( img_broken_image_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg
+    , img_add_photo_alternate_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg
+    , img_rule_settings_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg
+    )
 
 import Text.Hamlet (Html)
 import Text.Printf (printf)
@@ -157,11 +195,429 @@ import Yesod.Form
     ( Field
     , FieldSettings (FieldSettings, fsName, fsLabel, fsTooltip, fsId, fsAttrs)
     , FieldView (fvInput, fvId, fvErrors, fvLabel), FormResult (FormSuccess)
-    , Textarea (Textarea), fileField
+    , Textarea (Textarea), fileField, mreq, mopt
     )
 import Yesod.Form.Functions (generateFormPost, runFormPost, checkM)
 import Yesod.Form.Fields (optionsPairs)
 import Yesod.Persist.Core (runDB)
+
+
+postWorkspaceServiceAssignmentDeleR :: BusinessId -> WorkspaceId -> ServiceId -> AssignmentId -> Handler Html
+postWorkspaceServiceAssignmentDeleR bid wid sid aid = do
+    stati <- reqGetParams <$> getRequest
+    ((fr,_),_) <- runFormPost formServiceAssignmentDelete
+    case fr of
+      FormSuccess () -> do
+          runDB $ P.delete aid
+          addMessageI statusSuccess MsgRecordDeleted
+          redirect (DataR $ WorkspaceServiceAssignmentsR bid wid sid,stati)
+      _otherwise -> do
+          addMessageI statusError MsgInvalidFormData
+          redirect (DataR $ WorkspaceServiceAssignmentR bid wid sid aid,stati)
+
+
+postWorkspaceServiceAssignmentR :: BusinessId -> WorkspaceId -> ServiceId -> AssignmentId -> Handler Html
+postWorkspaceServiceAssignmentR bid wid sid aid = do
+    stati <- reqGetParams <$> getRequest
+
+    assignment <- runDB $ selectOne $ do
+        x <- from $ table @Assignment
+        where_ $ x ^. AssignmentId ==. val aid
+        return x
+
+    ((fr,fw),et) <- runFormPost $ formServiceAssignment sid assignment
+
+    case fr of
+      FormSuccess r -> do
+          runDB $ P.replace aid r
+          addMessageI statusSuccess MsgRecordEdited
+          redirect $ DataR $ WorkspaceServiceAssignmentR bid wid sid aid
+      _otherwise -> do
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgServiceAssignment
+              idFormAssignment <- newIdent
+              $(widgetFile "data/business/workspaces/services/assignments/edit")
+
+
+getWorkspaceServiceAssignmentEditR :: BusinessId -> WorkspaceId -> ServiceId -> AssignmentId -> Handler Html
+getWorkspaceServiceAssignmentEditR bid wid sid aid = do
+    stati <- reqGetParams <$> getRequest
+
+    assignment <- runDB $ selectOne $ do
+        x <- from $ table @Assignment
+        where_ $ x ^. AssignmentId ==. val aid
+        return x
+
+    (fw,et) <- generateFormPost $ formServiceAssignment sid assignment
+
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgServiceAssignment
+        idFormAssignment <- newIdent
+        $(widgetFile "data/business/workspaces/services/assignments/edit")
+
+
+getWorkspaceServiceAssignmentR :: BusinessId -> WorkspaceId -> ServiceId -> AssignmentId -> Handler Html
+getWorkspaceServiceAssignmentR bid wid sid aid = do
+    stati <- reqGetParams <$> getRequest
+
+    assignment <- runDB $ selectOne $ do
+        x :& s :& w :& b :& e <- from $ table @Assignment
+            `innerJoin` table @Service `on` (\(x :& s) -> x ^. AssignmentService ==. s ^. ServiceId)
+            `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
+            `innerJoin` table @Business `on` (\(_ :& _ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)
+            `innerJoin` table @Staff `on` (\(x :& _ :& _ :& _ :& e) -> x ^. AssignmentStaff ==. e ^. StaffId)
+        where_ $ x ^. AssignmentId ==. val aid
+        return (x,(e,(s,(w,b))))
+
+    (fw2,et2) <- generateFormPost formServiceAssignmentDelete
+
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgServiceAssignment 
+        $(widgetFile "data/business/workspaces/services/assignments/assignment")
+  where
+      toMinutes interval = truncate @_ @Integer (nominalDiffTimeToSeconds interval / 60)
+
+
+formServiceAssignmentDelete :: Form ()
+formServiceAssignmentDelete extra = return (pure (), [whamlet|#{extra}|])
+
+
+getWorkspaceServiceAssignmentNewR :: BusinessId -> WorkspaceId -> ServiceId -> Handler Html
+getWorkspaceServiceAssignmentNewR bid wid sid = do
+    (fw,et) <- generateFormPost $ formServiceAssignment sid Nothing
+
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgServiceAssignment
+        idFormAssignment <- newIdent
+        $(widgetFile "data/business/workspaces/services/assignments/new")
+
+
+formServiceAssignment :: ServiceId -> Maybe (Entity Assignment) -> Form Assignment
+formServiceAssignment sid assignment extra = do
+
+    msgr <- getMessageRender
+
+    staff <- liftHandler $ runDB $ select $ do
+        x <- from $ table @Staff
+        orderBy [asc (x ^. StaffName), desc (x ^. StaffId)]
+        return x
+
+    (employeeR, employeeV) <- md3mreq (md3selectField (optionsPairs (options <$> staff))) FieldSettings
+        { fsLabel = SomeMessage MsgEmployee
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgEmployee)]
+        } (assignmentStaff . entityVal <$> assignment)
+
+    (roleR, roleV) <- md3mreq (uniqueRoleField sid employeeR) FieldSettings
+        { fsLabel = SomeMessage MsgRole
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgRole)]
+        } (assignmentRole . entityVal <$> assignment)
+
+    (startR, startV) <- md3mreq md3datetimeLocalField FieldSettings
+        { fsLabel = SomeMessage MsgAssignmentDate
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgAssignmentDate),("step","1")]
+        } (utcToLocalTime utc . assignmentTime . entityVal <$> assignment)
+
+    (intervalR, intervalV) <- md3mreq md3intField FieldSettings
+        { fsLabel = SomeMessage MsgSchedulingInterval
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgSchedulingInterval),("supporting-text", msgr MsgUnitMinutes)]
+        } (truncate . (/ 60) . nominalDiffTimeToSeconds . assignmentSlotInterval . entityVal <$> assignment)
+
+    (priorityR, priorityV) <- md3mreq md3intField FieldSettings
+        { fsLabel = SomeMessage MsgPriority
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgPriority)]
+        } (assignmentPriority . entityVal <$> assignment)
+
+    let r = Assignment <$> employeeR <*> pure sid <*> roleR <*> (localTimeToUTC utc <$> startR)
+            <*> ((* 60) . secondsToNominalDiffTime . fromIntegral <$> intervalR)
+            <*> priorityR
+
+    let w = [whamlet|
+                    #{extra}
+                    ^{fvInput employeeV}
+                    ^{fvInput roleV}
+                    ^{fvInput startV}
+                    ^{fvInput intervalV}
+                    ^{fvInput priorityV}
+                    |]
+
+    return (r, w)
+
+  where
+      options e = (staffName . entityVal $ e, entityKey e)
+
+      uniqueRoleField :: ServiceId -> FormResult StaffId -> Field Handler Text
+      uniqueRoleField sid' eid = checkM (uniqueRole sid' eid) md3textField
+
+      uniqueRole :: ServiceId -> FormResult StaffId -> Text -> Handler (Either AppMessage Text)
+      uniqueRole sid' eid name = do
+          x <- runDB $ selectOne $ do
+              x <- from $ table @Assignment
+              where_ $ x ^. AssignmentService ==. val sid'
+              case eid of
+                FormSuccess eid' -> where_ $ x ^. AssignmentStaff ==. val eid'
+                _otherwise -> where_ $ val True
+              where_ $ x ^. AssignmentRole ==. val name
+              return x
+          return $ case x of
+            Nothing -> Right name
+            Just (Entity aid _) -> case assignment of
+              Nothing -> Left MsgAlreadyExists
+              Just (Entity aid' _) | aid == aid' -> Right name
+                                   | otherwise -> Left MsgAlreadyExists
+
+
+postWorkspaceServiceAssignmentsR :: BusinessId -> WorkspaceId -> ServiceId -> Handler Html
+postWorkspaceServiceAssignmentsR bid wid sid = do
+    ((fr,fw),et) <- runFormPost $ formServiceAssignment sid Nothing
+    case fr of
+      FormSuccess r -> do
+          runDB $ insert_ r
+          addMessageI statusSuccess MsgRecordAdded
+          redirect $ DataR $ WorkspaceServiceAssignmentsR bid wid sid
+      _otherwise -> do
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgServiceAssignment
+              idFormAssignment <- newIdent
+              $(widgetFile "data/business/workspaces/services/assignments/new")
+
+
+getWorkspaceServiceAssignmentsR :: BusinessId -> WorkspaceId -> ServiceId -> Handler Html
+getWorkspaceServiceAssignmentsR bid wid sid = do
+    stati <- reqGetParams <$> getRequest
+
+    assignments <- (second (second (second (second(second (join . unValue))))) <$>) <$> runDB ( select $ do
+        x :& s :& w :& b :& e :& f <- from $ table @Assignment
+            `innerJoin` table @Service `on` (\(x :& s) -> x ^. AssignmentService ==. s ^. ServiceId)
+            `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
+            `innerJoin` table @Business `on` (\(_ :& _ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)
+            `innerJoin` table @Staff `on` (\(x :& _ :& _ :& _ :& e) -> x ^. AssignmentStaff ==. e ^. StaffId)
+            `leftJoin` table @StaffPhoto `on` (\(_ :& _ :& _ :& _ :& e :& f) -> just (e ^. StaffId) ==. f ?. StaffPhotoStaff)
+        where_ $ x ^. AssignmentService ==. val sid
+        orderBy [desc (x ^. AssignmentId)]
+        return (x,(e,(s,(w,(b, f ?. StaffPhotoAttribution))))) )
+
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgServiceAssignments
+        idTabAssignments <- newIdent
+        idPanelAssignments <- newIdent
+        idFabAdd <- newIdent 
+        $(widgetFile "data/business/workspaces/services/assignments/assignments")
+
+
+postWorkspaceServicePhotoDeleR :: BusinessId -> WorkspaceId -> ServiceId -> ServicePhotoId -> Handler Html
+postWorkspaceServicePhotoDeleR bid wid sid fid = do
+    ((fr2,_),_) <- runFormPost formWorkspaceServicePhotoDelete
+    case fr2 of
+      FormSuccess () -> do
+          void $ runDB $ P.delete fid
+          addMessageI statusSuccess MsgRecordDeleted
+          redirect $ DataR $ WorkspaceServicePhotosR bid wid sid
+      _otherwise -> do
+          addMessageI statusError MsgInvalidFormData
+          redirect $ DataR $ WorkspaceServicePhotoEditR bid wid sid fid
+
+
+postWorkspaceServicePhotoR :: BusinessId -> WorkspaceId -> ServiceId -> ServicePhotoId -> Handler Html
+postWorkspaceServicePhotoR bid wid sid fid = do
+    
+    photo <- runDB $ selectOne $ do
+        x <- from $ table @ServicePhoto
+        where_ $ x ^. ServicePhotoId ==. val fid
+        return x
+
+    ((fr,fw),et) <- runFormPost $ formWorkspaceServicePhoto sid photo
+
+    case fr of
+      FormSuccess (Just fi,attribution) -> do
+          bs <- fileSourceByteString fi
+          runDB $ update $ \x -> do
+              set x [ ServicePhotoMime =. val (fileContentType fi)
+                    , ServicePhotoPhoto =. val bs
+                    , ServicePhotoAttribution =. val attribution
+                    ]
+              where_ $ x ^. ServicePhotoId ==. val fid
+          redirect $ DataR $ WorkspaceServicePhotosR bid wid sid
+          
+      FormSuccess (Nothing,attribution) -> do
+          runDB $ update $ \x -> do
+              set x [ ServicePhotoAttribution =. val attribution ]
+              where_ $ x ^. ServicePhotoId ==. val fid
+          redirect $ DataR $ WorkspaceServicePhotosR bid wid sid
+              
+      _otherwise -> do
+          (fw2,et2) <- generateFormPost formWorkspaceServicePhotoDelete
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgService
+              idFormEdit <- newIdent
+              $(widgetFile "data/business/workspaces/services/photos/edit")
+
+
+getWorkspaceServicePhotoR :: BusinessId -> WorkspaceId -> ServiceId -> ServicePhotoId -> Handler TypedContent
+getWorkspaceServicePhotoR _bid _wid sid fid = do
+    photo <- runDB $ selectOne $ do
+        x <- from $ table @ServicePhoto
+        where_ $ x ^. ServicePhotoId ==. val fid
+        where_ $ x ^. ServicePhotoService ==. val sid
+        return x
+    case photo of
+      Just (Entity _ (ServicePhoto _ mime bs _)) -> return $ TypedContent (encodeUtf8 mime) $ toContent bs
+      Nothing -> redirect $ StaticR img_rule_settings_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg
+
+
+getWorkspaceServicePhotoEditR :: BusinessId -> WorkspaceId -> ServiceId -> ServicePhotoId -> Handler Html
+getWorkspaceServicePhotoEditR bid wid sid fid = do
+
+    photo <- runDB $ selectOne $ do
+        x <- from $ table @ServicePhoto
+        where_ $ x ^. ServicePhotoId ==. val fid
+        return x
+        
+    (fw2,et2) <- generateFormPost formWorkspaceServicePhotoDelete
+    
+    (fw,et) <- generateFormPost $ formWorkspaceServicePhoto sid photo
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgService
+        idFormEdit <- newIdent
+        $(widgetFile "data/business/workspaces/services/photos/edit")
+    
+
+formWorkspaceServicePhoto :: ServiceId -> Maybe (Entity ServicePhoto) -> Form (Maybe FileInfo,Maybe Html)
+formWorkspaceServicePhoto sid photo extra = do
+
+    msgr <- getMessageRender
+    
+    (photoR,photoV) <- mopt fileField FieldSettings
+        { fsLabel = SomeMessage MsgPhoto
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("style","display:none")]
+        } Nothing
+    
+    (attribR,attribV) <- md3mopt md3htmlField FieldSettings
+        { fsLabel = SomeMessage MsgAttribution
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgAttribution)]
+        } (servicePhotoAttribution . entityVal <$> photo)
+
+    let r = (,) <$> photoR <*> attribR
+
+    idLabelPhoto <- newIdent
+    idFigurePhoto <- newIdent
+    idImgPhoto <- newIdent
+    
+    let w = $(widgetFile "data/business/workspaces/services/photos/form")
+    return (r,w)
+
+
+formWorkspaceServicePhotoDelete :: Form ()
+formWorkspaceServicePhotoDelete extra = return (pure (),[whamlet|#{extra}|])
+
+
+getWorkspaceServicePhotoNewR :: BusinessId -> WorkspaceId -> ServiceId -> Handler Html
+getWorkspaceServicePhotoNewR bid wid sid = do
+
+    (fw,et) <- generateFormPost $ formWorkspaceServicePhotoNew sid Nothing
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgService
+        idFormNew <- newIdent
+        $(widgetFile "data/business/workspaces/services/photos/new")
+
+
+formWorkspaceServicePhotoNew :: ServiceId -> Maybe (Entity ServicePhoto) -> Form (FileInfo,Maybe Html)
+formWorkspaceServicePhotoNew sid photo extra = do
+
+    msgr <- getMessageRender
+    
+    (photoR,photoV) <- mreq fileField FieldSettings
+        { fsLabel = SomeMessage MsgPhoto
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("style","display:none")]
+        } Nothing
+    
+    (attribR,attribV) <- md3mopt md3htmlField FieldSettings
+        { fsLabel = SomeMessage MsgAttribution
+        , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
+        , fsAttrs = [("label", msgr MsgAttribution)]
+        } (servicePhotoAttribution . entityVal <$> photo)
+
+    let r = (,) <$> photoR <*> attribR
+
+    idLabelPhoto <- newIdent
+    idFigurePhoto <- newIdent
+    idImgPhoto <- newIdent
+    
+    let w = $(widgetFile "data/business/workspaces/services/photos/form")
+    return (r,w)
+
+
+postWorkspaceServicePhotosR :: BusinessId -> WorkspaceId -> ServiceId -> Handler Html
+postWorkspaceServicePhotosR bid wid sid = do
+
+    ((fr,fw),et) <- runFormPost $ formWorkspaceServicePhotoNew sid Nothing
+
+    case fr of
+      FormSuccess (fi,attribution) -> do
+          bs <- fileSourceByteString fi
+          runDB $ insert_ ServicePhoto { servicePhotoService = sid
+                                       , servicePhotoMime = fileContentType fi
+                                       , servicePhotoPhoto = bs
+                                       , servicePhotoAttribution = attribution
+                                       }
+          redirect $ DataR $ WorkspaceServicePhotosR bid wid sid
+      _otherwise -> do
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgService
+              idFormNew <- newIdent
+              $(widgetFile "data/business/workspaces/services/photos/new")
+
+
+getWorkspaceServicePhotosR :: BusinessId -> WorkspaceId -> ServiceId -> Handler Html
+getWorkspaceServicePhotosR bid wid sid = do
+
+    stati <- reqGetParams <$> getRequest
+
+    photos <- runDB $ select $ do
+        x <- from $ table @ServicePhoto
+        where_ $ x ^. ServicePhotoService ==. val sid
+        return x
+
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgService
+        idTabPhotos <- newIdent
+        idPanelPhotos <- newIdent
+        idFabAdd <- newIdent
+        $(widgetFile "data/business/workspaces/services/photos/photos")
+
+
+postWorkspaceServiceDeleR :: BusinessId -> WorkspaceId -> ServiceId -> Handler Html
+postWorkspaceServiceDeleR bid wid sid = do
+    stati <- reqGetParams <$> getRequest
+    ((fr,_),_) <- runFormPost formWorkspaceServiceDelete
+    case fr of
+      FormSuccess () -> do
+          void $ runDB $ P.delete sid
+          addMessageI statusSuccess MsgRecordDeleted
+          redirect (DataR $ WorkspaceServicesR bid wid,stati)
+      _otherwise -> do
+          addMessageI statusError MsgInvalidFormData
+          redirect (DataR $ WorkspaceServiceR bid wid sid,stati)
 
 
 getWorkspaceServiceNewR :: BusinessId -> WorkspaceId -> Handler Html
@@ -265,8 +721,71 @@ formServiceWorkspace wid service extra = do
                                    | otherwise -> Left MsgAlreadyExists
 
 
+getWorkspaceServiceEditR :: BusinessId -> WorkspaceId -> ServiceId -> Handler Html
+getWorkspaceServiceEditR bid wid sid = do
+    stati <- reqGetParams <$> getRequest
+
+    service <- runDB $ selectOne $ do
+        x <- from $ table @Service
+        where_ $ x ^. ServiceId ==. val sid
+        return x
+
+    (fw,et) <- generateFormPost $ formServiceWorkspace wid service
+
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgServices
+        idFormService <- newIdent
+        $(widgetFile "data/business/workspaces/services/edit")
+
+
+postWorkspaceServiceR :: BusinessId -> WorkspaceId -> ServiceId -> Handler Html
+postWorkspaceServiceR bid wid sid = do
+    stati <- reqGetParams <$> getRequest
+
+    service <- runDB $ selectOne $ do
+        x <- from $ table @Service
+        where_ $ x ^. ServiceId ==. val sid
+        return x
+
+    ((fr,fw),et) <- runFormPost $ formServiceWorkspace wid service
+    case fr of
+      FormSuccess r -> do
+          runDB $ P.replace sid r
+          addMessageI statusSuccess MsgRecordEdited
+          redirect $ DataR $ WorkspaceServiceR bid wid sid
+      _otherwise -> do
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgServices
+              idFormService <- newIdent
+              $(widgetFile "data/business/workspaces/services/edit")
+    
+
 getWorkspaceServiceR :: BusinessId -> WorkspaceId -> ServiceId -> Handler Html
-getWorkspaceServiceR bid wid sid = undefined
+getWorkspaceServiceR bid wid sid = do
+
+    stati <- reqGetParams <$> getRequest
+
+    service <- runDB $ selectOne $ do
+        x :& w <- from $ table @Service
+            `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
+        where_ $ x ^. ServiceId ==. val sid
+        where_ $ x ^. ServiceWorkspace ==. val wid
+        return (x,w)
+
+    (fw2,et2) <- generateFormPost formWorkspaceServiceDelete
+
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgService 
+        idTabDetails <- newIdent
+        idPanelDetails <- newIdent
+        $(widgetFile "data/business/workspaces/services/service")
+
+
+formWorkspaceServiceDelete :: Form ()
+formWorkspaceServiceDelete extra = return (pure (), [whamlet|#{extra}|])
 
 
 postWorkspaceServicesR :: BusinessId -> WorkspaceId -> Handler Html

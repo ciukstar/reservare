@@ -1,6 +1,6 @@
 
 <header>
-  <md-icon-button href=@?{(DataR ServicesR,stati)} aria-label=_{MsgBack}>
+  <md-icon-button href=@?{(DataR $ WorkspaceServicesR bid wid,stati)} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
   <span.md-typescale-title-large>
@@ -9,7 +9,7 @@
   <span #headerEnd>
     <md-icon-button type=button aria-label=_{MsgDele} onclick="document.getElementById('idDialogDelete').show()">
       <md-icon>delete
-    <md-icon-button href=@?{(DataR $ ServiceEditR sid,stati)} aria-label=_{MsgEdit}>
+    <md-icon-button href=@?{(DataR $ WorkspaceServiceEditR bid wid sid,stati)} aria-label=_{MsgEdit}>
       <md-icon>edit
 
 <md-dialog #idDialogDelete>
@@ -20,7 +20,7 @@
   <div slot=actions>
     <md-text-button type=button onclick="document.getElementById('idDialogDelete').close()">
       _{MsgCancel}
-    <form slot=content method=post action=@?{(DataR $ ServiceDeleR sid,stati)} enctype=#{et2}>
+    <form slot=content method=post action=@?{(DataR $ WorkspaceServiceDeleR bid wid sid,stati)} enctype=#{et2}>
       ^{fw2}
       <md-filled-button type=submit>
         _{MsgDele}
@@ -30,15 +30,15 @@
   <md-tabs>
   
     <md-primary-tab ##{idTabDetails} aria-cotrols=#{idPanelDetails} active onclick="this.querySelector('a[href]').click()">
-      <a href=@?{(DataR $ ServiceR sid,stati)}>
+      <a href=@?{(DataR $ WorkspaceServiceR bid wid sid,stati)}>
       _{MsgDetails}
       
     <md-primary-tab #idTabPhotos aria-cotrols=idPanelPhotos onclick="this.querySelector('a[href]').click()">
-      <a href=@?{(DataR $ ServicePhotosR sid,stati)}>
+      <a href=@?{(DataR $ WorkspaceServicePhotosR bid wid sid,stati)}>
       _{MsgPhoto}
       
     <md-primary-tab #idTabAssignments aria-cotrols=idPanelAssignments onclick="this.querySelector('a[href]').click()">
-      <a href=@?{(DataR $ ServiceAssignmentsR sid,stati)}>
+      <a href=@?{(DataR $ WorkspaceServiceAssignmentsR bid wid sid,stati)}>
       _{MsgServiceAssignments}
       
 

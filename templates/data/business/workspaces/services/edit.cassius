@@ -16,7 +16,7 @@ main
     flex-direction: column
     gap: 1rem
 
-    ##{idFormStaff}
+    ##{idFormService}
         display: flex
         flex-direction: column
         row-gap: 1rem

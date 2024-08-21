@@ -118,11 +118,25 @@
     /staff/#StaffId           EmployeeR     GET POST
     /staff                    StaffR        GET POST
 
+    
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId/assignments/#AssignmentId/dele WorkspaceServiceAssignmentDeleR POST
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId/assignments/#AssignmentId/edit WorkspaceServiceAssignmentEditR GET
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId/assignments/new/form      WorkspaceServiceAssignmentNewR GET
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId/assignments/#AssignmentId WorkspaceServiceAssignmentR    GET POST
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId/assignments               WorkspaceServiceAssignmentsR   GET POST
 
-                          
-    /bids/#BusinessId/wids/#WorkspaceId/sevices/new/form   WorkspaceServiceNewR GET
-    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId WorkspaceServiceR    GET
-    /bids/#BusinessId/wids/#WorkspaceId/sevices            WorkspaceServicesR   GET POST
+    
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId/photos/#ServicePhotoId/dele WorkspaceServicePhotoDeleR POST
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId/photos/#ServicePhotoId/edit WorkspaceServicePhotoEditR GET
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId/photos/new/form             WorkspaceServicePhotoNewR  GET
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId/photos/#ServicePhotoId      WorkspaceServicePhotoR     GET POST
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId/photos                      WorkspaceServicePhotosR    GET POST
+    
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId/form/dele WorkspaceServiceDeleR   POST
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId/form/edit WorkspaceServiceEditR   GET
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/new/form             WorkspaceServiceNewR    GET
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId           WorkspaceServiceR       GET POST
+    /bids/#BusinessId/wids/#WorkspaceId/sevices                      WorkspaceServicesR      GET POST
 
     /bids/#BusinessId/wids/#WorkspaceId/options/#PayOptionId/form/dele PayOptionDeleR POST
     /bids/#BusinessId/wids/#WorkspaceId/options/#PayOptionId/form/edit PayOptionEditR GET
