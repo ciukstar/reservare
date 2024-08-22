@@ -372,7 +372,7 @@ postServiceR sid = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgServices
-              idFormStaff <- newIdent
+              idFormService <- newIdent
               $(widgetFile "data/services/edit")
 
 
@@ -404,7 +404,7 @@ getServiceEditR sid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServices
-        idFormStaff <- newIdent
+        idFormService <- newIdent
         $(widgetFile "data/services/edit")
 
 

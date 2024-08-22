@@ -1,0 +1,73 @@
+
+<header>
+  <md-icon-button href=@?{(DataR $ BusinessServiceAssignmentsR bid sid,stati)} aria-label=_{MsgBack}>
+    <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgServiceAssignment}
+
+  <span #headerEnd>
+    <md-icon-button type=button aria-label=_{MsgDele} onclick="document.getElementById('idDialogDelete').show()">
+      <md-icon>delete
+    <md-icon-button href=@?{(DataR $ BusinessServiceAssignmentEditR bid sid aid,stati)} aria-label=_{MsgEdit}>
+      <md-icon>edit
+
+<md-dialog #idDialogDelete>
+  <div slot=headline>
+    _{MsgConfirmPlease}
+  <div slot=content>
+    _{MsgDeleteAreYouSure}
+  <div slot=actions>
+    <md-text-button type=button onclick="document.getElementById('idDialogDelete').close()">
+      _{MsgCancel}
+    <form slot=content method=post action=@?{(DataR $ BusinessServiceAssignmentDeleR bid sid aid,stati)} enctype=#{et2}>
+      ^{fw2}
+      <md-filled-button type=submit>
+        _{MsgDele}
+
+<main>
+
+  ^{widgetBanner msgs}
+
+  $maybe (Entity _ (Assignment _ _ role start interval priority),(employee,(service,(workspace,buisiness)))) <- assignment
+    <dl>
+
+      <dt.md-typescale-label-large>_{MsgEmployee}
+      <dd.md-typescale-body-medium>
+        $with Entity _ (Staff name _ _ _) <- employee
+          #{name}
+
+      <dt.md-typescale-label-large>_{MsgRole}
+      <dd.md-typescale-body-medium>
+        #{role}
+          
+      <dt.md-typescale-label-large>_{MsgTheStart}
+      <dd.md-typescale-body-medium>
+        $with dt <- iso8601Show start
+          <time datetime=#{dt}>#{dt}
+
+      <dt.md-typescale-label-large>_{MsgSchedulingInterval}
+      <dd.md-typescale-body-medium>
+        #{show $ toMinutes interval} _{MsgUnitMinutes}
+
+      <dt.md-typescale-label-large>_{MsgPriority}
+      <dd.md-typescale-body-medium>
+        #{show $ priority}
+
+      <dt.md-typescale-label-large>_{MsgService}
+      <dd.md-typescale-body-medium>
+        $with Entity _ (Service _ name _ _ _ _ _) <- service
+          #{name}
+
+      <dt.md-typescale-label-large>_{MsgWorkspace}
+      <dd.md-typescale-body-medium>
+        $with Entity _ (Workspace _ name _ _ _) <- workspace
+          #{name}
+
+      <dt.md-typescale-label-large>_{MsgBusiness}
+      <dd.md-typescale-body-medium>
+        $with Entity _ (Business _ name _ _) <- buisiness
+          #{name}
+          
+
+  ^{widgetSnackbar msgs}

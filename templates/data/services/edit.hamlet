@@ -10,7 +10,7 @@
 
   ^{widgetBanner msgs}
 
-  <form method=post action=@?{(DataR $ ServiceR sid,stati)} enctype=#{et} novalidate ##{idFormStaff}>
+  <form method=post action=@?{(DataR $ ServiceR sid,stati)} enctype=#{et} novalidate ##{idFormService}>
     ^{fw}
     <div.form-actions>
       <md-text-button type=button href=@?{(DataR $ ServiceR sid,stati)}>

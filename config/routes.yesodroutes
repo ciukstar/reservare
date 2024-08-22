@@ -132,11 +132,11 @@
     /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId/photos/#ServicePhotoId      WorkspaceServicePhotoR     GET POST
     /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId/photos                      WorkspaceServicePhotosR    GET POST
     
-    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId/form/dele WorkspaceServiceDeleR   POST
-    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId/form/edit WorkspaceServiceEditR   GET
-    /bids/#BusinessId/wids/#WorkspaceId/sevices/new/form             WorkspaceServiceNewR    GET
-    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId           WorkspaceServiceR       GET POST
-    /bids/#BusinessId/wids/#WorkspaceId/sevices                      WorkspaceServicesR      GET POST
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId/form/dele WorkspaceServiceDeleR POST
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId/form/edit WorkspaceServiceEditR GET
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/new/form             WorkspaceServiceNewR  GET
+    /bids/#BusinessId/wids/#WorkspaceId/sevices/#ServiceId           WorkspaceServiceR     GET POST
+    /bids/#BusinessId/wids/#WorkspaceId/sevices                      WorkspaceServicesR    GET POST
 
     /bids/#BusinessId/wids/#WorkspaceId/options/#PayOptionId/form/dele PayOptionDeleR POST
     /bids/#BusinessId/wids/#WorkspaceId/options/#PayOptionId/form/edit PayOptionEditR GET
@@ -158,6 +158,24 @@
     /businesses/#BusinessId/workspaces                        DataWorkspacesR    GET POST
 
     
+    /businesses/#BusinessId/sevices/#ServiceId/assignments/#AssignmentId/dele BusinessServiceAssignmentDeleR POST
+    /businesses/#BusinessId/sevices/#ServiceId/assignments/#AssignmentId/edit BusinessServiceAssignmentEditR GET
+    /businesses/#BusinessId/sevices/#ServiceId/assignments/new/form           BusinessServiceAssignmentNewR  GET
+    /businesses/#BusinessId/sevices/#ServiceId/assignments/#AssignmentId      BusinessServiceAssignmentR     GET POST
+    /businesses/#BusinessId/sevices/#ServiceId/assignments                    BusinessServiceAssignmentsR    GET POST
+    
+    /businesses/#BusinessId/sevices/#ServiceId/photos/#ServicePhotoId/dele BusinessServicePhotoDeleR POST
+    /businesses/#BusinessId/sevices/#ServiceId/photos/#ServicePhotoId/edit BusinessServicePhotoEditR GET
+    /businesses/#BusinessId/sevices/#ServiceId/photos/new/form             BusinessServicePhotoNewR  GET
+    /businesses/#BusinessId/sevices/#ServiceId/photos/#ServicePhotoId      BusinessServicePhotoR     POST
+    /businesses/#BusinessId/sevices/#ServiceId/photos                      BusinessServicePhotosR    GET POST
+
+    /businesses/#BusinessId/sevices/#ServiceId/dele BusinessServiceDeleR POST
+    /businesses/#BusinessId/sevices/#ServiceId/edit BusinessServiceEditR GET
+    /businesses/#BusinessId/sevices/new/form        BusinessServiceNewR  GET
+    /businesses/#BusinessId/sevices/#ServiceId      BusinessServiceR     GET POST
+    /businesses/#BusinessId/sevices                 BusinessServicesR    GET POST
+
     /businesses/#BusinessId/logo       DataBusinessLogoR GET
     
     /businesses/#BusinessId/form/dele  DataBusinessDeleR POST

@@ -1,5 +1,5 @@
 
-<header>
+<header.background>
   <md-icon-button href=@{DataR DataBusinessesR} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
@@ -45,6 +45,10 @@
       <a href=@{DataR $ DataWorkspacesR bid}>
       _{MsgWorkspaces}
       
+    <md-primary-tab #idTabServices aria-cotrols=idPanelServices onclick="this.querySelector('a[href]').click()">
+      <a href=@{DataR $ BusinessServicesR bid}>
+      _{MsgServices}
+      
 
   <div ##{idPanelDetails} role=tabpanel aria-labelledby=#{idTabDetails}>
     ^{widgetBanner msgs}
@@ -76,3 +80,5 @@
     ^{widgetSnackbar msgs}
 
   <div #idPanelWorkspaces role=tabpanel aria-labelledby=idTabWorkspaces hidden>
+
+  <div #idPanelServices role=tabpanel aria-labelledby=idTabServices hidden>

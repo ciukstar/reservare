@@ -154,6 +154,21 @@ import Handler.Data.Business
     , getDataWorkingSlotR, postDataWorkingSlotR
     , getDataWorkingSlotEditR
     , postDataWorkingSlotDeleR
+    , getBusinessServicesR, postBusinessServicesR
+    , getBusinessServiceR, postBusinessServiceR
+    , getBusinessServiceNewR
+    , getBusinessServiceEditR
+    , postBusinessServiceDeleR
+    , getBusinessServicePhotosR, postBusinessServicePhotosR
+    , getBusinessServicePhotoNewR
+    , getBusinessServicePhotoEditR
+    , postBusinessServicePhotoR
+    , postBusinessServicePhotoDeleR
+    , getBusinessServiceAssignmentsR, postBusinessServiceAssignmentsR
+    , getBusinessServiceAssignmentR, postBusinessServiceAssignmentR
+    , getBusinessServiceAssignmentNewR
+    , getBusinessServiceAssignmentEditR
+    , postBusinessServiceAssignmentDeleR
     , getPayOptionsR
     , postPayOptionsR
     , getPayOptionR

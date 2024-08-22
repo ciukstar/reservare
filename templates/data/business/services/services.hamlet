@@ -22,22 +22,23 @@
       <a href=@{DataR $ DataBusinessR bid}>
       _{MsgDetails}
       
-    <md-primary-tab ##{idTabWorkspaces} aria-cotrols=#{idPanelWorkspaces} active onclick="this.querySelector('a[href]').click()">
+    <md-primary-tab #idTabWorkspaces aria-cotrols=idPanelWorkspaces onclick="this.querySelector('a[href]').click()">
       <a href=@{DataR $ DataWorkspacesR bid}>
       _{MsgWorkspaces}
       
-    <md-primary-tab #idTabServices aria-cotrols=idPanelServices onclick="this.querySelector('a[href]').click()">
+    <md-primary-tab ##{idTabServices} aria-cotrols=#{idPanelServices} active onclick="this.querySelector('a[href]').click()">
       <a href=@{DataR $ BusinessServicesR bid}>
       _{MsgServices}
       
-
   <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
 
-  <div ##{idPanelWorkspaces} role=tabpanel aria-labelledby=#{idTabWorkspaces}>
+  <div #idPanelWorkspaces role=tabpanel aria-labelledby=idTabWorkspaces hidden>
   
+  <div ##{idPanelServices} role=tabpanel aria-labelledby=#{idTabServices}>
+
     ^{widgetBanner msgs}
 
-    $if null workspaces
+    $if null services
       <figure style="text-align:center">
         <span.on-secondary style="font-size:4rem">&varnothing;
         <figcaption.md-typescale-body-large>
@@ -46,19 +47,18 @@
             _{MsgYouMightWantToAddAFew}
     $else
       <md-list>
-        $forall Entity wid (Workspace _ name address _ _) <- workspaces
-          <md-list-item type=link href=@{DataR $ DataWorkspaceR bid wid}>
+        $forall (Entity sid (Service _ name _ price _ _ _),Entity _ (Workspace _ _ _ _ currency)) <- services
+          <md-list-item type=link href=@?{(DataR $ BusinessServiceR bid sid,stati)}>
+            <img slot=start src=@{DataR $ ServicePhotoDefaultR sid} width=56 height=56 loading=lazy>
             <div slot=headline>
               #{name}
-            <div slot=supporting-text>
-              #{address}
+            <div.currency slot=supporting-text data-value=#{price} data-currency=#{currency}>
+              #{currency}#{price}
             <md-icon slot=end>arrow_forward_ios
           <md-divider>
 
     <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ DataWorkspaceNewR bid}>
+      <a href=@{DataR $ BusinessServiceNewR bid}>
       <md-icon slot=icon>add
 
     ^{widgetSnackbar msgs}
-
-  <div #idPanelServices role=tabpanel aria-labelledby=idTabServices hidden>

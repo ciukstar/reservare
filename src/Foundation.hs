@@ -341,6 +341,25 @@ instance Yesod App where
     isAuthorized (DataR (DataWorkspacesR _)) _ = isAdmin
 
     
+    isAuthorized (DataR (BusinessServiceAssignmentDeleR {})) _ = isAdmin
+    isAuthorized (DataR (BusinessServiceAssignmentEditR {})) _ = isAdmin
+    isAuthorized (DataR (BusinessServiceAssignmentNewR _ _)) _ = isAdmin
+    isAuthorized (DataR (BusinessServiceAssignmentR {})) _ = isAdmin
+    isAuthorized (DataR (BusinessServiceAssignmentsR _ _)) _ = isAdmin
+
+    
+    isAuthorized (DataR (BusinessServicePhotoDeleR {})) _ = isAdmin
+    isAuthorized (DataR (BusinessServicePhotoEditR {})) _ = isAdmin
+    isAuthorized (DataR (BusinessServicePhotoNewR _ _)) _ = isAdmin
+    isAuthorized (DataR (BusinessServicePhotoR {})) _ = isAdmin
+    isAuthorized (DataR (BusinessServicePhotosR _ _)) _ = isAdmin
+    
+    isAuthorized (DataR (BusinessServiceDeleR _ _)) _ = isAdmin
+    isAuthorized (DataR (BusinessServiceEditR _ _)) _ = isAdmin
+    isAuthorized (DataR (BusinessServiceNewR _)) _ = isAdmin
+    isAuthorized (DataR (BusinessServiceR _ _)) _ = isAdmin
+    isAuthorized (DataR (BusinessServicesR _)) _ = isAdmin
+    
     isAuthorized (DataR (DataBusinessLogoR _)) _ = isAdmin
     isAuthorized (DataR (DataBusinessDeleR _)) _ = isAdmin
     isAuthorized (DataR (DataBusinessEditR _)) _ = isAdmin
