@@ -271,6 +271,25 @@ instance Yesod App where
     isAuthorized (DataR (ServiceR _)) _ = isAdmin
     isAuthorized r@(DataR ServicesR) _ = setUltDest r >> isAdmin
 
+    
+    isAuthorized (DataR (SectorServiceAssignmentDeleR {})) _ = isAdmin
+    isAuthorized (DataR (SectorServiceAssignmentEditR {})) _ = isAdmin
+    isAuthorized (DataR (SectorServiceAssignmentNewR {})) _ = isAdmin
+    isAuthorized (DataR (SectorServiceAssignmentR {})) _ = isAdmin
+    isAuthorized (DataR (SectorServiceAssignmentsR {})) _ = isAdmin
+
+    
+    isAuthorized (DataR (SectorServicePhotoDeleR {})) _ = isAdmin
+    isAuthorized (DataR (SectorServicePhotoEditR {})) _ = isAdmin
+    isAuthorized (DataR (SectorServicePhotoNewR {})) _ = isAdmin
+    isAuthorized (DataR (SectorServicePhotoR {})) _ = isAdmin
+    isAuthorized (DataR (SectorServicePhotosR {})) _ = isAdmin
+    
+    isAuthorized (DataR (SectorServiceDeleR {})) _ = isAdmin
+    isAuthorized (DataR (SectorServiceEditR {})) _ = isAdmin
+    isAuthorized (DataR (SectorServiceNewR _ _)) _ = isAdmin
+    isAuthorized (DataR (SectorServiceR {})) _ = isAdmin
+    isAuthorized (DataR (SectorServicesR _ _)) _ = isAdmin
 
     isAuthorized (DataR (SectorDeleR _ _)) _ = isAdmin
     isAuthorized (DataR (SectorEditR _ _)) _ = isAdmin

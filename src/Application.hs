@@ -118,6 +118,21 @@ import Handler.Data.Sectors
   , getSectorNewR
   , getSectorEditR
   , postSectorDeleR
+  , getSectorServicesR, postSectorServicesR
+  , getSectorServiceR, postSectorServiceR
+  , getSectorServiceNewR
+  , getSectorServiceEditR
+  , postSectorServiceDeleR
+  , getSectorServicePhotosR
+  , postSectorServicePhotoR
+  , getSectorServicePhotoNewR
+  , getSectorServicePhotoEditR
+  , postSectorServicePhotoDeleR
+  , getSectorServiceAssignmentsR, postSectorServiceAssignmentsR
+  , getSectorServiceAssignmentR, postSectorServiceAssignmentR
+  , getSectorServiceAssignmentNewR
+  , getSectorServiceAssignmentEditR
+  , postSectorServiceAssignmentDeleR
   )
 
 import Handler.Data.Staff

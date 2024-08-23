@@ -21,8 +21,8 @@
           _{MsgYouMightWantToAddAFew}
   $else
     <md-list>
-      $forall (_,Entity sid (Sector name _ _)) <- sectors
-        <md-list-item type=link href=@{DataR $ SectorR sid ps}>
+      $forall Entity gid (Sector name _ _) <- sectors
+        <md-list-item type=link href=@{DataR $ SectorR gid ps}>
           <div slot=headline>
             #{name}
           <md-icon slot=end>arrow_forward_ios

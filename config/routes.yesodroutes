@@ -87,6 +87,27 @@
     /services/#ServiceId           ServiceR       GET POST
     /services                      ServicesR      GET POST
 
+    
+    
+    /assignments/dele/#SectorId/services/#ServiceId/#AssignmentId/+Sectors   SectorServiceAssignmentDeleR POST
+    /assignments/edit/#SectorId/services/#ServiceId/#AssignmentId/+Sectors   SectorServiceAssignmentEditR GET
+    /assignments/new/#SectorId/services/#ServiceId/+Sectors                  SectorServiceAssignmentNewR  GET
+    /assignment/sectors/#SectorId/services/#ServiceId/#AssignmentId/+Sectors SectorServiceAssignmentR     GET POST
+    /assignments/sectors/#SectorId/services/#ServiceId/+Sectors              SectorServiceAssignmentsR    GET POST
+
+    
+    /photos/dele/sectors/#SectorId/services/#ServiceId/#ServicePhotoId/+Sectors SectorServicePhotoDeleR POST
+    /photos/edit/sectors/#SectorId/services/#ServiceId/#ServicePhotoId/+Sectors SectorServicePhotoEditR GET
+    /photos/new/sectors/#SectorId/services/#ServiceId/+Sectors                  SectorServicePhotoNewR  GET
+    /photos/sectors/#SectorId/services/#ServiceId/#ServicePhotoId/+Sectors      SectorServicePhotoR     POST
+    /photo/sectors/#SectorId/services/#ServiceId/+Sectors                       SectorServicePhotosR    GET
+    
+    /forms/dele/sectors/#SectorId/services/#ServiceId/+Sectors SectorServiceDeleR POST
+    /forms/edit/sectors/#SectorId/services/#ServiceId/+Sectors SectorServiceEditR GET
+    /forms/new/sectors/#SectorId/services/+Sectors             SectorServiceNewR  GET
+    /tag/#SectorId/services/#ServiceId/+Sectors                SectorServiceR     GET POST
+    /tags/#SectorId/+Sectors                                   SectorServicesR    GET POST
+
     /dele/sectors/#SectorId/+Sectors SectorDeleR POST
     /edit/sectors/#SectorId/+Sectors SectorEditR GET
     /form/sectors/new/+Sectors       SectorNewR  GET

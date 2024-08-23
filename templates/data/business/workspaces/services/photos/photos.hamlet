@@ -40,7 +40,7 @@
       <md-list>
         $forall Entity fid (ServicePhoto _ _ _ attrib) <- photos
           <md-list-item type=link href=@?{(DataR $ WorkspaceServicePhotoEditR bid wid sid fid,stati)}>
-            <img slot=start src=@{DataR $ ServicePhotoR sid fid} width=64 height=64 loading=lazy>
+            <img slot=start src=@{DataR $ ServicePhotoR sid fid} width=auto height=64 loading=lazy>
             <div slot=supporting-text>
             <md-icon slot=end>arrow_forward_ios
           $maybe attrib <- attrib

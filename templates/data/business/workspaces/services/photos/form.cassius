@@ -4,4 +4,4 @@
     align-self: center
   
 ##{idImgPhoto}
-    clip-path: circle(50%)
+    border-radius: 0.5rem

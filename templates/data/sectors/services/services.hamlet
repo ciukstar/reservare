@@ -1,0 +1,62 @@
+
+<header.background>
+  $if null gids
+    <md-icon-button href=@{DataR $ SectorsR (Sectors [])} aria-label=_{MsgBack}>
+      <md-icon>arrow_back
+  $else
+    <md-icon-button href=@{DataR $ SectorsR (Sectors (init gids))} aria-label=_{MsgBack}>
+      <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgSector}
+
+<main>
+  
+  <md-tabs aria-label=_{MsgTabs}>
+  
+    <md-primary-tab #idTabDetails aria-controls=idPanelDetails onclick="this.querySelector('a[href]').click()">
+      
+      <a href=@{DataR $ SectorR (last gids) (Sectors (init gids))}>
+      _{MsgDetails}
+      
+    <md-primary-tab #idTabSubsectors aria-controls=idPanelSubsectors onclick="this.querySelector('a[href]').click()">
+      
+      <a href=@{DataR $ SectorsR ps}>
+      _{MsgSubsectors}
+      
+    <md-primary-tab #idTabServices aria-cotrols=idPanelServices active onclick="this.querySelector('a[href]').click()">
+      <a href=@{DataR $ SectorServicesR (last gids) (Sectors (init gids))}>
+      _{MsgServices}
+
+  <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
+  
+  <div #idPanelSubsectors role=tabpanel aria-labelledby=idTabSubsectors hidden>
+  
+  <div ##{idPanelServices} role=tabpanel aria-labelledby=#{idTabServices}>
+
+    ^{widgetBanner msgs}
+
+    $if null services
+      <figure style="text-align:center">
+        <span.on-secondary style="font-size:4rem">&varnothing;
+        <figcaption.md-typescale-body-large>
+          _{MsgThereAreNoDataYet}
+          <div.md-typescale-body-small>
+            _{MsgYouMightWantToAddAFew}
+    $else
+      <md-list>
+        $forall (Entity sid (Service _ name _ price _ _ _),Entity _ (Workspace _ _ _ _ currency)) <- services
+          <md-list-item type=link href=@?{(DataR $ SectorServiceR gid sid ps,stati)}>
+            <img slot=start src=@{DataR $ ServicePhotoDefaultR sid} width=56 height=56 loading=lazy>
+            <div slot=headline>
+              #{name}
+            <div.currency slot=supporting-text data-value=#{price} data-currency=#{currency}>
+              #{currency}#{price}
+            <md-icon slot=end>arrow_forward_ios
+          <md-divider>
+
+    <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
+      <a href=@{DataR $ SectorServiceNewR gid ps}>
+      <md-icon slot=icon>add
+
+    ^{widgetSnackbar msgs}

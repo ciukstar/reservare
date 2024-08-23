@@ -10,7 +10,6 @@
            ##{idImgPhoto} loading=lazy alt=_{MsgPhoto}>
            
     <figcaption>
-
       $maybe errs <- fvErrors photoV
         <div.body-medium style="color:var(--md-sys-color-error)">
           #{errs}
@@ -20,5 +19,5 @@
         _{MsgPhoto}
         
 ^{fvInput photoV}
-
+    
 ^{fvInput attribV}

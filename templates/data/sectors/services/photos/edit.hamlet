@@ -1,0 +1,37 @@
+<header.background>
+  <md-icon-button href=@{DataR $ SectorServicePhotosR gid sid ps} aria-label=_{MsgBack}>
+    <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgPhoto}
+
+  <span #headerEnd>
+    <md-icon-button type=button aria-label=_{MsgDele} onclick="document.getElementById('idDialogDelete').show()">
+      <md-icon>delete
+
+<md-dialog #idDialogDelete>
+  <div slot=headline>
+    _{MsgConfirmPlease}
+  <div slot=content>
+    _{MsgDeleteAreYouSure}
+  <div slot=actions>
+    <md-text-button type=button onclick="document.getElementById('idDialogDelete').close()">
+      _{MsgCancel}
+    <form slot=content method=post action=@{DataR $ SectorServicePhotoDeleR gid sid fid ps} enctype=#{et2}>
+      ^{fw2}
+      <md-filled-button type=submit>
+        _{MsgDele}
+      
+<main>
+
+  ^{widgetBanner msgs}
+
+  <form method=post action=@{DataR $ SectorServicePhotoR gid sid fid ps} enctype=#{et} novalidate ##{idFormEdit}>
+    ^{fw}
+    <div.form-actions>
+      <md-text-button type=button href=@{DataR $ SectorServicePhotosR gid sid ps}>
+        _{MsgCancel}
+      <md-filled-button type=submit>
+        _{MsgSave}
+
+  ^{widgetSnackbar msgs}

@@ -40,21 +40,20 @@
             _{MsgYouMightWantToAddAFew}
     $else
       <md-list>
-        $forall (Entity aid (Assignment _ _ _ time _ _),(employee,(service,(workspace,(buisiness,attrib))))) <- assignments
+        $forall (Entity aid (Assignment _ _ role _ _ _),(employee,(service,(workspace,(buisiness,attrib))))) <- assignments
           <md-list-item type=link href=@?{(DataR $ BusinessServiceAssignmentR bid sid aid,stati)}>
             $with Entity eid (Staff name _ _ _) <- employee
-              <img slot=start src=@{DataR $ EmployeePhotoR eid} width=56 height=56 loading=lazy>
+              <img slot=start src=@{DataR $ EmployeePhotoR eid} width=auto height=56 loading=lazy>
               <div slot=headline>
                 #{name}
+            <div slot=supporting-text>
+              #{role}
             <div slot=supporting-text>
               $with Entity _ (Service _ name _ _ _ _ _) <- service
                 _{MsgService}: #{name}
             <div slot=supporting-text>
               $with (Entity _ (Workspace _ wname _ _ _), Entity _ (Business _ bname _ _)) <- (workspace,buisiness)
                 _{MsgWorkspace} : #{bname} (#{wname})
-            $with dt <- iso8601Show time
-              <time slot=supporting-text datetime=#{dt}>
-                #{dt}
             <md-icon slot=end>arrow_forward_ios
           $maybe attrib <- attrib
             <div.app-attribution>
