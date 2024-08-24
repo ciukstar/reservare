@@ -1,3 +1,7 @@
+SelectAppointeePlease: Veuillez sélectionner une personne désignée
+SelectServiceToBookPlease: Veuillez sélectionner un service à réserver
+NoWorkScheduledForToday: Aucun travail prévu pour aujourd'hui
+Photos: Photos
 BusinessFullName: Nom complet
 Logo: Logo
 Logotype: Logotype

@@ -69,7 +69,7 @@ import Foundation
       , MsgEmployee, MsgAssignmentDate, MsgTheStart, MsgBusiness, MsgPrice
       , MsgSchedulingInterval, MsgUnitMinutes, MsgPriority, MsgAlreadyExists
       , MsgRole, MsgAvailable, MsgDuration, MsgType, MsgSectors, MsgBusinesses
-      , MsgWorkspaces, MsgPhoto, MsgAttribution
+      , MsgWorkspaces, MsgPhoto, MsgAttribution, MsgPhotos
       )
     )
 

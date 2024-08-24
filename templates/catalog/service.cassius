@@ -17,7 +17,6 @@ main
     ##{idPanelDetails}
         display: flex
         flex-direction: column
-        gap: 1rem
 
         .app-carousel
             padding: 1rem
@@ -37,7 +36,6 @@ main
             margin: 0 2rem
             display: flex
             flex-direction: column
-            gap: 1rem
             
             dl
                 dt + dd

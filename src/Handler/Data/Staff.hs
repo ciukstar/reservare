@@ -50,7 +50,7 @@ import Data.Time.LocalTime
 import Data.Time.Calendar (Day, toGregorian)
 import Data.Time.Calendar.Month (Month, addMonths, pattern YearMonth)
 import Data.Time.Clock (NominalDiffTime)
-import Data.Time.Format (formatTime) 
+import Data.Time.Format (formatTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
 
 import Database.Esqueleto.Experimental
@@ -73,6 +73,7 @@ import Foundation
       , StaffScheduleSlotsR, StaffScheduleSlotR, StaffScheduleSlotNewR
       , StaffScheduleSlotEditR, StaffScheduleSlotDeleR, EmployeePhotoR
       , StaffScheduleFillFromWorkingHoursR, StaffScheduleFillFromPreviousMonthR
+      , ServicePhotoDefaultR
       )
     , AppMessage
       ( MsgStaff, MsgAdd, MsgYouMightWantToAddAFew, MsgThereAreNoDataYet
@@ -127,7 +128,8 @@ import Widgets (widgetMenu, widgetAccount, widgetBanner, widgetSnackbar)
 import Yesod.Core
     ( Yesod(defaultLayout), newIdent, getMessages, whamlet, addMessageI, redirect
     , MonadHandler (liftHandler), SomeMessage (SomeMessage), MonadIO (liftIO)
-    , TypedContent (TypedContent), ToContent (toContent), FileInfo (fileContentType), fileSourceByteString
+    , TypedContent (TypedContent), ToContent (toContent), FileInfo (fileContentType)
+    , fileSourceByteString
     )
 import Yesod.Core.Handler (getMessageRender)
 import Yesod.Core.Widget (setTitleI)
@@ -580,14 +582,13 @@ getStaffAssignmentsR :: StaffId -> Handler Html
 getStaffAssignmentsR eid = do
     
     assignments <- runDB $ select $ do
-        x :& s :& w :& b :& e <- from $ table @Assignment
+        x :& s :& w :& b <- from $ table @Assignment
             `innerJoin` table @Service `on` (\(x :& s) -> x ^. AssignmentService ==. s ^. ServiceId)
             `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
             `innerJoin` table @Business `on` (\(_ :& _ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)
-            `innerJoin` table @Staff `on` (\(x :& _ :& _ :& _ :& e) -> x ^. AssignmentStaff ==. e ^. StaffId)
         where_ $ x ^. AssignmentStaff ==. val eid
         orderBy [desc (x ^. AssignmentId)]
-        return (x,(e,(s,(w,b))))
+        return (x,(s,(w,b)))
 
     attribution <- (unValue =<<) <$> runDB ( selectOne $ do
         x <- from $ table @StaffPhoto

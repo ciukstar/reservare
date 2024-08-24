@@ -211,6 +211,11 @@ instance Yesod App where
 
     
     isAuthorized (CatalogBusinessLogoR _) _ = return Authorized
+
+    
+    isAuthorized (CatalogStaffScheduleSlotsR {}) _ = return Authorized
+    isAuthorized (CatalogStaffScheduleR {}) _ = return Authorized
+    isAuthorized (CatalogServiceAssignmentR _ _) _ = return Authorized
     isAuthorized (CatalogServiceAssignmentsR _) _ = return Authorized
     isAuthorized (CatalogServiceBusinessR _) _ = return Authorized
     isAuthorized (CatalogServiceR _) _ = return Authorized

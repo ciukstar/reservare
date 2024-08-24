@@ -60,6 +60,9 @@ import Handler.Catalog
     , getCatalogServicePhotoDefaultR
     , getStaffPhotoR
     , getCatalogServiceAssignmentsR
+    , getCatalogServiceAssignmentR
+    , getCatalogStaffScheduleR
+    , getCatalogStaffScheduleSlotsR
     , getCatalogBusinessLogoR
     )
 

@@ -1,0 +1,103 @@
+
+<header.background>
+  <md-icon-button href=@{CatalogServiceAssignmentsR sid} aria-label=_{MsgBack}>
+    <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgServiceAssignment}
+
+<main>
+
+  $maybe (Entity _ (Assignment eid _ _ _ _ _),attribution) <- assignment
+    <figure>
+      <img slot=start src=@{StaffPhotoR eid} width=auto height=64 loading=lazy alt=_{MsgPhoto}>
+      <figcaption>
+        $maybe attrib <- attribution
+          <div.app-attribution>
+            <div.app-attribution-wrapper.md-typescale-body-small>
+              ^{attrib}
+
+    <md-tabs>
+
+      <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails
+        onclick="this.querySelector('a[href]').click()">
+
+        <a href=@{CatalogServiceAssignmentR sid aid}>
+        _{MsgDetails}
+
+      <md-primary-tab ##{idTabWorkingHours} aria-cotrols=#{idPanelWorkingHours} active
+        onclick="this.querySelector('a[href]').click()">
+
+        <a href=@{CatalogStaffScheduleR sid aid month}>
+        _{MsgWorkSchedule}
+
+
+    <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
+
+    <div ##{idPanelWorkingHours} role=tabpanel aria-labelledby=#{idTabWorkingHours}>
+
+      ^{widgetBanner msgs}
+
+      <div.calendar ##{idCalendarPage}>
+        <div.header>
+          <md-icon-button type=link href=@{CatalogStaffScheduleR sid aid prev} rel=nofollow>
+            <md-icon>arrow_back_ios
+          $with m <- show month
+            <time.month-of-year datetime=#{m}>
+              #{m}
+          <md-icon-button type=link href=@{CatalogStaffScheduleR sid aid next} rel=nofollow>
+            <md-icon>arrow_forward_ios
+
+        $forall wd <- [MsgMon,MsgTue,MsgWed,MsgThu,MsgFri,MsgSat,MsgSun]
+          <div.col-header>
+            _{wd}
+        $forall i <- [0,1,2,3,4,5]
+          $forall day <- take 7 (drop (i * 7) page)
+            $with (y,m,d) <- toGregorian day
+              $if (<) day today
+                <div.cell.disabled>
+
+                  <time.day-of-month datetime=#{show day}>
+                    <small>#{d}
+                  $maybe diff <- M.lookup day workdays
+                    $with r <- rest diff
+                      $if r == 0
+                        $with h <- msgr MsgSymbolHour
+                          $with fmt <- printf "%%H%s" h
+                            <div>
+                              <small>
+                                <small>#{formatTime defaultTimeLocale fmt diff}
+                      $else
+                        $with (h,m) <- (msgr MsgSymbolHour,msgr MsgSymbolMinute)
+                          $with fmt <- printf "%%H%s %%M%s" h m
+                            <div>
+                              <small>
+                                <small style="display:inline-block;line-height:1">
+                                  #{formatTime defaultTimeLocale fmt diff}
+                                  
+              $elseif (==) month (YearMonth y m)
+                <a.cell href=@{CatalogStaffScheduleSlotsR sid eid aid day} 
+                  :M.member day workdays:.primary 
+                  :M.notMember day workdays:.primary-negative>
+
+                  <time.day-of-month datetime=#{show day}>
+                    <small>#{d}
+                  $maybe diff <- M.lookup day workdays
+                    $with r <- rest diff
+                      $if r == 0
+                        $with h <- msgr MsgSymbolHour
+                          $with fmt <- printf "%%H%s" h
+                            <div>
+                              <small>
+                                <small>#{formatTime defaultTimeLocale fmt diff}
+                      $else
+                        $with (h,m) <- (msgr MsgSymbolHour,msgr MsgSymbolMinute)
+                          $with fmt <- printf "%%H%s %%M%s" h m
+                            <div>
+                              <small>
+                                <small style="display:inline-block;line-height:1">
+                                  #{formatTime defaultTimeLocale fmt diff}
+              $else
+                <div>
+
+    ^{widgetSnackbar msgs}

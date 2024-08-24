@@ -1,0 +1,42 @@
+
+<header.background>
+  <md-icon-button href=@{CatalogStaffScheduleR sid aid month} aria-label=_{MsgBack}>
+    <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgWorkingHours}
+
+<main>
+
+  ^{widgetBanner msgs}
+  
+  <p.day-label>
+    $with d <- show day
+      <time.day.md-typescale-label-large datetime=#{d}>
+        #{d}
+
+  $if null slots
+    <figure style="text-align:center">
+      <md-icon style="--md-icon-size:64px;color:var(--md-sys-color-error-container,red)">
+        event_busy
+      <figcaption.md-typescale-body-large>
+        _{MsgNoWorkScheduledForToday}
+  $else
+    <md-list>
+      $forall Entity _ (Schedule _ _ start end) <- slots
+        <md-list-item type=text>
+          <div slot=headline>
+            <time.time-of-day datetime=#{show $ LocalTime day start}>#{show start}
+            \ &mdash; #
+            <time.time-of-day datetime=#{show $ LocalTime day end}>#{show end}
+            
+            
+        <md-divider>
+
+    $with (aid,eid,sid) <- (pack $ show $ fromSqlKey aid,pack $ show $ fromSqlKey eid,pack $ show $ fromSqlKey sid)
+      $with params <- [("aid",aid),("eid",eid),("sid",sid)]
+        <md-filled-button type=link href=@?{(AppointmentTimeSlotsR day,params)} ##{idButtonMakeAnAppointment}>
+          _{MsgMakeAnAppointment}
+
+
+  ^{widgetSnackbar msgs}

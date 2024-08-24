@@ -1,5 +1,5 @@
 
-<header>
+<header.background>
   <md-icon-button href=@?{(AppointmentStaffR,stati)} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
@@ -14,12 +14,12 @@
   <div.calendar ##{idCalendarPage}>
     <div.header>
       <md-icon-button type=link href=@?{(AppointmentTimingR prev,stati)} rel=nofollow aria-label=_{MsgPrevious}>
-        <md-icon>arrow_back
+        <md-icon>arrow_back_ios
       $with m <- show month
         <time.month-of-year datetime=#{m}>
           #{m}
       <md-icon-button type=link href=@?{(AppointmentTimingR next,stati)} rel=nofollow aria-label=_{MsgNext}>
-        <md-icon>arrow_forward
+        <md-icon>arrow_forward_ios
 
     $forall wd <- [MsgMon,MsgTue,MsgWed,MsgThu,MsgFri,MsgSat,MsgSun]
       <div.col-header>
@@ -68,4 +68,5 @@
     onclick="document.getElementById('#{idFormTiming}').submit()">
     <md-icon slot=icon>arrow_forward
 
-^{widgetSnackbar msgs}
+
+  ^{widgetSnackbar msgs}

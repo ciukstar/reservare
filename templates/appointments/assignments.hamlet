@@ -5,6 +5,8 @@
 
   <span.md-typescale-title-large>
     _{MsgStaff}
+    <div.microcopy.md-typescale-body-small>
+      _{MsgSelectAppointeePlease}
 
 <main>
 

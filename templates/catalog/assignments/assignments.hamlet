@@ -10,17 +10,15 @@
 
   <md-tabs>
   
-    <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails onclick="this.querySelector('a[href]').click()">
+    <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails>
       <a href=@{CatalogServiceR sid}>
       _{MsgDetails}
       
-    <md-primary-tab #idTabBusiness aria-cotrols=idPanelBusiness onclick="this.querySelector('a[href]').click()">
+    <md-primary-tab #idTabBusiness aria-cotrols=idPanelBusiness>
       <a href=@{CatalogServiceBusinessR sid}>
       _{MsgBusiness}
       
-    <md-primary-tab ##{idTabAssignments} aria-cotrols=#{idPanelAssignments} active 
-      onclick="this.querySelector('a[href]').click()">
-      
+    <md-primary-tab ##{idTabAssignments} aria-cotrols=#{idPanelAssignments} active>
       <a href=@{CatalogServiceAssignmentsR sid}>
       _{MsgServiceAssignments}
       
@@ -40,8 +38,8 @@
           _{MsgNoStaffAssignedYet}.
     $else
       <md-list>
-        $forall (Entity _ (Assignment _ _ role _ _ _),Entity eid (Staff name _ _ _)) <- assignments
-          <md-list-item type=link href=@{CatalogServiceR sid}>
+        $forall (Entity aid (Assignment _ _ role _ _ _),Entity eid (Staff name _ _ _)) <- assignments
+          <md-list-item type=link href=@{CatalogServiceAssignmentR sid aid}>
             <img slot=start src=@{StaffPhotoR eid} width=auto height=56 loading=lazy alt=_{MsgPhoto}>
             <div slot=headline>
               #{role}

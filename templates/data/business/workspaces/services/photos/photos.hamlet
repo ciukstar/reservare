@@ -16,7 +16,7 @@
       
     <md-primary-tab ##{idTabPhotos} aria-cotrols=#{idPanelPhotos} active onclick="this.querySelector('a[href]').click()">
       <a href=@?{(DataR $ WorkspaceServicePhotosR bid wid sid,stati)}>
-      _{MsgPhoto}
+      _{MsgPhotos}
       
     <md-primary-tab #idTabAssignments aria-cotrols=idPanelAssignments onclick="this.querySelector('a[href]').click()">
       <a href=@?{(DataR $ WorkspaceServiceAssignmentsR bid wid sid,stati)}>

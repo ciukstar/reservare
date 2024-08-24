@@ -26,7 +26,7 @@
     <md-list>
       $forall (Entity sid (Service _ name _ price _ _ _),Entity _ (Workspace _ _ _ _ currency)) <- services
         <md-list-item type=link href=@?{(DataR $ ServiceR sid,stati)}>
-          <img slot=start src=@{DataR $ ServicePhotoDefaultR sid} width=56 height=56 loading=lazy>
+          <img slot=start src=@{DataR $ ServicePhotoDefaultR sid} width=auto height=56 loading=lazy>
           <div slot=headline>
             #{name}
           <div.currency slot=supporting-text data-value=#{price} data-currency=#{currency}>

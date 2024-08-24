@@ -55,12 +55,12 @@
     <div.calendar ##{idCalendarPage}>
       <div.header>
         <md-icon-button type=link href=@{DataR $ StaffScheduleR eid aid prev} rel=nofollow>
-          <md-icon>arrow_back
+          <md-icon>arrow_back_ios
         $with m <- show month
           <time.month-of-year datetime=#{m}>
             #{m}
         <md-icon-button type=link href=@{DataR $ StaffScheduleR eid aid next} rel=nofollow>
-          <md-icon>arrow_forward
+          <md-icon>arrow_forward_ios
 
       $forall wd <- [MsgMon,MsgTue,MsgWed,MsgThu,MsgFri,MsgSat,MsgSun]
         <div.col-header>

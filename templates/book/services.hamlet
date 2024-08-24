@@ -5,6 +5,8 @@
 
   <span.md-typescale-title-large>
     _{MsgServices}
+    <div.microcopy.md-typescale-body-small>
+      _{MsgSelectServiceToBookPlease}
 
 
 <main>

@@ -1,3 +1,7 @@
+SelectAppointeePlease: Пожалуйста, выберите назначенное лицо
+SelectServiceToBookPlease: Выберите услугу для бронирования
+NoWorkScheduledForToday: На сегодня работы не запланированы
+Photos: Фото
 BusinessFullName: Полное название
 Logo: Логотип
 Logotype: Логотип
@@ -137,14 +141,14 @@ Address: Адрес
 Workspaces: Рабочие места
 Details: Подробности
 RecordAdded: Запись добавлена
-Business: Деятельность
+Business: Организация
 Owner: Владелец
 TheName: Наименование
 Add: Добавить
 YouMightWantToAddAFew: Возможно, вы захотите добавить несколько
 ThereAreNoDataYet: Данных пока нет
 NoDataYet: Данных пока нет
-Businesses: Деятельности
+Businesses: Организации
 Attribution: Атрибуция
 SuperuserCannotBeDeleted: Суперпользователя нельзя удалить
 NotSpecified: Не указано

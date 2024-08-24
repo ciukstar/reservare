@@ -37,7 +37,7 @@
                 #{attribution}
                 
       <div.main>
-        $maybe (Entity _ (Service _ name descr price _ duration _),Entity _ (Workspace _ _ _ _ currency)) <- service
+        $maybe (Entity sid (Service _ name descr price _ duration _),Entity _ (Workspace _ _ _ _ currency)) <- service
           <dl>
             <dt.md-typescale-label-large scope=row>_{MsgTheName}
             <dd.md-typescale-body-medium>
@@ -56,7 +56,8 @@
             <dd.md-typescale-body-medium>
               #{show duration}
 
-        <md-filled-button>_{MsgBookNow}
+          <md-filled-button type=link href=@?{(BookStaffR,[("sid",pack $ show $ fromSqlKey sid)])}>
+            _{MsgBookNow}
 
     ^{widgetSnackbar msgs}
 

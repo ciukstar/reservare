@@ -1,0 +1,69 @@
+
+<header.background>
+  <md-icon-button href=@{CatalogServiceAssignmentsR sid} aria-label=_{MsgBack}>
+    <md-icon>arrow_back
+
+  <span.md-typescale-title-large>
+    _{MsgServiceAssignment}
+
+<main>
+
+  $maybe ((_,(Entity eid _,_)),attribution) <- assignment
+    <figure>
+      <img slot=start src=@{StaffPhotoR eid} width=auto height=64 loading=lazy alt=_{MsgPhoto}>
+      <figcaption>
+        $maybe attrib <- attribution
+          <div.app-attribution>
+            <div.app-attribution-wrapper.md-typescale-body-small>
+              ^{attrib}
+
+  <md-tabs>
+  
+    <md-primary-tab ##{idTabDetails} aria-cotrols=#{idPanelDetails} active>      
+      <a href=@{CatalogServiceAssignmentR sid aid}>
+      _{MsgDetails}
+      
+    <md-primary-tab #idTabWorkingHours aria-cotrols=idPanelWorkingHours>      
+      <a href=@{CatalogStaffScheduleR sid aid month}>
+      _{MsgWorkSchedule}
+      
+
+  <div ##{idPanelDetails} role=tabpanel aria-labelledby=#{idTabDetails}>
+  
+    ^{widgetBanner msgs}
+
+    $maybe ((Entity aid (Assignment _ _ role _ _ _),(employee,(service,(workspace,buisiness)))),_) <- assignment
+      $with Entity eid (Staff ename _ _ _) <- employee
+        $with Entity sid (Service _ sname _ _ _ _ _) <- service
+          <dl>
+
+            <dt.md-typescale-label-large>_{MsgEmployee}
+            <dd.md-typescale-body-medium>
+              #{ename}
+
+            <dt.md-typescale-label-large>_{MsgRole}
+            <dd.md-typescale-body-medium>
+              #{role}
+
+            <dt.md-typescale-label-large>_{MsgService}
+            <dd.md-typescale-body-medium>
+              #{sname}
+
+            <dt.md-typescale-label-large>_{MsgWorkspace}
+            <dd.md-typescale-body-medium>
+              $with Entity _ (Workspace _ name _ _ _) <- workspace
+                #{name}
+
+            <dt.md-typescale-label-large>_{MsgBusiness}
+            <dd.md-typescale-body-medium>
+              $with Entity _ (Business _ name _ _) <- buisiness
+                #{name}
+
+          $with (aid,eid,sid) <- (pack $ show $ fromSqlKey aid,pack $ show $ fromSqlKey eid,pack $ show $ fromSqlKey sid)
+            <md-filled-button type=link href=@?{(AppointmentTimingR month,[("aid",aid),("eid",eid),("sid",sid)])}>
+              _{MsgMakeAnAppointment}
+
+
+    ^{widgetSnackbar msgs}
+
+  <div #idPanelWorkingHours role=tabpanel aria-labelledby=idTabWorkingHours hidden>

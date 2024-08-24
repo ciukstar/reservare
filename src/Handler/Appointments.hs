@@ -60,7 +60,7 @@ import Foundation
       , MsgPrevious, MsgInvalidFormData, MsgServiceAssignment
       , MsgNoPaymentOptionSpecified, MsgWorkspaceWithoutPaymentOptions
       , MsgError, MsgEmployeeWorkScheduleForThisMonthNotSetYet, MsgWorkspaces
-      , MsgSectors, MsgBusinesses, MsgRoles
+      , MsgSectors, MsgBusinesses, MsgRoles, MsgSelectAppointeePlease
       )
     )
 

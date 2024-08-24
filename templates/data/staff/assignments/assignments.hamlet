@@ -1,5 +1,5 @@
 
-<header>
+<header.background>
   <md-icon-button href=@{DataR StaffR} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
@@ -43,23 +43,18 @@
             _{MsgYouMightWantToAddAFew}
     $else
       <md-list>
-        $forall (Entity aid (Assignment _ _ role time _ _),(employee,(service,(workspace,buisiness)))) <- assignments
-          <md-list-item type=link href=@{DataR $ StaffAssignmentR eid aid}>
-            <div slot=headline>
-              #{role}
-            <div slot=supporting-text>
-              $with Entity _ (Staff name _ _ _) <- employee
-                (#{name})
-            <div slot=supporting-text>
-              $with Entity _ (Service _ name _ _ _ _ _) <- service
-                _{MsgService}: #{name}
-            <div slot=supporting-text>
-              $with (Entity _ (Workspace _ wname _ _ _), Entity _ (Business _ bname _ _)) <- (workspace,buisiness)
-                _{MsgWorkspace} : #{bname} (#{wname})
-            $with dt <- iso8601Show time
-              <time slot=supporting-text datetime=#{dt}>
-                #{dt}
-            <md-icon slot=end>arrow_forward_ios
+        $forall (Entity aid (Assignment _ _ role _ _ _),(service,(workspace,buisiness))) <- assignments
+          $with Entity sid (Service _ sname _ _ _ _ _) <- service
+            <md-list-item type=link href=@{DataR $ StaffAssignmentR eid aid}>
+              <img slot=start src=@{DataR $ ServicePhotoDefaultR sid} width=auto height=56 loading=lazy>
+              <div slot=headline>
+                #{role}
+              <div slot=supporting-text>
+                #{sname}
+              <div slot=supporting-text>
+                $with (Entity _ (Workspace _ wname _ _ _), Entity _ (Business _ bname _ _)) <- (workspace,buisiness)
+                  #{wname} (#{bname})
+              <md-icon slot=end>arrow_forward_ios
           <md-divider>    
  
     <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">

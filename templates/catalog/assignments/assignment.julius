@@ -11,3 +11,11 @@ Array.from(
     }
   );
 });
+
+Array.from(
+  document.body.querySelectorAll('md-tabs md-primary-tab')
+).forEach(tab => {
+  tab.addEventListener('click',(e) => {
+    e.target.querySelector('a[href]').click();
+  });
+});

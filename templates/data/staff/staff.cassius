@@ -17,6 +17,7 @@ main
 
     img[slot=start]
         clip-path: circle(50%)
+        
     .app-attribution
         position: relative
         margin: 0

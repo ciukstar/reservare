@@ -10,18 +10,21 @@ header
     align-items: center
     column-gap: 0.5rem
     
-    .microcopy
-        line-height: 0
-        position: relative
-        top: 4px
-
 main
-
-    margin-bottom: 5rem
     display: flex
     flex-direction: column
 
-    ##{idFabNext}
-        position: fixed
-        right: 1rem
-        bottom: 1rem
+    figure
+        text-align: center
+        img
+            clip-path: circle(50%)
+
+    ##{idPanelDetails}
+    
+        margin: 1rem 2rem
+        display: flex
+        flex-direction: column
+        
+        dl
+            dt + dd
+                margin-bottom: 1rem

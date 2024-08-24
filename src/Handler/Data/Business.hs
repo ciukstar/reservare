@@ -130,6 +130,7 @@ import Foundation
       , MsgService, MsgUnitMinutes, MsgDuration, MsgAvailable, MsgPrice, MsgPhoto
       , MsgServiceAssignments, MsgServiceAssignment, MsgEmployee, MsgRole
       , MsgAssignmentDate, MsgSchedulingInterval, MsgPriority, MsgTheStart
+      , MsgPhotos
       )
     )
 

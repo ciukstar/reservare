@@ -61,7 +61,7 @@ import Foundation
       )
     , AppMessage
       ( MsgSectors, MsgAdd, MsgYouMightWantToAddAFew, MsgThereAreNoDataYet
-      , MsgSector, MsgBack, MsgSave, MsgCancel, MsgAlreadyExists
+      , MsgSector, MsgBack, MsgSave, MsgCancel, MsgAlreadyExists, MsgPhotos
       , MsgTheName, MsgDescription, MsgRecordAdded, MsgRecordDeleted
       , MsgInvalidFormData, MsgEdit, MsgDetails, MsgDeleteAreYouSure
       , MsgDele, MsgConfirmPlease, MsgSubsectors, MsgTabs, MsgRecordEdited

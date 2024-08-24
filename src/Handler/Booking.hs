@@ -69,7 +69,7 @@ import Foundation
       , MsgPaymentGatewayNotSpecified, MsgNoPaymentsHaveBeenMadeYet
       , MsgPayments, MsgTotalCharge, MsgError, MsgNoPaymentOptionSpecified
       , MsgWorkspaceWithoutPaymentOptions, MsgBusinesses, MsgWorkspaces
-      , MsgSectors
+      , MsgSectors, MsgSelectServiceToBookPlease
       )
     )
 

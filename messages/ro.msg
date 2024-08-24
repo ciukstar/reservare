@@ -1,3 +1,7 @@
+SelectAppointeePlease: Vă rugăm să selectați o persoană desemnată
+SelectServiceToBookPlease: Vă rugăm să selectați un serviciu de rezervat
+NoWorkScheduledForToday: Nicio lucrare programată pentru astăzi
+Photos: Poze
 BusinessFullName: Numele complet
 Logo: Sigla
 Logotype: Logotip
