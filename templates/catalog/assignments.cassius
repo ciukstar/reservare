@@ -9,3 +9,8 @@ header
     justify-content: flex-start
     align-items: center
     column-gap: 0.5rem
+
+main
+
+    img[slot=start]
+        clip-path: circle(50%)

@@ -31,8 +31,9 @@ import Foundation
     ( Handler
     , Route
       ( CatalogR, HomeR, StaticR, CatalogServicePhotoR, CatalogServiceR
-      , CatalogServiceBusinessR, CatalogServiceAssignmentsR, AccountPhotoR
+      , CatalogServiceBusinessR, CatalogServiceAssignmentsR
       , CatalogServicePhotoDefaultR, CatalogBusinessLogoR
+      , StaffPhotoR
       )
     , AppMessage
       ( MsgCatalogue, MsgServiceCatalog, MsgNoServicesWereFoundForSearchTerms
@@ -60,7 +61,7 @@ import Model
       ( ServiceAvailable, ServicePhotoService, ServiceWorkspace, WorkspaceId
       , ServiceType, WorkspaceBusiness, ServiceId, ServicePhotoId, BusinessId
       , BusinessOwner, UserId, AssignmentStaff, StaffId, AssignmentService
-      , StaffAccount, BusinessLogoBusiness, StaffPhotoStaff, BusinessLogoAttribution
+      , BusinessLogoBusiness, StaffPhotoStaff, BusinessLogoAttribution
       )
     )
 
@@ -89,11 +90,10 @@ getCatalogServiceAssignmentsR :: ServiceId -> Handler Html
 getCatalogServiceAssignmentsR sid = do
 
     assignments <- runDB $ select $ do
-        x :& e :& u <- from $ table @Assignment
+        x :& e <- from $ table @Assignment
             `innerJoin` table @Staff `on` (\(x :& e) -> x ^. AssignmentStaff ==. e ^. StaffId)
-            `leftJoin` table @User `on` (\(_ :& e :& u) -> e ^. StaffAccount ==. u ?. UserId)
         where_ $ x ^. AssignmentService ==. val sid
-        return ((x,e),u)
+        return (x,e)
 
     msgs <- getMessages
     defaultLayout $ do

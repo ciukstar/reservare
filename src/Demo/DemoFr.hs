@@ -682,12 +682,143 @@ fillDemoFr appSettings = do
                            }
 
     let business3 = Business { businessOwner = usr3
-                             , businessName = "RAL & Cie"
-                             , businessFullName = Just "Richard Arthur Louis & Cie"
-                             , businessDescr = Just "Richard Arthur Louis & Compagnie"
+                             , businessName = "Oasis"
+                             , businessFullName = Just "Oasis, Richard Arthur Louis & Cie"
+                             , businessDescr = Just "Oasis est un cabinet de conseil en hôtellerie offrant des services de conseil complets grâce à une équipe diversifiée de consultants"
                              }
 
-    b31 <- insert business3
+    b3 <- insert business3
+
+    liftIO (BS.readFile "demo/logo_oasis_120x120.svg") >>= \bs ->
+      insert_ $ BusinessLogo { businessLogoBusiness = b3
+                             , businessLogoMime = "image/svg+xml"
+                             , businessLogoPhoto =  bs
+                             , businessLogoAttribution = Nothing
+                             }
+
+    let workspace31 = Workspace { workspaceBusiness = b3
+                                , workspaceName = "Oasis Centrale"
+                                , workspaceAddress = "Apt. 720, 1372 Quai Seine Bras de Gennevillier, 72388 Issy-les-Moulineaux"
+                                , workspaceTzo = utc
+                                , workspaceCurrency = "EUR"
+                                }
+
+    w31 <- insert workspace31
+
+    forM_ [periodFirstDay (YearMonth y m) .. periodLastDay (YearMonth y m)] $ \day -> do
+        unless (Friday == dayOfWeek day || Saturday == dayOfWeek day || Sunday == dayOfWeek day) $ do
+            insert_ WorkingHours { workingHoursWorkspace = w31
+                                 , workingHoursDay = day
+                                 , workingHoursStart = TimeOfDay 9 0 0
+                                 , workingHoursEnd = TimeOfDay 13 0 0
+                                 }
+            insert_ WorkingHours { workingHoursWorkspace = w31
+                                 , workingHoursDay = day
+                                 , workingHoursStart = TimeOfDay 14 0 0
+                                 , workingHoursEnd = TimeOfDay 18 0 0
+                                 }
+        when (Friday == dayOfWeek day) $ do
+            insert_ WorkingHours { workingHoursWorkspace = w31
+                                 , workingHoursDay = day
+                                 , workingHoursStart = TimeOfDay 10 30 0
+                                 , workingHoursEnd = TimeOfDay 13 0 0
+                                 }
+            insert_ WorkingHours { workingHoursWorkspace = w31
+                                 , workingHoursDay = day
+                                 , workingHoursStart = TimeOfDay 14 0 0
+                                 , workingHoursEnd = TimeOfDay 17 45 0
+                                 }
+
+    insert_ PayOption { payOptionWorkspace = w31
+                      , payOptionType = PayNow
+                      , payOptionName = "Payez maintenant"
+                      , payOptionGateway = Just PayGatewayStripe
+                      , payOptionDescr = Just "Payer avec une carte de crédit ou PayPal"
+                      , payOptionIcon = Just "credit_card"
+                      }
+
+    insert_ PayOption { payOptionWorkspace = w31
+                      , payOptionType = PayAtVenue
+                      , payOptionName = "Payer sur place"
+                      , payOptionGateway = Nothing
+                      , payOptionDescr = Just "Payer après la prestation du service"
+                      , payOptionIcon = Just "point_of_sale"
+                      }
+
+    let service311 = Service { serviceWorkspace = w31
+                             , serviceName = "Gestion d'actifs"
+                             , serviceDescr = Just "La gestion d'actifs d'Oasis est assurée par une équipe d'experts hôteliers qui se concentre sur l'optimisation des rendements de l'exploitation des activités hôtelières"
+                             , servicePrice = 10000
+                             , serviceAvailable = True
+                             , serviceDuration = oneHour
+                             , serviceType = Just sec2
+                             }
+
+    s311 <- insert service311
+
+    liftIO (BS.readFile "demo/logo_oasis_120x120.svg") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s311
+                           , servicePhotoMime = "image/svg+xml"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Nothing
+                           }
+
+    liftIO (BS.readFile "demo/asset_management_1.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s311
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Just freepik
+                           }
+
+    let service312 = Service { serviceWorkspace = w31
+                             , serviceName = "Conseil en investissement"
+                             , serviceDescr = Just "Le conseil en investissement d'Oasis est spécialisé dans les activités BUY-SIDE et SELL-SIDE pour les actifs hôteliers existants et proposés"
+                             , servicePrice = 20000
+                             , serviceAvailable = True
+                             , serviceDuration = oneHour
+                             , serviceType = Just sec2
+                             }
+
+    s312 <- insert service312
+
+    liftIO (BS.readFile "demo/logo_oasis_120x120.svg") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s312
+                           , servicePhotoMime = "image/svg+xml"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Nothing
+                           }
+
+    liftIO (BS.readFile "demo/investment_advisory_1.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s312
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Just freepik
+                           }
+
+    let service313 = Service { serviceWorkspace = w31
+                             , serviceName = "Planification et conseil en exécution de projet"
+                             , serviceDescr = Just "Oasis propose des services de planification et de conseil en exécution de projet qui fournissent des conseils stratégiques et un leadership tout au long des étapes initiales de développement d'un projet hôtelier."
+                             , servicePrice = 30000
+                             , serviceAvailable = True
+                             , serviceDuration = oneHour
+                             , serviceType = Just sec2
+                             }
+
+    s313 <- insert service313
+
+    liftIO (BS.readFile "demo/logo_oasis_120x120.svg") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s313
+                           , servicePhotoMime = "image/svg+xml"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Nothing
+                           }
+
+    liftIO (BS.readFile "demo/project_execution_planning_advisory_1.avif") >>= \bs ->
+      insert_ ServicePhoto { servicePhotoService = s313
+                           , servicePhotoMime = "image/avif"
+                           , servicePhotoPhoto = bs
+                           , servicePhotoAttribution = Just freepik
+                           }
 
     let employee1 = Staff { staffName = fromMaybe (userEmail user1) (userName user1)
                           , staffAccount = Just usr1
@@ -744,6 +875,21 @@ fillDemoFr appSettings = do
 
     liftIO (BS.readFile "demo/2148728638.avif") >>= \bs ->
       insert_ $ StaffPhoto { staffPhotoStaff = empl4
+                           , staffPhotoMime = "image/avif"
+                           , staffPhotoPhoto = bs
+                           , staffPhotoAttribution = Just freepik
+                           }
+
+    let employee5 = Staff { staffName = "Pierre-Louis Boffrand"
+                          , staffAccount = Nothing
+                          , staffMobile = Just "+33 4759604365"
+                          , staffPhone = Just "+33 4759604365"
+                          }
+
+    empl5 <- insert employee5
+
+    liftIO (BS.readFile "demo/employee_5.avif") >>= \bs ->
+      insert_ $ StaffPhoto { staffPhotoStaff = empl5
                            , staffPhotoMime = "image/avif"
                            , staffPhotoPhoto = bs
                            , staffPhotoAttribution = Just freepik
@@ -846,6 +992,312 @@ fillDemoFr appSettings = do
                              , scheduleEnd = TimeOfDay 13 0 0
                              }
             insert_ Schedule { scheduleAssignment = assig331
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 17 45 0
+                             }
+
+    let assignment42121 = Assignment { assignmentStaff = empl4
+                                     , assignmentService = s212
+                                     , assignmentRole = "Physiothérapeute"
+                                     , assignmentTime = now
+                                     , assignmentSlotInterval = oneHour
+                                     , assignmentPriority = 1
+                                     }
+
+    assig42121 <- insert assignment42121
+
+    forM_ [periodFirstDay (YearMonth y m) .. periodLastDay (YearMonth y m)] $ \day -> do
+        unless (Friday == dayOfWeek day || Saturday == dayOfWeek day || Sunday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig42121
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 9 0 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig42121
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 18 0 0
+                             }
+        when (Friday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig42121
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 10 30 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig42121
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 17 45 0
+                             }
+
+    let assignment42131 = Assignment { assignmentStaff = empl4
+                                     , assignmentService = s213
+                                     , assignmentRole = "Podologue communautaire"
+                                     , assignmentTime = now
+                                     , assignmentSlotInterval = oneHour
+                                     , assignmentPriority = 1
+                                     }
+
+    assig42131 <- insert assignment42131
+
+    forM_ [periodFirstDay (YearMonth y m) .. periodLastDay (YearMonth y m)] $ \day -> do
+        unless (Friday == dayOfWeek day || Saturday == dayOfWeek day || Sunday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig42131
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 9 0 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig42131
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 18 0 0
+                             }
+        when (Friday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig42131
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 10 30 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig42131
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 17 45 0
+                             }
+
+    let assignment42111 = Assignment { assignmentStaff = empl4
+                                     , assignmentService = s211
+                                     , assignmentRole = "Neuro-physiothérapeute communautaire"
+                                     , assignmentTime = now
+                                     , assignmentSlotInterval = oneHour
+                                     , assignmentPriority = 1
+                                     }
+
+    assig42111 <- insert assignment42111
+
+    forM_ [periodFirstDay (YearMonth y m) .. periodLastDay (YearMonth y m)] $ \day -> do
+        unless (Friday == dayOfWeek day || Saturday == dayOfWeek day || Sunday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig42111
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 9 0 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig42111
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 18 0 0
+                             }
+        when (Friday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig42111
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 10 30 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig42111
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 17 45 0
+                             }
+
+    let assignment42221 = Assignment { assignmentStaff = empl4
+                                     , assignmentService = s222
+                                     , assignmentRole = "Travailleur de soutien clinique"
+                                     , assignmentTime = now
+                                     , assignmentSlotInterval = oneHour
+                                     , assignmentPriority = 1
+                                     }
+
+    assig42221 <- insert assignment42221
+
+    forM_ [periodFirstDay (YearMonth y m) .. periodLastDay (YearMonth y m)] $ \day -> do
+        unless (Friday == dayOfWeek day || Saturday == dayOfWeek day || Sunday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig42221
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 9 0 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig42221
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 18 0 0
+                             }
+        when (Friday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig42221
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 10 30 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig42221
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 17 45 0
+                             }
+
+    let assignment42211 = Assignment { assignmentStaff = empl4
+                                     , assignmentService = s221
+                                     , assignmentRole = "Orthophoniste communautaire"
+                                     , assignmentTime = now
+                                     , assignmentSlotInterval = oneHour
+                                     , assignmentPriority = 1
+                                     }
+
+    assig42211 <- insert assignment42211
+
+    forM_ [periodFirstDay (YearMonth y m) .. periodLastDay (YearMonth y m)] $ \day -> do
+        unless (Friday == dayOfWeek day || Saturday == dayOfWeek day || Sunday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig42211
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 9 0 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig42211
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 18 0 0
+                             }
+        when (Friday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig42211
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 10 30 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig42211
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 17 45 0
+                             }
+
+    let assignment42231 = Assignment { assignmentStaff = empl4
+                                     , assignmentService = s223
+                                     , assignmentRole = "Infirmière auxiliaire en réadaptation"
+                                     , assignmentTime = now
+                                     , assignmentSlotInterval = oneHour
+                                     , assignmentPriority = 1
+                                     }
+
+    assig42231 <- insert assignment42231
+
+    forM_ [periodFirstDay (YearMonth y m) .. periodLastDay (YearMonth y m)] $ \day -> do
+        unless (Friday == dayOfWeek day || Saturday == dayOfWeek day || Sunday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig42231
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 9 0 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig42231
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 18 0 0
+                             }
+        when (Friday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig42231
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 10 30 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig42231
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 17 45 0
+                             }
+
+    let assignment53131 = Assignment { assignmentStaff = empl5
+                                     , assignmentService = s313
+                                     , assignmentRole = "Chef de projet"
+                                     , assignmentTime = now
+                                     , assignmentSlotInterval = oneHour
+                                     , assignmentPriority = 1
+                                     }
+
+    assig53131 <- insert assignment53131
+
+    forM_ [periodFirstDay (YearMonth y m) .. periodLastDay (YearMonth y m)] $ \day -> do
+        unless (Friday == dayOfWeek day || Saturday == dayOfWeek day || Sunday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig53131
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 9 0 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig53131
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 18 0 0
+                             }
+        when (Friday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig53131
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 10 30 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig53131
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 17 45 0
+                             }
+
+    let assignment53121 = Assignment { assignmentStaff = empl5
+                                     , assignmentService = s312
+                                     , assignmentRole = "Conseiller financier"
+                                     , assignmentTime = now
+                                     , assignmentSlotInterval = oneHour
+                                     , assignmentPriority = 1
+                                     }
+
+    assig53121 <- insert assignment53121
+
+    forM_ [periodFirstDay (YearMonth y m) .. periodLastDay (YearMonth y m)] $ \day -> do
+        unless (Friday == dayOfWeek day || Saturday == dayOfWeek day || Sunday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig53121
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 9 0 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig53121
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 18 0 0
+                             }
+        when (Friday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig53121
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 10 30 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig53121
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 17 45 0
+                             }
+
+    let assignment53111 = Assignment { assignmentStaff = empl5
+                                     , assignmentService = s311
+                                     , assignmentRole = "Analyste actions"
+                                     , assignmentTime = now
+                                     , assignmentSlotInterval = oneHour
+                                     , assignmentPriority = 1
+                                     }
+
+    assig53111 <- insert assignment53111
+
+    forM_ [periodFirstDay (YearMonth y m) .. periodLastDay (YearMonth y m)] $ \day -> do
+        unless (Friday == dayOfWeek day || Saturday == dayOfWeek day || Sunday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig53111
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 9 0 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig53111
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 14 0 0
+                             , scheduleEnd = TimeOfDay 18 0 0
+                             }
+        when (Friday == dayOfWeek day) $ do
+            insert_ Schedule { scheduleAssignment = assig53111
+                             , scheduleDay = day
+                             , scheduleStart = TimeOfDay 10 30 0
+                             , scheduleEnd = TimeOfDay 13 0 0
+                             }
+            insert_ Schedule { scheduleAssignment = assig53111
                              , scheduleDay = day
                              , scheduleStart = TimeOfDay 14 0 0
                              , scheduleEnd = TimeOfDay 17 45 0

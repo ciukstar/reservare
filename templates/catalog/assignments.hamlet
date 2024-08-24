@@ -31,9 +31,7 @@
 
   <div ##{idPanelAssignments} role=tabpanel aria-labelledby=#{idTabAssignments}>
   
-    ^{widgetBanner msgs}
-
-    
+    ^{widgetBanner msgs}    
 
     $if null assignments
       <figure style="text-align:center">
@@ -42,12 +40,9 @@
           _{MsgNoStaffAssignedYet}.
     $else
       <md-list>
-        $forall ((Entity _ (Assignment _ _ role _ _ _),Entity _ (Staff name _ _ _)),account) <- assignments
+        $forall (Entity _ (Assignment _ _ role _ _ _),Entity eid (Staff name _ _ _)) <- assignments
           <md-list-item type=link href=@{CatalogServiceR sid}>
-            $maybe Entity uid _ <- account
-              <img slot=start src=@{AccountPhotoR uid} width=56 height=56 loading=lazy>
-            $nothing
-              <md-icon slot=start>account_circle
+            <img slot=start src=@{StaffPhotoR eid} width=auto height=56 loading=lazy alt=_{MsgPhoto}>
             <div slot=headline>
               #{role}
             <div slot=supporting-text>

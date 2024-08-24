@@ -65,7 +65,6 @@
 /robots.txt RobotsR GET
 
 /data DataR:
-
     
     /services/#ServiceId/assignments/#AssignmentId/delete    ServiceAssignmentDeleR POST
     /services/#ServiceId/assignments/#AssignmentId/form/edit ServiceAssignmentEditR GET
