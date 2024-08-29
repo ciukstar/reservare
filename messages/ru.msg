@@ -1,3 +1,4 @@
+Home: Главная
 SelectAppointeePlease: Пожалуйста, выберите назначенное лицо
 SelectServiceToBookPlease: Выберите услугу для бронирования
 NoWorkScheduledForToday: На сегодня работы не запланированы

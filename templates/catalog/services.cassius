@@ -14,7 +14,8 @@ main
 
     md-list-item[active]
         background-color: var(--md-sys-color-surface-dim)
-    div[slot=headline]
+        
+    div[slot=headline], div[slot=supporting-text]
         white-space: nowrap
 
     display: flex

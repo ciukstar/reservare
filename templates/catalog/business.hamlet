@@ -1,6 +1,6 @@
 
 <header.background>
-  <md-icon-button href=@{CatalogR} aria-label=_{MsgBack}>
+  <md-icon-button href=@?{(CatalogR,stati)} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
   <span.md-typescale-title-large>
@@ -11,15 +11,15 @@
   <md-tabs>
   
     <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails onclick="this.querySelector('a[href]').click()">
-      <a href=@{CatalogServiceR sid}>
+      <a href=@?{(CatalogServiceR sid,stati)}>
       _{MsgDetails}
       
     <md-primary-tab ##{idTabBusiness} aria-cotrols=#{idPanelBusiness} active onclick="this.querySelector('a[href]').click()">
-      <a href=@{CatalogServiceBusinessR sid}>
+      <a href=@?{(CatalogServiceBusinessR sid,stati)}>
       _{MsgBusiness}
       
     <md-primary-tab #idTabAssignments aria-cotrols=idPanelAssignments onclick="this.querySelector('a[href]').click()">
-      <a href=@{CatalogServiceAssignmentsR sid}>
+      <a href=@?{(CatalogServiceAssignmentsR sid,stati)}>
       _{MsgServiceAssignments}
       
 
@@ -32,7 +32,7 @@
     $maybe ((Entity _ (Workspace _ wname address tzo currency),(business,attrib)),owner) <- workspace
       $with Entity bid _ <- business
         <figure.logo>
-          <img src=@{CatalogBusinessLogoR bid} width=auto height=128 loading=lazy alt=_{MsgPhoto}>
+          <img src=@{CatalogBusinessLogoR bid} width=auto height=64 loading=lazy alt=_{MsgPhoto}>
           $maybe attribution <- attrib
             <div.app-attribution.md-typescale-body-small>
               #{attribution}

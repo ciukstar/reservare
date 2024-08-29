@@ -11,7 +11,7 @@
         <md-icon>close
 
     <md-menu-item href=@{HomeR} :curr == Just HomeR:selected>
-      _{MsgWelcome}
+      _{MsgHome}
 
     <details.app-submenu #idDetailsData
       :elem curr [Just (DataR $ SectorsR (Sectors [])), Just (DataR ServicesR), Just (DataR StaffR), Just (DataR DataBusinessesR), Just (DataR UsersR), Just (DataR TokensR)]:open

@@ -1,6 +1,6 @@
 
 <header.background>
-  <md-icon-button href=@{CatalogR} aria-label=_{MsgBack}>
+  <md-icon-button href=@?{(CatalogR,stati)} aria-label=_{MsgBack}>
     <md-icon>arrow_back
 
   <span.md-typescale-title-large>
@@ -11,15 +11,15 @@
   <md-tabs>
   
     <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails>
-      <a href=@{CatalogServiceR sid}>
+      <a href=@?{(CatalogServiceR sid,stati)}>
       _{MsgDetails}
       
     <md-primary-tab #idTabBusiness aria-cotrols=idPanelBusiness>
-      <a href=@{CatalogServiceBusinessR sid}>
+      <a href=@?{(CatalogServiceBusinessR sid,stati)}>
       _{MsgBusiness}
       
     <md-primary-tab ##{idTabAssignments} aria-cotrols=#{idPanelAssignments} active>
-      <a href=@{CatalogServiceAssignmentsR sid}>
+      <a href=@?{(CatalogServiceAssignmentsR sid,stati)}>
       _{MsgServiceAssignments}
       
 

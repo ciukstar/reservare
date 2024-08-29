@@ -60,7 +60,9 @@
                 #{name}
 
           $with (aid,eid,sid) <- (pack $ show $ fromSqlKey aid,pack $ show $ fromSqlKey eid,pack $ show $ fromSqlKey sid)
-            <md-filled-button type=link href=@?{(AppointmentTimingR month,[("aid",aid),("eid",eid),("sid",sid)])}>
+            <md-filled-button type=link ##{idButtonMakeAppointment} 
+              href=@?{(AppointmentTimingR month,[("aid",aid),("eid",eid),("sid",sid)])}>
+              
               _{MsgMakeAnAppointment}
 
 

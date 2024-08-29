@@ -1,3 +1,4 @@
+Home: Home
 SelectAppointeePlease: Please select an appointee
 SelectServiceToBookPlease: Please select a service to book
 NoWorkScheduledForToday: No work scheduled for today

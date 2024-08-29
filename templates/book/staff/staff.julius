@@ -1,6 +1,14 @@
 
 window.scroll("0",#{fromMaybe "0" scrollY2});
 
+if (sessionStorage.getItem(#{keyBacklink})) {
+  document.querySelector('md-icon-button[rel=prev][href]').href = sessionStorage.getItem(#{keyBacklink});
+}
+
+document.querySelector('md-icon-button[rel=prev][href]').addEventListener('click', e => {
+  sessionStorage.removeItem(#{keyBacklink});
+});
+
 document.getElementById(#{idFabNext}).addEventListener('click',function (e) {
   const form = document.getElementById(#{idFormStaff});
   form.action = [new window.URL(form.action)].map(y => {

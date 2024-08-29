@@ -22,3 +22,7 @@ Array.from(
     }
   );
 });
+
+document.getElementById(#{idButtonMakeAnAppointment}).addEventListener('click', e => {
+  sessionStorage.setItem(#{keyBacklink},'@?{(CatalogStaffScheduleSlotsR sid eid aid day,stati)}')
+});

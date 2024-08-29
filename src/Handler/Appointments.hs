@@ -67,7 +67,7 @@ import Foundation
 import Material3 (md3mreq)
 
 import Model
-    ( statusError
+    ( statusError, keyBacklink, keyBacklinkAuth
     , ServiceId, Service(Service)
     , WorkspaceId, Workspace (Workspace)
     , BusinessId, Business (Business)
@@ -475,6 +475,7 @@ postAppointmentTimeSlotsR day = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgAppointmentTime
+              idButtonBack <- newIdent
               idFormSlots <- newIdent
               $(widgetFile "appointments/timing/slots/slots")
       FormMissing -> do
@@ -482,6 +483,7 @@ postAppointmentTimeSlotsR day = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgAppointmentTime
+              idButtonBack <- newIdent
               idFormSlots <- newIdent
               $(widgetFile "appointments/timing/slots/slots")
 
@@ -503,6 +505,7 @@ getAppointmentTimeSlotsR day = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgAppointmentTime
+        idButtonBack <- newIdent
         idFormSlots <- newIdent
         $(widgetFile "appointments/timing/slots/slots")
 
@@ -637,6 +640,7 @@ postAppointmentTimingR month = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgAppointmentTime
+              idButtonBack <- newIdent
               idFormTiming <- newIdent
               idCalendarPage <- newIdent
               idFabNext <- newIdent
@@ -665,6 +669,7 @@ postAppointmentTimingR month = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgAppointmentTime
+              idButtonBack <- newIdent
               idFormTiming <- newIdent
               idCalendarPage <- newIdent
               idFabNext <- newIdent
@@ -701,6 +706,7 @@ getAppointmentTimingR month = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgAppointmentTime
+        idButtonBack <- newIdent
         idFormTiming <- newIdent
         idCalendarPage <- newIdent
         idFabNext <- newIdent

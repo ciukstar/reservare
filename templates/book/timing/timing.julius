@@ -38,7 +38,11 @@ Array.from(
   );
 });
 
+
 document.getElementById(#{idFabNext}).addEventListener('click',function (e) {
+
+  sessionStorage.setItem(#{keyBacklinkAuth},'@?{(BookTimingR month,stati)}');
+  
   const form = document.getElementById(#{idFormTiming});
   form.action = [new window.URL(form.action)].map(y => {
     y.searchParams.set(#{paramScrollY3}, window.scrollY);
@@ -46,4 +50,5 @@ document.getElementById(#{idFabNext}).addEventListener('click',function (e) {
   })[0];
   
   form.submit();
+  
 });

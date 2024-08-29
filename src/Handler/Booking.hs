@@ -76,7 +76,7 @@ import Foundation
 import Material3 (md3mreq)
 
 import Model
-    ( statusError
+    ( statusError, keyBacklink, keyBacklinkAuth
     , ServiceId, Service(Service)
     , WorkspaceId, Workspace (Workspace)
     , BusinessId, Business (Business)
@@ -107,7 +107,7 @@ import Model
     )
 
 import Settings ( widgetFile )
-    
+
 import qualified Stripe.Data as S (Route(CheckoutR))
 
 import Text.Cassius (cassius)
@@ -148,7 +148,7 @@ import qualified Yookassa.Data as Y (Route(CheckoutR))
 
 getBookDetailsR :: BookId -> Handler Html
 getBookDetailsR bid = do
-
+    
     book <- runDB $ selectOne $ do
         x :& s :& w :& e <- from $ table @Book
             `innerJoin` table @Service `on` (\(x :& s) -> x ^. BookService ==. s ^. ServiceId)
@@ -157,16 +157,16 @@ getBookDetailsR bid = do
         where_ $ x ^. BookId ==. val bid
         where_ $ s ^. ServiceAvailable ==. val True
         return (x,(s,(w,e)))
-
+    
     payments <- runDB $ select $ do
         x :& o <- from $ table @Payment
             `innerJoin` table @PayOption `on` (\(x :& o) -> x ^. PaymentOption ==. o ^. PayOptionId)
         where_ $ x ^. PaymentBook ==. val bid
         return (x,o)
-
+    
     msgs <- getMessages
     defaultLayout $ do
-        setTitleI MsgPaymentStatus 
+        setTitleI MsgPaymentStatus
         $(widgetFile "book/details/details")
 
 
@@ -174,7 +174,7 @@ postBookPaymentR :: Handler Html
 postBookPaymentR = do
     stati <- reqGetParams <$> getRequest
     scrollY5 <- lookupGetParam paramScrollY5
-    
+
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
     tid <- (localTimeToUTC utc <$>) <$> runInputGet ( iopt datetimeLocalField "tid" )
@@ -182,11 +182,11 @@ postBookPaymentR = do
 
     today <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
     let month = maybe today ((\(y,m,_) -> YearMonth y m) . toGregorian . utctDay) tid
-    
+
     ((fr,fw),et) <- runFormPost $ formPayment sid eid tid oid
 
     user <- maybeAuth
-    
+
     case (fr,user) of
       (FormSuccess (sid',eid',tid',oid'), Nothing) -> do
           setUltDest ( BookPaymentR, listUpsert [ ("sid", pack $ show $ fromSqlKey sid')
@@ -196,7 +196,7 @@ postBookPaymentR = do
                                                 ] stati
                      )
           redirect $ AuthR LoginR
-          
+
       (FormSuccess (sid',eid',tid',oid'), Just (Entity uid _)) -> do
 
           charge' <- (bimap unValue unValue <$>) <$> runDB ( selectOne $ do
@@ -204,12 +204,12 @@ postBookPaymentR = do
                   `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
               where_ $ x ^. ServiceId ==. val sid'
               return (x ^. ServicePrice, w ^. WorkspaceCurrency) )
-          
+
           option' <- runDB $ selectOne $ do
               x <- from $ table @PayOption
               where_ $ x ^. PayOptionId ==. val oid'
               return x
-              
+
           case (charge',option') of
             (Just (charge,currency),Just (Entity _ (PayOption _ PayNow _ (Just PayGatewayStripe) _ _))) -> do
                 bid <- runDB $ insert $ Book { bookCustomer = uid
@@ -226,7 +226,7 @@ postBookPaymentR = do
                                         ] stati
                 setUltDest (BookPaymentR, params)
                 redirect (StripeR $ S.CheckoutR bid oid', params)
-                    
+
             (Just (charge,currency),Just (Entity _ (PayOption _ PayNow _ (Just PayGatewayYookassa) _ _))) -> do
                 bid <- runDB $ insert $ Book { bookCustomer = uid
                                              , bookService = sid'
@@ -242,7 +242,7 @@ postBookPaymentR = do
                              ]
                 setUltDest (BookPaymentR, params)
                 redirect (YookassaR $ Y.CheckoutR bid oid', params)
-                    
+
             (Just (charge,currency),Just (Entity _ (PayOption _ PayAtVenue _ _ _ _))) -> do
                 bid <- runDB $ insert $ Book { bookCustomer = uid
                                              , bookService = sid'
@@ -252,7 +252,7 @@ postBookPaymentR = do
                                              , bookCurrency = currency
                                              }
                 redirect (AtVenueR $ V.CheckoutR bid oid')
-                
+
             (_,Just (Entity _ (PayOption _ PayNow _ Nothing _ _))) -> do
                 addMessageI statusError MsgPaymentGatewayNotSpecified
                 msgs <- getMessages
@@ -261,7 +261,7 @@ postBookPaymentR = do
                     idFormPayment <- newIdent
                     idFabNext <- newIdent
                     $(widgetFile "book/payment/payment")
-                
+
             _otherwise -> do
                 addMessageI statusError MsgInvalidFormData
                 msgs <- getMessages
@@ -270,7 +270,7 @@ postBookPaymentR = do
                     idFormPayment <- newIdent
                     idFabNext <- newIdent
                     $(widgetFile "book/payment/payment")
-          
+
       (FormFailure errs, _) -> do
           forM_ errs $ \err -> addMessageI statusError err
           msgs <- getMessages
@@ -279,7 +279,7 @@ postBookPaymentR = do
               idFormPayment <- newIdent
               idFabNext <- newIdent
               $(widgetFile "book/payment/payment")
-              
+
       (FormMissing, _) -> do
           addMessageI statusError MsgInvalidFormData
           msgs <- getMessages
@@ -294,7 +294,7 @@ getBookPaymentR :: Handler Html
 getBookPaymentR = do
     stati <- reqGetParams <$> getRequest
     scrollY5 <- lookupGetParam paramScrollY5
-    
+
     sid <- toSqlKey <$> runInputGet ( ireq intField "sid" )
     eid <- toSqlKey <$> runInputGet ( ireq intField "eid" )
     tid <- localTimeToUTC utc <$> runInputGet ( ireq datetimeLocalField "tid" )
@@ -309,7 +309,7 @@ getBookPaymentR = do
             `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
         where_ $ x ^. ServiceId ==. val sid
         return (x ^. ServicePrice, w ^. WorkspaceCurrency) )
-    
+
     options <- runDB $ select $ do
         x <- from $ table @PayOption
         where_ $ x ^. PayOptionWorkspace `in_` subSelectList
@@ -324,7 +324,7 @@ getBookPaymentR = do
       (_,_,Nothing) -> do
           setUltDestCurrent
           redirect $ AuthR LoginR
-          
+
       ([],_,_) -> do
           addMessageI statusError MsgNoPaymentOptionSpecified
           addMessageI statusError MsgWorkspaceWithoutPaymentOptions
@@ -332,7 +332,7 @@ getBookPaymentR = do
           defaultLayout $ do
               setTitleI MsgError
               $(widgetFile "book/payment/error")
-          
+
       ([Entity oid' (PayOption _ PayNow _ (Just PayGatewayStripe) _ _)],Just (charge,currency),Just (Entity uid _)) -> do
           bid <- runDB $ insert $ Book { bookCustomer = uid
                                        , bookService = sid
@@ -348,7 +348,7 @@ getBookPaymentR = do
                                                      , ("oid", pack $ show $ fromSqlKey oid')
                                                      ]
                    )
-              
+
       ([Entity oid' (PayOption _ PayNow _ (Just PayGatewayYookassa) _ _)],Just (charge,currency),Just (Entity uid _)) -> do
           bid <- runDB $ insert $ Book { bookCustomer = uid
                                        , bookService = sid
@@ -364,14 +364,14 @@ getBookPaymentR = do
                                                        , ("oid", pack $ show $ fromSqlKey oid')
                                                        ]
                    )
-          
+
       ([Entity _ (PayOption _ PayNow _ Nothing _ _)],Just _,Just _) -> do
           addMessageI statusError MsgPaymentGatewayNotSpecified
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgError
               $(widgetFile "book/payment/error")
-          
+
       ([Entity oid' (PayOption _ PayAtVenue _ _ _ _)],Just (charge,currency),Just (Entity uid _)) -> do
           bid <- runDB $ insert $ Book { bookCustomer = uid
                                        , bookService = sid
@@ -381,9 +381,9 @@ getBookPaymentR = do
                                        , bookCurrency = currency
                                        }
           redirect (AtVenueR $ V.CheckoutR bid oid')
-          
+
       _ -> do
-          
+
           (fw,et) <- generateFormPost $ formPayment (Just sid) (Just eid) (Just tid) oid
 
           msgs <- getMessages
@@ -438,7 +438,7 @@ formPayment sid eid time option extra = do
   where
 
       pairs (Entity oid' (PayOption _ _ name _ _ _)) = (name, oid')
-      
+
       md3radioFieldList :: [Entity PayOption] -> Field (HandlerFor App) PayOptionId
       md3radioFieldList options = (radioField (optionsPairs (pairs <$> options)))
           { fieldView = \theId name attrs x isReq -> do
@@ -475,7 +475,7 @@ postBookTimeSlotsR :: Day -> Handler Html
 postBookTimeSlotsR day = do
     stati <- reqGetParams <$> getRequest
     scrollY4 <- lookupGetParam paramScrollY4
-    
+
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
     tid <- runInputGet ( iopt datetimeLocalField "tid" )
@@ -515,7 +515,7 @@ getBookTimeSlotsR :: Day -> Handler Html
 getBookTimeSlotsR day = do
     stati <- reqGetParams <$> getRequest
     scrollY4 <- lookupGetParam paramScrollY4
-    
+
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
     tid <- runInputGet ( iopt datetimeLocalField "tid" )
@@ -623,7 +623,7 @@ postBookTimingR :: Month -> Handler Html
 postBookTimingR month = do
     stati <- reqGetParams <$> getRequest
     scrollY3 <- lookupGetParam paramScrollY3
-    
+
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
     tid <- runInputGet ( iopt datetimeLocalField "tid" )
@@ -667,7 +667,7 @@ postBookTimingR month = do
               idCalendarPage <- newIdent
               idFabNext <- newIdent
               $(widgetFile "book/timing/timing")
-              
+
       FormMissing -> do
 
           let start = weekFirstDay Monday (periodFirstDay month)
@@ -704,7 +704,7 @@ getBookTimingR :: Month -> Handler Html
 getBookTimingR month = do
     stati <- reqGetParams <$> getRequest
     scrollY3 <- lookupGetParam paramScrollY3
-    
+
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
     tid <- runInputGet ( iopt datetimeLocalField "tid" )
@@ -813,7 +813,7 @@ getBookStaffR :: Handler Html
 getBookStaffR = do
     stati <- reqGetParams <$> getRequest
     scrollY2 <- lookupGetParam paramScrollY2
-    
+
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
 
@@ -849,6 +849,7 @@ formStaff sid eid extra = do
         } (fromIntegral . fromSqlKey <$> sid)
 
     (staffR,staffV) <- mreq (md3radioFieldList staff) "" eid
+
 
     let r = (,) <$> serviceR <*> staffR
     let w = [whamlet|#{extra} ^{fvInput serviceV} ^{fvInput staffV}|]
@@ -946,9 +947,9 @@ postBookServicesR = do
           forM_ errs $ \err -> addMessageI statusError err
           msgs <- getMessages
           defaultLayout $ do
-              setTitleI MsgServices 
+              setTitleI MsgServices
               idFormService <- newIdent
-              idFabNext <- newIdent 
+              idFabNext <- newIdent
               $(widgetFile "book/services")
       FormMissing -> do
           addMessageI statusError MsgInvalidFormData
@@ -997,7 +998,7 @@ formService tids bids wids sid extra = do
         x :& w :& b <- from $ table @Service
             `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
             `innerJoin` table @Business `on` (\(_ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)
-            
+
         where_ $ x ^. ServiceAvailable ==. val True
         unless (null tids) $ where_ $ x ^. ServiceType `in_` justList (valList tids)
         unless (null bids) $ where_ $ b ^. BusinessId `in_` valList bids
@@ -1112,7 +1113,7 @@ widgetFilterChips route = do
     idChipSetSectors <- newIdent
     idChipSetBusinesses <- newIdent
     idChipSetWorkspaces <- newIdent
-    
+
     $(widgetFile "book/widgets/chips")
 
 

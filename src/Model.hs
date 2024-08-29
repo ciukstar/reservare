@@ -158,3 +158,10 @@ statusSuccess = "success"
 
 statusError :: Text
 statusError = "error"
+
+
+keyBacklinkAuth :: Text
+keyBacklinkAuth = "backlinkAuth"
+
+keyBacklink :: Text
+keyBacklink = "backlink"

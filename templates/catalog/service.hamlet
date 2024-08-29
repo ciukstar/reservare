@@ -11,15 +11,15 @@
   <md-tabs>
   
     <md-primary-tab ##{idTabDetails} aria-cotrols=#{idPanelDetails} active onclick="this.querySelector('a[href]').click()">
-      <a href=@{CatalogServiceR sid}>
+      <a href=@?{(CatalogServiceR sid,stati)}>
       _{MsgDetails}
       
     <md-primary-tab #idTabBusiness aria-cotrols=idPanelBusiness onclick="this.querySelector('a[href]').click()">
-      <a href=@{CatalogServiceBusinessR sid}>
+      <a href=@?{(CatalogServiceBusinessR sid,stati)}>
       _{MsgBusiness}
       
     <md-primary-tab #idTabAssignments aria-cotrols=idPanelAssignments onclick="this.querySelector('a[href]').click()">
-      <a href=@{CatalogServiceAssignmentsR sid}>
+      <a href=@?{(CatalogServiceAssignmentsR sid,stati)}>
       _{MsgServiceAssignments}
       
 
@@ -56,7 +56,8 @@
             <dd.md-typescale-body-medium>
               #{show duration}
 
-          <md-filled-button type=link href=@?{(BookStaffR,[("sid",pack $ show $ fromSqlKey sid)])}>
+          <md-filled-button type=link href=@?{(BookStaffR,[("sid",pack $ show $ fromSqlKey sid)])}
+            onclick="sessionStorage.setItem('#{keyBacklink}','@?{(CatalogServiceR sid,stati)}')">
             _{MsgBookNow}
 
     ^{widgetSnackbar msgs}

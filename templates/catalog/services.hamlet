@@ -19,13 +19,19 @@
         _{MsgNoServicesWereFoundForSearchTerms}.
   $else
     <md-list>
-      $forall (Entity sid (Service _ name _ price _ _ _),Entity _ (Workspace _ _ _ _ currency)) <- services
-        <md-list-item type=link href=@?{(CatalogServiceR sid,[("sid",pack $ show $ fromSqlKey sid)])}
+      $forall ((Entity sid (Service _ name _ price _ _ _),Entity _ (Workspace _ _ _ _ currency)),sector) <- services
+        <md-list-item type=link href=@?{(CatalogServiceR sid,(<>) [("sid",pack $ show $ fromSqlKey sid)] stati)}
           :Just (pack $ show $ fromSqlKey sid) == paramSid:active>
           
           <img slot=start src=@{CatalogServicePhotoDefaultR sid} width=56 height=auto loading=lazy>
           <div slot=headline>
-            #{name}
+            #{name}  
+          <div slot=supporting-text>
+            $maybe Entity _ (Sector gname descr _) <- sector
+              $maybe descr <- descr
+                #{descr}
+              $nothing
+                #{gname}
           <div.currency slot=supporting-text data-value=#{price} data-currency=#{currency}>
             #{currency}#{price}
           <md-icon slot=end>arrow_forward_ios

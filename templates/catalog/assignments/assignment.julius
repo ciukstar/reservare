@@ -19,3 +19,7 @@ Array.from(
     e.target.querySelector('a[href]').click();
   });
 });
+
+document.getElementById(#{idButtonMakeAppointment}).addEventListener('click', e => {
+  sessionStorage.setItem(#{keyBacklink},'@?{(CatalogServiceAssignmentR sid aid,stati)}');
+});

@@ -229,17 +229,32 @@ instance Yesod App where
     isAuthorized (AtVenueR _) _ = isAuthenticated
     
     
-    isAuthorized r@AppointmentPaymentR _ = setUltDest r >> return Authorized
-    isAuthorized r@(AppointmentTimeSlotsR _) _ = setUltDest r >> return Authorized
-    isAuthorized r@(AppointmentTimingR _) _ = setUltDest r >> return Authorized
-    isAuthorized r@AppointmentStaffR _ = setUltDest r >> return Authorized
+    isAuthorized AppointmentPaymentR _ = do
+        user <- maybeAuth
+        case user of
+          Just _ -> return Authorized
+          Nothing -> do
+              setUltDestCurrent
+              redirect $ AuthR LoginR
+              
+    isAuthorized (AppointmentTimeSlotsR _) _ = return Authorized
+    isAuthorized (AppointmentTimingR _) _ = setUltDestCurrent >> return Authorized
+    isAuthorized AppointmentStaffR _ = setUltDestCurrent >> return Authorized
         
     isAuthorized (BookDetailsR _) _ = isAuthenticated
-    isAuthorized r@BookPaymentR _ = setUltDest r >> return Authorized
-    isAuthorized r@(BookTimeSlotsR _) _ = setUltDest r >> return Authorized
-    isAuthorized r@(BookTimingR _) _ = setUltDest r >> return Authorized
-    isAuthorized r@BookStaffR _ = setUltDest r >> return Authorized
-    isAuthorized r@BookServicesR _ = setUltDest r >> return Authorized
+    
+    isAuthorized BookPaymentR _ = do
+        user <- maybeAuth
+        case user of
+          Just _ -> return Authorized
+          Nothing -> do
+              setUltDestCurrent
+              redirect $ AuthR LoginR
+        
+    isAuthorized (BookTimeSlotsR _) _ = return Authorized
+    isAuthorized (BookTimingR _) _ = setUltDestCurrent >> return Authorized
+    isAuthorized BookStaffR _ = setUltDestCurrent >> return Authorized
+    isAuthorized BookServicesR _ = setUltDestCurrent >> return Authorized
 
 
     isAuthorized (WorkspaceDeleR uid _ _) _ = isAuthenticatedSelf uid
@@ -514,6 +529,7 @@ instance YesodAuth App where
         backlink <- fromMaybe (rndr HomeR) <$> lookupSession ultDestKey
         authLayout $ do
             setTitleI LoginTitle
+            idButtonBack <- newIdent
             $(widgetFile "auth/login")
 
 

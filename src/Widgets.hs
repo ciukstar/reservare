@@ -15,7 +15,7 @@ import Foundation
     , Route (HomeR, DataR, AuthR, AccountR, AccountPhotoR, DocsR)
     , DataR (UsersR, TokensR, DataBusinessesR, StaffR, SectorsR, ServicesR)
     , AppMessage
-      ( MsgMainMenu, MsgUsers, MsgWelcome, MsgData, MsgSignIn, MsgSignOut
+      ( MsgMainMenu, MsgUsers, MsgHome, MsgData, MsgSignIn, MsgSignOut
       , MsgUserAccount, MsgPhoto, MsgTokens, MsgBusinesses, MsgSectors
       , MsgStaff, MsgServices, MsgResources, MsgDocumentation, MsgSourceCode
       )

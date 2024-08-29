@@ -71,7 +71,8 @@ import Handler.Booking
     ( widgetFilterChips, paramSector, paramBusiness, paramWorkspace, paramScrollY )
 
 import Model
-    ( ServiceId, Service (Service)
+    ( keyBacklink
+    , ServiceId, Service (Service)
     , Workspace (Workspace)
     , ServicePhotoId, ServicePhoto (ServicePhoto)
     , BusinessId, Business (Business)
@@ -87,8 +88,8 @@ import Model
       , BusinessOwner, UserId, AssignmentStaff, StaffId, AssignmentService
       , BusinessLogoBusiness, StaffPhotoStaff, BusinessLogoAttribution
       , AssignmentId, StaffPhotoAttribution, ScheduleAssignment
-      , ScheduleDay
-      )
+      , ScheduleDay, SectorId
+      ), Sector (Sector)
     )
 
 import Settings (widgetFile)
@@ -115,6 +116,8 @@ import Yesod.Persist (YesodPersist(runDB))
 
 getCatalogStaffScheduleSlotsR :: ServiceId -> StaffId -> AssignmentId -> Day -> Handler Html
 getCatalogStaffScheduleSlotsR sid eid aid day = do
+
+    stati <- reqGetParams <$> getRequest
     
     slots <- runDB $ select $ do
         x <- from $ table @Schedule
@@ -174,6 +177,8 @@ getCatalogStaffScheduleR sid aid month = do
 
 getCatalogServiceAssignmentR :: ServiceId -> AssignmentId -> Handler Html
 getCatalogServiceAssignmentR sid aid = do
+
+    stati <- reqGetParams <$> getRequest
     
     assignment <- (second (join . unValue) <$>) <$> runDB ( selectOne $ do
         x :& s :& w :& b :& e :& f <- from $ table @Assignment
@@ -192,11 +197,13 @@ getCatalogServiceAssignmentR sid aid = do
         setTitleI MsgServiceAssignment 
         idTabDetails <- newIdent
         idPanelDetails <- newIdent
+        idButtonMakeAppointment <- newIdent
         $(widgetFile "catalog/assignments/assignment")
 
 
 getCatalogServiceAssignmentsR :: ServiceId -> Handler Html
 getCatalogServiceAssignmentsR sid = do
+    stati <- reqGetParams <$> getRequest
 
     assignments <- runDB $ select $ do
         x :& e <- from $ table @Assignment
@@ -214,6 +221,7 @@ getCatalogServiceAssignmentsR sid = do
 
 getCatalogServiceBusinessR :: ServiceId -> Handler Html
 getCatalogServiceBusinessR sid = do
+    stati <- reqGetParams <$> getRequest
 
     workspace <- (first (second (second (join . unValue))) <$>) <$> runDB ( selectOne $ do
         x :& w :& b :& l :& o <- from $ table @Service
@@ -262,6 +270,7 @@ getCatalogServiceR sid = do
 
 getCatalogR :: Handler Html
 getCatalogR = do
+    stati <- reqGetParams <$> getRequest
     scrollY <- lookupGetParam paramScrollY
     paramSid <- lookupGetParam "sid"
 
@@ -270,14 +279,15 @@ getCatalogR = do
     selectedWorkspaces <- mapMaybe ((toSqlKey <$>) . readMaybe . unpack) <$> lookupGetParams paramWorkspace
 
     services <- runDB $ select $ do
-        x :& w <- from $ table @Service
+        x :& w :& g <- from $ table @Service
             `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
+            `leftJoin` table @Sector `on` (\(x :& _ :& g) -> just (x ^. ServiceType) ==. just (g ?. SectorId))
         where_ $ x ^. ServiceAvailable ==. val True
         unless (null selectedSectors) $ where_ $ x ^. ServiceType `in_` justList (valList selectedSectors)
         unless (null selectedBusinesses) $ where_ $ w ^. WorkspaceBusiness `in_` valList selectedBusinesses
         unless (null selectedWorkspaces) $ where_ $ w ^. WorkspaceId `in_` valList selectedWorkspaces
         orderBy [desc (x ^. ServiceId)]
-        return (x,w)
+        return ((x,w),g)
 
     msgs <- getMessages
     defaultLayout $ do
