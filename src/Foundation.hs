@@ -1139,6 +1139,13 @@ instance YesodYookassa App where
     
     getBookDetailsR :: BookId -> HandlerFor App (Route App)
     getBookDetailsR bid = return $ BookDetailsR bid
+
+
+widgetMainMenu :: Text -> Text -> Widget
+widgetMainMenu idOverlay idDialogMainMenu = do
+    curr <- getCurrentRoute
+    idButtonMainMenuClose <- newIdent
+    $(widgetFile "widgets/menu")
     
 
 unsafeHandler :: App -> Handler a -> IO a

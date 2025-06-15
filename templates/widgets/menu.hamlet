@@ -1,56 +1,72 @@
-<details.app-nav-drawer ##{idDetailsMenu}>
-  <summary>
-    <md-filled-icon-button type=button aria-label=_{MsgMainMenu}
-      onclick="document.getElementById('#{idDetailsMenu}').open = true">
-      <md-icon>menu
 
-  <aside.app-nav-drawer.surface.large-end.elevation-1>
-    <md-elevation>
-    <div.app-header>
-      <md-icon-button type=button onclick="document.getElementById('#{idDetailsMenu}').open = false">
-        <md-icon>close
+<div.overlay ##{idOverlay}>
 
-    <md-menu-item href=@{HomeR} :curr == Just HomeR:selected>
-      _{MsgHome}
+<dialog.left.primary ##{idDialogMainMenu}>
 
-    <details.app-submenu #idDetailsData
-      :elem curr [Just (DataR $ SectorsR (Sectors [])), Just (DataR ServicesR), Just (DataR StaffR), Just (DataR DataBusinessesR), Just (DataR UsersR), Just (DataR TokensR)]:open
-      ontoggle="this.querySelector('.app-expand-icon').textContent = this.open ? 'expand_less' : 'expand_more'">
-      <summary>
-        <md-menu-item>
-          <div>
-            _{MsgData}
-            <md-icon.app-expand-icon slot=icon>expand_more
+  <header.fixed.max>
+    <nav.margin>
+      <img.large src=@{StaticR img_logo_on_primary_svg} loading=lazy alt=_{MsgLogo}>
+      <h6.max>
+        _{MsgAppName}
+      <button.transparent.circle.large ##{idButtonMainMenuClose} data-ui=##{idDialogMainMenu}>
+        <i>close
 
-      <md-menu-item href=@{DataR ServicesR} :curr == Just (DataR ServicesR):selected>
-        _{MsgServices}
+  <ol.list>
 
-      <md-menu-item href=@{DataR DataBusinessesR} :curr == Just (DataR DataBusinessesR):selected>
-        _{MsgBusinesses}
+    <li.wave.round :curr == Just HomeR:.active>
+      <a href=@{HomeR}>
+        <i>home
+        <span>_{MsgHome}
 
-      <md-menu-item href=@{DataR $ SectorsR (Sectors [])} :curr == Just (DataR $ SectorsR (Sectors [])):selected>
-        _{MsgSectors}
+  <hr.top-margin>
+  <div.small-text>
+    _{MsgData}
 
-      <md-menu-item href=@{DataR StaffR} :curr == Just (DataR StaffR):selected>
-        _{MsgStaff}
 
-      <md-menu-item href=@{DataR UsersR} :curr == Just (DataR UsersR):selected>
-        _{MsgUsers}
+  <ol.list>
+    <li.wave.round :curr == Just (DataR ServicesR):.active>
+      <a href=@{DataR ServicesR}>
+        <i>room_service
+        <span>_{MsgServices}
 
-      <md-menu-item href=@{DataR TokensR} :curr == Just (DataR TokensR):selected>
-        _{MsgTokens}
+    <li.wave.round :curr == Just (DataR DataBusinessesR):.active>
+      <a href=@{DataR DataBusinessesR}>
+        <i>business_center
+        <span>_{MsgBusinesses}
 
-    <details.app-submenu #idDetailsResources
-      :elem curr [Just DocsR]:open
-      ontoggle="this.querySelector('.app-expand-icon').textContent = this.open ? 'expand_less' : 'expand_more'">
-      <summary>
-        <md-menu-item>
-          <div>
-            _{MsgResources}
-            <md-icon.app-expand-icon slot=icon>expand_more
+    <li.wave.round :curr == Just (DataR $ SectorsR (Sectors [])):.active>
+      <a href=@{DataR $ SectorsR (Sectors [])}>
+        <i>lan
+        <span>_{MsgSectors}
 
-      <md-menu-item href=@{DocsR} :curr == Just DocsR:selected>
-        _{MsgDocumentation}
+    <li.wave.round :curr == Just (DataR StaffR):.active>
+      <a href=@{DataR StaffR}>
+        <i>person_apron
+        <span>_{MsgStaff}
 
-      <md-menu-item type=button href="https://github.com/ciukstar/reservare">
-        _{MsgSourceCode}
+    <li.wave.round :curr == Just (DataR UsersR):.active>
+      <a href=@{DataR UsersR}>
+        <i>account_circle
+        <span>_{MsgUsers}
+
+    <li.wave.round :curr == Just (DataR TokensR):.active>
+      <a href=@{DataR TokensR}>
+        <i>token
+        <span>_{MsgTokens}
+
+  <hr.top-margin>
+  <div.small-text>
+    _{MsgResources}
+        
+       
+  <ol.list>
+        
+    <li.wave.round :curr == Just DocsR:.active>
+      <a href=@{DocsR}>
+        <i>quick_reference
+        <span>_{MsgDocumentation}
+
+    <li.wave.round>
+      <a href="https://github.com/ciukstar/reservare" target=_blank>
+        <i>code
+        <span>_{MsgSourceCode}

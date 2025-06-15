@@ -23,7 +23,6 @@ import Foundation
 
 import Model
     ( statusError, statusSuccess
-    , Sectors (Sectors)
     )
 
 import Settings (widgetFile)
@@ -31,9 +30,7 @@ import Settings (widgetFile)
 import Text.Hamlet (Html)
 
 import Yesod.Auth (maybeAuth, Route (LoginR, LogoutR))
-import Yesod.Core.Handler
-    ( getCurrentRoute, newIdent
-    )
+import Yesod.Core.Handler (newIdent)
 
 
 widgetBanner :: [(Text, Html)] -> Widget
@@ -57,8 +54,4 @@ widgetAccount = do
 
 
 widgetMenu :: Widget
-widgetMenu = do
-    curr <- getCurrentRoute
-
-    idDetailsMenu <- newIdent
-    $(widgetFile "widgets/menu")
+widgetMenu = undefined
