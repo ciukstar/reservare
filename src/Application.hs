@@ -297,7 +297,7 @@ makeFoundation appSettings = do
           Just "RU" -> fillDemoRu appSettings
           _ -> fillDemoEn appSettings
     
-    runLoggingT (runSqlPool (runMigration migrateAll) pool) logFunc
+    -- runLoggingT (runSqlPool (runMigration migrateAll) pool) logFunc
 
     -- Return the foundation
     return $ mkFoundation pool
