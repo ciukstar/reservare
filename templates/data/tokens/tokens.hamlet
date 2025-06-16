@@ -1,17 +1,17 @@
 
-<header.primary>
-  ^{widgetMenu}
+^{widgetMainMenu idOverlay idDialogMainMenu}
 
-  <span.md-typescale-title-large>
-    _{MsgTokens}
+<header.fixed.primary>
+  <nav.responsive.max>
+    <button.circle.transparent data-ui=##{idDialogMainMenu}>
+      <i>menu
 
-  <span.header-end>
+    <h6.max>
+      _{MsgTokens}
+
     ^{widgetAccount}
 
-
-<main>
-
-  ^{widgetBanner msgs}
+<main.responsive>
 
   <div.app-card.shape-large.outline>
     <div.app-card-title.headline-medium>

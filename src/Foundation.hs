@@ -39,7 +39,7 @@ import Database.Esqueleto.Experimental as E
     )
 import Database.Persist.Sql (ConnectionPool, runSqlPool)
 
-import Material3 (md3passwordField, md3emailField)
+import Material3 (md3passwordField, md3emailField, md3widget)
 
 import Network.Mail.Mime
     ( Part (partDisposition, partEncoding, partType, partContent, partHeaders, Part)
@@ -754,12 +754,12 @@ instance YesodAuthEmail App where
           formEmailLogin :: Form (Text,Text)
           formEmailLogin extra = do
               msgRender <- liftHandler getMessageRender
-              (emailR,emailV) <- mreq md3emailField FieldSettings
+              (emailR,emailV) <- mreq emailField FieldSettings
                   { fsLabel = SomeMessage MsgEmailAddress
                   , fsTooltip = Nothing, fsId = Just "email", fsName = Just "email"
                   , fsAttrs = [("label", msgRender MsgEmailAddress)]
                   } Nothing
-              (passR,passV) <- mreq md3passwordField FieldSettings
+              (passR,passV) <- mreq passwordField FieldSettings
                   { fsLabel = SomeMessage MsgPassword
                   , fsTooltip = Nothing, fsId = Just "password", fsName = Just "password"
                   , fsAttrs = [("label", msgRender MsgPassword)]
@@ -767,69 +767,66 @@ instance YesodAuthEmail App where
               let r = (,) <$> emailR <*> passR
                   w = do
 
-                      users <- liftHandler $ runDB ( select $ do
+                      users <- liftHandler $ runDB $ select $ do
                           x <- from $ table @User
                           where_ $ x ^. UserAuthType `in_` valList [UserAuthTypeEmail,UserAuthTypePassword]
                           where_ $ not_ $ x ^. UserSuperuser
                           orderBy [asc (x ^. UserId)]
-                          return x )
+                          return x 
 
-                      supers <- liftHandler $ runDB ( select $ do
+                      supers <- liftHandler $ runDB $ select $ do
                           x <- from $ table @User
                           where_ $ x ^. UserAuthType `in_` valList [UserAuthTypeEmail,UserAuthTypePassword]
                           where_ $ x ^. UserSuperuser
                           orderBy [asc (x ^. UserId)]
-                          return x )
+                          return x
 
                       let accounts = users <> supers
+                      
+                      idButtonDemoAccounts <- newIdent
+                      idMenuDemoAccounts <- newIdent
 
                       toWidget [julius|
-                          const menuAnchor = document.getElementById('anchorDemoAccounts');
-                          const menuDemoAccounts = document.getElementById('menuDemoAccounts');
-                          window.addEventListener('load',function (e) {
-                            menuDemoAccounts.style.visibility = 'visible';
+                          Array.from(
+                            document.getElementById(#{idMenuDemoAccounts}).querySelectorAll('li[data-email][data-pwd]')
+                          ).forEach(x => {
+                            x.addEventListener('click', e => {
+                              document.getElementById(#{fvId emailV}).value = x.dataset.email;
+                              document.getElementById(#{fvId passV}).value = x.dataset.pwd;
+                              document.getElementById(#{idMenuDemoAccounts}).classList.remove('active');
+                            });
                           });
-                          menuAnchor.addEventListener('click',function (e) {
-                            menuDemoAccounts.open = !menuDemoAccounts.open;
-                          });
-                      |]
-                      toWidget [cassius|
-                          ##{fvId emailV}, ##{fvId passV}
-                            align-self: stretch
                       |]
                       [whamlet|
-<span style="position:relative;align-self:flex-end">
-  <md-text-button.body-small type=button #anchorDemoAccounts trailing-icon>
-    _{MsgDemoUserAccounts}
-    <md-icon slot=icon>arrow_drop_down
-  <md-menu #menuDemoAccounts anchor=anchorDemoAccounts style="visibility:hidden">
-    $with n <- length accounts
-      $forall (i,Entity uid (User email _ _ _ _ name super admin)) <- zip (irange 1) accounts
-        $with pass <- maybe "" (TE.decodeUtf8 . localPart) (emailAddress $ TE.encodeUtf8 email)
-          <md-menu-item onclick="document.getElementById('#{fvId emailV}').value = '#{email}';document.getElementById('#{fvId passV}').value = '#{pass}'">
-            <md-icon slot=start>
-              <img src=@{AccountPhotoR uid} loading=lazy alt=_{MsgPhoto} height=24 width=24 style="clip-path:circle(50%)">
-            <div slot=headline>
-              #{email}
-            <div slot=supporting-text style="white-space:nowrap;max-width:50vw">
-              $maybe name <- name
-                #{name}
-            <div slot=supporting-text style="text-transform:uppercase">
-              $with roles <- snd <$> filter fst [(super,MsgSuperuser),(admin,MsgAdministrator)]
-                $if not (null roles)
-                  $forall role <- roles
-                    _{role} #
-          $if i /= n
-            <md-divider role=separator tabindex=-1>
+                          <button.border.transparent type=button ##{idButtonDemoAccounts} data-ui=##{idMenuDemoAccounts}>
+                            <span>_{MsgDemoUserAccounts}
+                            <i>arrow_drop_down
+                            <menu.border.no-wrap ##{idMenuDemoAccounts}>
+                              $forall Entity uid (User email _ _ _ _ name super admin) <- accounts
+                                $with pass <- maybe "" (TE.decodeUtf8 . localPart) (emailAddress $ TE.encodeUtf8 email)
+                                  <li data-email=#{email} data-pwd=#{pass} data-ui=##{idMenuDemoAccounts}>
+                                    <i.circle>
+                                      <img src=@{AccountPhotoR uid} loading=lazy alt=_{MsgPhoto}>
 
-#{extra}
+                                    <div.max>
+                                      <h6.small>
+                                        #{email}
+                                      <div.large-line>
+                                        $maybe name <- name
+                                          #{name}
+                                      <div.upper>
+                                        $with roles <- snd <$> filter fst [(super,MsgSuperuser),(admin,MsgAdministrator)]
+                                          $if not (null roles)
+                                            $forall role <- roles
+                                              _{role} #
 
-^{fvInput emailV}
-^{fvInput passV}
+                          #{extra}
+
+                          ^{md3widget emailV}
+                          ^{md3widget passV}
                       |]
+                      
               return (r,w)
-            where
-                irange x = [x :: Int ..]
 
 
     afterPasswordRoute :: App -> Route App
@@ -955,14 +952,10 @@ instance YesodAuthEmail App where
                 Left e@(SomeException _) -> case fromException e of
                   Just (HttpExceptionRequest _ (StatusCodeException r' _bs)) -> do
                       case r' L.^. WL.responseStatus . WL.statusCode of
-                        401 -> do
-                            liftIO $ print response
-                        403 -> do
-                            liftIO $ print response
-                        _   -> do
-                            liftIO $ print response
-                  _other -> do
-                      liftIO $ print response
+                        401 -> liftIO $ print response
+                        403 -> liftIO $ print response
+                        _   -> liftIO $ print response
+                  _other -> liftIO $ print response
                 Right _ok -> return ()
           _otherwise -> do
               curr <- getCurrentRoute

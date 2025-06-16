@@ -1,17 +1,17 @@
 
-<header.primary>
-  ^{widgetMenu}
+^{widgetMainMenu idOverlay idDialogMainMenu}
 
-  <span.md-typescale-title-large>
-    _{MsgStaff}
+<header.fixed.primary>
+  <nav.responsive.max>
+    <button.circle.transparent data-ui=##{idDialogMainMenu}>
+      <i>menu
 
-  <span #headerEnd>
+    <h6.max>
+      _{MsgStaff}
+
     ^{widgetAccount}
 
-
-<main>
-
-  ^{widgetBanner msgs}
+<main.responsive>
 
   $if null staff
     <figure style="text-align:center">

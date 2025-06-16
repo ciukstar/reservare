@@ -37,7 +37,7 @@ import qualified Database.Persist as P ((=.))
 import Import.NoFoundation (tryAny)
 
 import Foundation
-    ( App (appSettings), Form, Handler
+    ( App (appSettings), Form, Handler, widgetMainMenu, widgetAccount, widgetSnackbar
     , Route (DataR)
     , DataR
       ( TokensR, TokensGoogleapisHookR, TokensGoogleapisClearR
@@ -79,8 +79,6 @@ import Text.Blaze.Html (preEscapedToHtml, toHtml)
 import Text.Hamlet (Html)
 import Text.Read (readMaybe)
 import Text.Shakespeare.Text (st)
-
-import Widgets (widgetMenu, widgetAccount, widgetBanner, widgetSnackbar)
 
 import Yesod.Core
     ( Yesod(defaultLayout), whamlet, SomeMessage (SomeMessage), getYesod
@@ -266,6 +264,8 @@ postTokensGoogleapisClearR = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgTokens
+              idOverlay <- newIdent
+              idDialogMainMenu <- newIdent
               formTokensGmail <- newIdent
               formTokensGmailClear <- newIdent
               $(widgetFile "data/tokens/tokens")
@@ -309,6 +309,8 @@ postTokensR = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgTokens
+              idOverlay <- newIdent
+              idDialogMainMenu <- newIdent
               formTokensGmail <- newIdent
               formTokensGmailClear <- newIdent
               $(widgetFile "data/tokens/tokens")
@@ -328,6 +330,8 @@ getTokensR = do
     defaultLayout $ do
         setUltDestCurrent
         setTitleI MsgTokens
+        idOverlay <- newIdent
+        idDialogMainMenu <- newIdent
         formTokensGmail <- newIdent
         formTokensGmailClear <- newIdent
         $(widgetFile "data/tokens/tokens")

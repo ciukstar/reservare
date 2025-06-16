@@ -43,8 +43,6 @@
       
 
   <div ##{idPanelDetails} role=tabpanel aria-labelledby=#{idTabDetails}>
-  
-    ^{widgetBanner msgs}
 
     $maybe (Entity _ (Assignment _ _ role start interval priority),(employee,(service,(workspace,buisiness)))) <- assignment
       <dl>

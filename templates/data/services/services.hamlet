@@ -1,19 +1,19 @@
 
-<header.primary>
-  ^{widgetMenu}
+^{widgetMainMenu idOverlay idDialogMainMenu}
 
-  <span.md-typescale-title-large>
-    _{MsgServices}
+<header.fixed.primary>
+  <nav.responsive.max>
+    <button.circle.transparent data-ui=##{idDialogMainMenu}>
+      <i>menu
 
-  <span #headerEnd>
+    <h6.max>
+      _{MsgServices}
+
     ^{widgetAccount}
 
-
-<main>
+<main.responsive>
 
   ^{widgetChips}
-
-  ^{widgetBanner msgs}
 
   $if null services
     <figure style="text-align:center">

@@ -8,8 +8,6 @@
 
 <main>
 
-  ^{widgetBanner msgs}
-
   <form method=post action=@{DataR $ ServiceAssignmentsR sid} enctype=#{et} novalidate ##{idFormAssignment}>
     ^{fw}
     <div.form-actions>

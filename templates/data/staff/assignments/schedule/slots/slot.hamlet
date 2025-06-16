@@ -27,8 +27,6 @@
 
 <main>
 
-  ^{widgetBanner msgs}
-
   $maybe Entity _ (Schedule _ day start end) <- slot
     <dl>
 

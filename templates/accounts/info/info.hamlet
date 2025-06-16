@@ -1,42 +1,47 @@
-<header>
-  <md-icon-button href=@{HomeR} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
 
-  <section.md-typescale-title-large>
-    _{MsgUserAccount}
+<header.fixed>
+  <nav>
+    <a.button.transparent.circle href=@{HomeR} title=_{MsgBack} role=button>
+      <i>arrow_back
 
-  $maybe _ <- info
-    <md-icon-button #headerEnd type=button href=@{AccountInfoEditR uid} aria-label=_{MsgEdit}>
-      <md-icon>edit
+    <h6.max>
+      _{MsgUserAccount}
+
+    $maybe _ <- info
+      <a.button.transparent.circle href=@{AccountInfoEditR uid} title=_{MsgEdit} role=button>
+        <i>edit
       
-<main>
+<main.responsive.no-padding>
+  
+  <div.tabs.min>
+  
+    <a href=@{AccountR uid}>
+      _{MsgAccount}
+        
+    <a.active href=@{AccountInfoR uid}>
+      _{MsgPersonalInfo}
 
-  <md-tabs aria-label=Tabs>
-    <md-primary-tab #tabAccount aria-controls=panelAccount onclick="this.querySelector('a[href]').click()">
-      <a href=@{AccountR uid} style="color:inherit;text-decoration:inherit;cursor:inherit">
-        _{MsgAccount}
-    <md-primary-tab #tabInfo aria-controls=#{idPanelInfo} active=true onclick="this.querySelector('a[href]').click()">
-      <a href=@{AccountInfoR uid} style="color:inherit;text-decoration:inherit;cursor:inherit">
-        _{MsgPersonalInfo}
-
-  <div #panelAccount role=tabpanel aria-labelledby=tabAccount hidden>
-
-  <div ##{idPanelInfo} role=tabpanel aria-labelledby=tabInfo>
+  <div.page.padding.center-align.active>
         
     $maybe Entity _ (UserInfo _ bday) <- info
       <dl>
-        <dt.label-large>
+        <dt.large-text>
           _{MsgBirthday}
-        <dd.body-medium>
-            $maybe dt <- show <$> bday
-              <time datetime=#{dt}>#{dt}
-            $nothing
-              _{MsgNotIndicated}
+          
+        <dd.medium-text>
+          $maybe dt <- show <$> bday
+            <time datetime=#{dt}>#{dt}
+          $nothing
+            _{MsgNotIndicated}
+              
     $nothing
       <form method=post action=@{AccountInfoR uid} enctype=#{et}>
         ^{fw}
-        <div.app-form-actions>
-          <md-text-button type=button href=@{HomeR}>_{MsgCancel}
-          <md-filled-button type=submit>_{MsgSave}
+        <nav.right-align>
+          <a.button.transparent.link href=@{HomeR} role=button>
+            _{MsgCancel}
+            
+          <button type=submit>
+            _{MsgSave}
 
     ^{widgetSnackbar msgs}

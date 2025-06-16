@@ -51,7 +51,7 @@ import qualified Database.Persist as P (delete, PersistStoreWrite (replace))
 import Database.Persist.Sql (fromSqlKey, toSqlKey)
 
 import Foundation
-    ( Handler, Form, Widget
+    ( Handler, Form, Widget, widgetMainMenu, widgetAccount, widgetSnackbar
     , Route (DataR, StaticR)
     , DataR
       ( ServicesR, ServiceR, ServiceNewR, ServiceEditR, ServiceDeleR
@@ -119,8 +119,6 @@ import Settings.StaticFiles
 
 import Text.Hamlet (Html)
 import Text.Read (readMaybe)
-
-import Widgets (widgetMenu, widgetAccount, widgetBanner, widgetSnackbar)
 
 import Yesod.Core
     ( Yesod(defaultLayout), getMessages, newIdent, getMessageRender
@@ -588,6 +586,8 @@ getServicesR = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServices
+        idOverlay <- newIdent
+        idDialogMainMenu <- newIdent
         idFabAdd <- newIdent
         $(widgetFile "data/services/services")
 

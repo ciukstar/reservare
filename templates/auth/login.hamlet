@@ -1,10 +1,11 @@
 
-<header.background>
-  <md-icon-button href=#{backlink} aria-label=_{MsgBack} rel=prev ##{idButtonBack}>
-    <md-icon>arrow_back
+<header.fixed>
+  <nav>
+    <a.button.transparent href=#{backlink} title=_{MsgBack} ##{idButtonBack}>
+      <i>arrow_back
 
-  <section.md-typescale-title-large>
-    _{MsgAuthentication}
+    <h6.max>
+      _{MsgAuthentication}
     
-<main>
+<main.responsive>
   ^{forM_ (authPlugins app) (flip apLogin tp)}

@@ -39,16 +39,16 @@ import Foundation
       )
     )
     
-import Material3 (md3mopt, md3textField, md3dayField)
+import Material3 (md3widget)
 
 import Model
-    ( UserId, UserPhoto (UserPhoto), User (User, userName)
+    ( statusSuccess
+    , UserId, UserPhoto (UserPhoto), User (User, userName)
     , UserInfo (UserInfo, userInfoBirthDate)
     , EntityField
       ( UserPhotoUser, UserInfoUser, UserInfoBirthDate, UserId
       , UserName, UserPhotoMime, UserPhotoPhoto
       )
-    , statusSuccess
     )
 
 import Settings (widgetFile)
@@ -69,7 +69,7 @@ import Yesod.Core.Content (TypedContent (TypedContent), ToContent (toContent))
 import Yesod.Core.Handler
     ( redirect, getMessages, addMessageI, fileSourceByteString, fileContentType)
 import Yesod.Core.Widget (setTitleI, whamlet)
-import Yesod.Form.Fields (fileField)
+import Yesod.Form.Fields (fileField, dayField)
 import Yesod.Form.Functions (generateFormPost, runFormPost, mopt)
 import Yesod.Form.Types
     ( FieldSettings (FieldSettings), FormResult (FormSuccess)
@@ -151,14 +151,13 @@ getAccountInfoR uid = do
     
     defaultLayout $ do
         setTitleI MsgPersonalInfo
-        idPanelInfo <- newIdent
         $(widgetFile "accounts/info/info")
 
 
 formUserInfo :: UserId -> Maybe (Entity UserInfo) -> Form UserInfo
 formUserInfo uid info extra = do
     rndr <- getMessageRender
-    (bdayR,bdayV) <- md3mopt md3dayField FieldSettings
+    (bdayR,bdayV) <- mopt dayField FieldSettings
         { fsLabel = SomeMessage MsgBirthday
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("label", rndr MsgBirthday)]
@@ -167,7 +166,7 @@ formUserInfo uid info extra = do
     let r = UserInfo uid <$> bdayR
     let w = [whamlet|
                     #{extra}
-                    ^{fvInput bdayV}
+                    ^{md3widget bdayV}
                     |]
     return (r,w)
 

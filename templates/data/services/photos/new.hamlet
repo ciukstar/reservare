@@ -7,8 +7,6 @@
       
 <main>
 
-  ^{widgetBanner msgs}
-
   <form method=post action=@{DataR $ ServicePhotosR sid} enctype=#{et} novalidate ##{idFormNew}>
     ^{fw}
     <div.form-actions>

@@ -64,7 +64,7 @@ import Database.Persist
 import qualified Database.Persist as P ((=.), delete, PersistStoreWrite (replace))
     
 import Foundation
-    ( Handler, Form
+    ( Handler, Form, widgetMainMenu, widgetAccount, widgetSnackbar
     , Route (DataR, StaticR)
     , DataR
       ( EmployeeR, EmployeeNewR, StaffR, EmployeeEditR, EmployeeDeleR
@@ -122,8 +122,6 @@ import Settings.StaticFiles (img_account_circle_24dp_FILL0_wght400_GRAD0_opsz24_
 
 import Text.Hamlet (Html)
 import Text.Printf (printf)
-
-import Widgets (widgetMenu, widgetAccount, widgetBanner, widgetSnackbar)
 
 import Yesod.Core
     ( Yesod(defaultLayout), newIdent, getMessages, whamlet, addMessageI, redirect
@@ -819,7 +817,9 @@ getStaffR = do
     
     msgs <- getMessages
     defaultLayout $ do
-        setTitleI MsgStaff 
+        setTitleI MsgStaff
+        idOverlay <- newIdent
+        idDialogMainMenu <- newIdent
         idFabAdd <- newIdent
         $(widgetFile "data/staff/staff")
 

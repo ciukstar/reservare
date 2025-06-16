@@ -24,8 +24,6 @@
       
 <main>
 
-  ^{widgetBanner msgs}
-
   <form method=post action=@{DataR $ ServicePhotoR sid fid} enctype=#{et} novalidate ##{idFormEdit}>
     ^{fw}
     <div.form-actions>

@@ -50,8 +50,6 @@
 
   <div ##{idPanelWorkingHours} role=tabpanel aria-labelledby=#{idTabWorkingHours}>
 
-    ^{widgetBanner msgs}
-
     <div.calendar ##{idCalendarPage}>
       <div.header>
         <md-icon-button type=link href=@{DataR $ StaffScheduleR eid aid prev} rel=nofollow>
