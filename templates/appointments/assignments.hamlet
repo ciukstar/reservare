@@ -11,8 +11,6 @@
 <main>
 
   ^{widgetFilterChips AppointmentStaffR}
-
-  ^{widgetBanner msgs}
   
   <form method=post action=@{AppointmentStaffR} enctype=#{et} ##{idFormAssignment}>
     ^{fw}

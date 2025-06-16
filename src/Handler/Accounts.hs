@@ -27,7 +27,7 @@ import Database.Persist (Entity(Entity), entityVal, upsert)
 import qualified Database.Persist as P ((=.))
 
 import Foundation
-    ( Handler, Form
+    ( Handler, Form, widgetSnackbar
     , Route
       ( StaticR, AuthR, AccountPhotoR, AccountInfoR, AccountR
       , HomeR, AccountEditR, AccountInfoEditR
@@ -58,8 +58,6 @@ import Settings.StaticFiles
 
 import Text.Hamlet (Html)
 import Text.Shakespeare.I18N (SomeMessage (SomeMessage))
-
-import Widgets (widgetSnackbar, widgetBanner)
 
 import Yesod (YesodPersist(runDB))
 import Yesod.Auth (maybeAuth, Route (LogoutR))

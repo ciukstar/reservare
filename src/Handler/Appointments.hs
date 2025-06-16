@@ -43,7 +43,7 @@ import Database.Persist (Entity (Entity), entityKey, insert)
 import Database.Persist.Sql (fromSqlKey)
 
 import Foundation
-    ( Handler, Form, App, Widget
+    ( Handler, Form, App, Widget, widgetSnackbar
     , Route
       ( AuthR, HomeR
       , AppointmentStaffR, AppointmentTimingR, AppointmentTimeSlotsR
@@ -101,8 +101,6 @@ import qualified Stripe.Data as S (Route(CheckoutR))
 import Text.Cassius (cassius)
 import Text.Hamlet (Html)
 import Text.Read (readMaybe)
-
-import Widgets (widgetSnackbar, widgetBanner)
 
 import Yesod.Auth (maybeAuth, Route (LoginR))
 import Yesod.Core.Handler

@@ -9,8 +9,6 @@
 
 <main>
 
-  ^{widgetBanner msgs}
-
   <form method=post action=@?{(AppointmentPaymentR,stati)} enctype=#{et} ##{idFormPayment}>
     ^{fw}
 

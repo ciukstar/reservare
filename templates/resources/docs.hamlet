@@ -1,16 +1,17 @@
 
-<header.primary>
-  ^{widgetMenu}
+^{widgetMainMenu idOverlay idDialogMainMenu}
 
-  <span.md-typescale-title-large>
-    _{MsgDocumentation}
+<header.fixed.primary>
+  <nav.responsive.max>
+    <button.circle.transparent data-ui=##{idDialogMainMenu}>
+      <i>menu
 
-  <span #headerEnd>
+    <h6.max>
+      _{MsgDocumentation}
+
     ^{widgetAccount}
 
-<main>
-
-  ^{widgetBanner msgs}
+<main.responsive>
 
   <section>
     <h2.md-typescale-headline-medium>_{MsgAppName}

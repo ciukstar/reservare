@@ -1,17 +1,20 @@
 
-$maybe Entity uid _ <- user
-  <span style="position:relaive">
-    <md-filled-icon-button type=button aria-label=_{MsgUserAccount} ##{idButtonUserAccount}
-      onclick="document.getElementById('#{idMenuUserAccount}').open = !document.getElementById('#{idMenuUserAccount}').open">
-      <img src=@{AccountPhotoR uid} width=24 height=24 alt=_{MsgPhoto}
-           loading=lazy style="clip-path:circle(50%)">
-    <md-menu anchor=#{idButtonUserAccount} x-offset=16 y-offset=16 ##{idMenuUserAccount}>
+$maybe Entity uid (User email _ name _ _ _ _ _) <- user
+  
+  <button.circle.transparent.no-elevate data-ui=##{idMenu}>
+    <img.photo.profile src=@{AccountPhotoR uid} alt=_{MsgPhoto} loading=lazy title=#{fromMaybe email name}>
 
-      <md-menu-item href=@{AccountR uid}>
-        <div slot=headline>_{MsgUserAccount}
+    <menu.left.no-wrap ##{idMenu}>
 
-      <md-menu-item href=@{AuthR LogoutR}>
-        <div slot=headline>_{MsgSignOut}
+      <a.row.padding href=@{AccountR uid}>
+        <i>manage_accounts
+        <div.max>_{MsgUserAccount}
+          
+      <a.row.padding href=@{AuthR LogoutR}>
+        <i>logout
+        <div.max>
+          <div>_{MsgSignOut}
+          
 $nothing
-  <md-filled-icon-button href=@{AuthR LoginR} aria-label=_{MsgSignIn}>
-    <md-icon>login
+  <a.button.circle.transparent href=@{AuthR LoginR} role=button aria-label=_{MsgSignIn}>
+    <i>login

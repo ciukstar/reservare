@@ -12,8 +12,6 @@
 <main>
 
   ^{widgetFilterChips BookServicesR}
-
-  ^{widgetBanner msgs}
     
   <form method=post action=@?{(BookServicesR,stati)} enctype=#{et} ##{idFormService}>
     ^{fw}

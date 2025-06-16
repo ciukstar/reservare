@@ -8,8 +8,6 @@
 
 
 <main>
-
-  ^{widgetBanner msgs}
   
   <div.calendar ##{idCalendarPage}>
     <div.header>

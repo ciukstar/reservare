@@ -6,11 +6,11 @@
 module Handler.Home (getHomeR) where
 
 import Foundation
-    ( Handler, widgetMainMenu
+    ( Handler, widgetMainMenu, widgetAccount, widgetSnackbar
     , Route (CatalogR, AppointmentStaffR, BookServicesR, StaticR)
     , AppMessage
       ( MsgWelcome, MsgAppName, MsgWelcomeTo, MsgMakeAnAppointment
-      , MsgBookAService, MsgServiceCatalog
+      , MsgBookAService, MsgServiceCatalog, MsgLogotype
       )
     )
 
@@ -20,18 +20,16 @@ import Settings.StaticFiles
 
 import Text.Hamlet (Html)
 
-import Widgets (widgetAccount, widgetBanner, widgetSnackbar)
-
 import Yesod.Core (Yesod(defaultLayout), getMessages, newIdent)
 import Yesod.Core.Widget (setTitleI)
 
 
 getHomeR :: Handler Html
 getHomeR = do
-
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWelcome
         idOverlay <- newIdent
         idDialogMainMenu <- newIdent
+        idNavButtons <- newIdent
         $(widgetFile "homepage")

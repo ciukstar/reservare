@@ -7,8 +7,6 @@
     _{MsgSelectTime}
 
 <main>
-
-  ^{widgetBanner msgs}
   
   <p #idDayLabel>
     $with d <- show day

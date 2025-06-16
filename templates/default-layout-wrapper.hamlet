@@ -20,18 +20,22 @@ $doctype 5
       <meta name="yandex-verification" content=#{yv}>
 
     <link href="https://cdn.jsdelivr.net/npm/beercss@3.11.14/dist/cdn/beer.min.css" rel=stylesheet>
-      
+
+    <!--
     <script type="importmap">
       {
         "imports": {
           "@material/web/": "https://esm.run/@material/web/"
         }
       }
+      -->
+    <!--
     <script type="module">
       import '@material/web/all.js';
       import {styles as typescaleStyles} from '@material/web/typography/md-typescale-styles.js';
       document.adoptedStyleSheets.push(typescaleStyles.styleSheet);
-
+    -->
+    
     ^{pageHead pc}
 
     

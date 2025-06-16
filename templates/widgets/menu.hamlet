@@ -5,7 +5,7 @@
 
   <header.fixed.max>
     <nav.margin>
-      <img.large src=@{StaticR img_logo_on_primary_svg} loading=lazy alt=_{MsgLogo}>
+      <img.small src=@{StaticR img_logo_on_primary_svg} loading=lazy alt=_{MsgLogo}>
       <h6.max>
         _{MsgAppName}
       <button.transparent.circle.large ##{idButtonMainMenuClose} data-ui=##{idDialogMainMenu}>

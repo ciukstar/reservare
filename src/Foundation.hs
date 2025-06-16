@@ -1141,6 +1141,17 @@ instance YesodYookassa App where
     getBookDetailsR bid = return $ BookDetailsR bid
 
 
+widgetSnackbar :: [(Text,Html)] -> Widget
+widgetSnackbar msgs = $(widgetFile "widgets/snackbar")
+
+
+widgetAccount :: Widget
+widgetAccount = do
+    user <- maybeAuth
+    idMenu <- newIdent
+    $(widgetFile "widgets/account")
+
+
 widgetMainMenu :: Text -> Text -> Widget
 widgetMainMenu idOverlay idDialogMainMenu = do
     curr <- getCurrentRoute

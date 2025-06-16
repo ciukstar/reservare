@@ -6,28 +6,29 @@
     <button.circle.transparent data-ui=##{idDialogMainMenu}>
       <i>menu
 
-    <h1.title.max>
+    <h6.max>
       _{MsgAppName}
 
     ^{widgetAccount}
 
-<main.responsive.vertical.middle-align>
+<main.responsive>
 
-  ^{widgetBanner msgs}
+  <figure.center-align.large-margin>
+    <img.extra.no-round src=@{StaticR img_book_online_120dp_00696D_FILL0_wght400_GRAD0_opsz48_svg}
+                        loading=lazy alt=_{MsgLogotype}>
+                        
+  <h1.title.small>
+    _{MsgWelcomeTo} _{MsgAppName}
 
-  <figure>
-    <img src=@{StaticR img_book_online_120dp_00696D_FILL0_wght400_GRAD0_opsz48_svg} loading=lazy height=120 width=120>
-    <figcaption.md-typescale-headline-medium>
-      _{MsgWelcomeTo} _{MsgAppName}
+  <nav.#{idNavButtons}>
+    <a.button.fill href=@{CatalogR} role=button>
+      _{MsgServiceCatalog}
 
-  <md-filled-tonal-button type=link href=@{CatalogR}>
-    _{MsgServiceCatalog}
+    <a.button.fill href=@{BookServicesR} role=button>
+      _{MsgBookAService}
 
-  <md-filled-tonal-button type=link href=@{BookServicesR}>
-    _{MsgBookAService}
-
-  <md-filled-tonal-button type=link href=@{AppointmentStaffR}>
-    _{MsgMakeAnAppointment}
+    <a.button.fill href=@{AppointmentStaffR} role=button>
+      _{MsgMakeAnAppointment}
     
 
   ^{widgetSnackbar msgs}
