@@ -28,8 +28,6 @@
 
   <div ##{idPanelSubsectors} role=tabpanel aria-labelledby=idTabSubsectors>
 
-    ^{widgetBanner msgs}
-
     $if null sectors
       <figure style="text-align:center">
         <span.on-secondary style="font-size:4rem">&varnothing;

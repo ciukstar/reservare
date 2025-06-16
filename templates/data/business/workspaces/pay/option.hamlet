@@ -27,8 +27,6 @@
 
 <main>
 
-  ^{widgetBanner msgs}
-
   $maybe (Entity _ (PayOption _ typ name gate descr icon),workspace,business) <- option
     <dl>
       $maybe icon <- icon

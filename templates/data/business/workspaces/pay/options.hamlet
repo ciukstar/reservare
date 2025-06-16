@@ -34,8 +34,6 @@
   <div #idPanelWorkspaces role=tabpanel aria-labelledby=idTabWorkspaces hidden>
 
   <div ##{idPanelPayOptions} role=tabpanel aria-labelledby=#{idTabPayOptions}>
-  
-    ^{widgetBanner msgs}
 
     $if null options
       <figure style="text-align:center">

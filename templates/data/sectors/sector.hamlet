@@ -48,8 +48,6 @@
 
   <div ##{idPanelDetails} role=tabpanel aria-labelledby=idTabDetails>
 
-    ^{widgetBanner msgs}
-
     $maybe (Entity _ (Sector name descr _),parent) <- sector
       <dl>
         <dt.md-typescale-label-large>_{MsgTheName}

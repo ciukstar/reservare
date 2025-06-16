@@ -7,8 +7,6 @@
     _{MsgWorkingHours}
 
 <main>
-
-  ^{widgetBanner msgs}
   
   <p.day-label>
     $with d <- show day

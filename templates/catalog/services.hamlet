@@ -10,8 +10,6 @@
 
   ^{widgetFilterChips CatalogR}
 
-  ^{widgetBanner msgs}
-
   $if null services
     <figure style="text-align:center">
       <span.on-secondary style="font-size:4rem">&varnothing;

@@ -33,8 +33,6 @@
 
   <div ##{idPanelWorkingHours} role=tabpanel aria-labelledby=#{idTabWorkingHours}>
 
-    ^{widgetBanner msgs}
-
     <div.calendar ##{idCalendarPage}>
       <div.header>
         <md-icon-button type=link href=@?{(DataR $ DataWorkingHoursR bid wid prev,stati)} rel=nofollow>

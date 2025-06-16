@@ -93,7 +93,7 @@ import Database.Persist
 import qualified Database.Persist as P ((=.), delete, replace)
 
 import Foundation
-    ( Handler, Form
+    ( Handler, Form, widgetSnackbar, widgetAccount, widgetMainMenu
     , Route (DataR, StaticR)
     , DataR
       ( DataBusinessesR, DataBusinessNewR, DataBusinessR, DataBusinessEditR
@@ -193,8 +193,6 @@ import Settings.StaticFiles
 import Text.Hamlet (Html)
 import Text.Printf (printf)
 import Text.Shakespeare.I18N (SomeMessage (SomeMessage))
-
-import Widgets (widgetBanner, widgetSnackbar, widgetAccount, widgetMenu)
 
 import Yesod.Core
     ( Yesod(defaultLayout), getMessages, getMessageRender
@@ -2157,6 +2155,8 @@ getDataBusinessesR = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgBusinesses
+        idOverlay <- newIdent
+        idDialogMainMenu <- newIdent
         idFabAdd <- newIdent
         $(widgetFile "data/business/businesses")
 

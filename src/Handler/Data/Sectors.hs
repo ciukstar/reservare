@@ -46,7 +46,7 @@ import Database.Persist
 import qualified Database.Persist as P (delete, replace)
 
 import Foundation
-    ( Handler, Form
+    ( Handler, Form, widgetMainMenu, widgetAccount, widgetSnackbar
     , Route (DataR, StaticR)
     , DataR
       ( SectorsR, SectorR, SectorNewR, SectorEditR, SectorDeleR, SectorServicesR
@@ -110,8 +110,6 @@ import Settings.StaticFiles
     ( img_add_photo_alternate_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg )
 
 import Text.Hamlet (Html)
-
-import Widgets (widgetMenu, widgetAccount, widgetBanner, widgetSnackbar)
 
 import Yesod.Core
     ( Yesod(defaultLayout), setTitleI, getMessages, newIdent, whamlet
@@ -881,6 +879,8 @@ getSectorsR ps@(Sectors []) = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgSectors
+        idOverlay <- newIdent
+        idDialogMainMenu <- newIdent
         idFabAdd <- newIdent
         $(widgetFile "data/sectors/sectors")
              

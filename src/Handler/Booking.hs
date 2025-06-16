@@ -135,7 +135,7 @@ import Yesod.Form
     )
 import Yesod.Form.Input (runInputGet, iopt, ireq)
 import Yesod.Form.Fields
-    ( textField, intField, radioField, optionsPairs, OptionList (olOptions)
+    ( textField, intField, radioField', optionsPairs, OptionList (olOptions)
     , Option (optionExternalValue, optionInternalValue), datetimeLocalField
     )
 import Yesod.Form.Functions (generateFormPost, mreq, runFormPost)
@@ -438,7 +438,7 @@ formPayment sid eid time option extra = do
       pairs (Entity oid' (PayOption _ _ name _ _ _)) = (name, oid')
 
       md3radioFieldList :: [Entity PayOption] -> Field (HandlerFor App) PayOptionId
-      md3radioFieldList options = (radioField (optionsPairs (pairs <$> options)))
+      md3radioFieldList options = (radioField' (optionsPairs (pairs <$> options)))
           { fieldView = \theId name attrs x isReq -> do
 
                 opts <- zip [1 :: Int ..] . olOptions <$> handlerToWidget (optionsPairs (pairs <$> options))
@@ -594,7 +594,7 @@ formTimeSlot slots sid eid tid extra = do
       pairs xs = (\x -> (pack $ show x, x)) <$> xs
 
       md3radioFieldList :: [LocalTime] -> Field (HandlerFor App) LocalTime
-      md3radioFieldList items = (radioField (optionsPairs . pairs $ items))
+      md3radioFieldList items = (radioField' (optionsPairs . pairs $ items))
           { fieldView = \theId name attrs x isReq -> do
 
                 opts <- zip [1 :: Int ..] . olOptions <$> handlerToWidget (optionsPairs . pairs $ items)
@@ -859,7 +859,7 @@ formStaff sid eid extra = do
 
       md3radioFieldList :: [((Entity Assignment,Entity Staff),Maybe Html)]
                         -> Field (HandlerFor App) StaffId
-      md3radioFieldList staff = (radioField (optionsPairs (pairs staff)))
+      md3radioFieldList staff = (radioField' (optionsPairs (pairs staff)))
           { fieldView = \theId name attrs x isReq -> do
 
                 opts <- zip [1 :: Int ..] . olOptions <$> handlerToWidget (optionsPairs (pairs staff))
@@ -1014,7 +1014,7 @@ formService tids bids wids sid extra = do
 
       md3radioFieldList :: [(Entity Service,(Entity Workspace, Entity Business))]
                         -> Field (HandlerFor App) ServiceId
-      md3radioFieldList services = (radioField (optionsPairs (pairs services)))
+      md3radioFieldList services = (radioField' (optionsPairs (pairs services)))
           { fieldView = \theId name attrs x isReq -> do
 
                 opts <- zip [1 :: Int ..] . olOptions <$> handlerToWidget (optionsPairs (pairs services))

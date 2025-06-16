@@ -28,8 +28,6 @@
   <div #idPanelBusiness role=tabpanel aria-labelledby=idTabBusiness hidden>
 
   <div ##{idPanelAssignments} role=tabpanel aria-labelledby=#{idTabAssignments}>
-  
-    ^{widgetBanner msgs}    
 
     $if null assignments
       <figure style="text-align:center">

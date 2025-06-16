@@ -33,7 +33,7 @@ import Database.Persist
     )
 
 import Foundation
-    ( Handler, Form
+    ( Handler, Form, widgetSnackbar, widgetAccount, widgetMainMenu
     , Route
       ( BusinessesR, BusinessNewR, BusinessR, BusinessEditR, BusinessDeleR
       , WorkspacesR, WorkspaceNewR, WorkspaceR, WorkspaceEditR, WorkspaceDeleR
@@ -43,7 +43,8 @@ import Foundation
       , MsgAdd, MsgOwner, MsgTheName, MsgSave, MsgCancel, MsgBusiness
       , MsgBack, MsgDele, MsgEdit, MsgDeleteAreYouSure, MsgConfirmPlease
       , MsgRecordDeleted, MsgInvalidFormData, MsgRecordEdited, MsgRecordAdded
-      , MsgDetails, MsgWorkspaces, MsgAddress, MsgWorkspace, MsgAlreadyExists, MsgTimeZone, MsgCurrency
+      , MsgDetails, MsgWorkspaces, MsgAddress, MsgWorkspace, MsgAlreadyExists
+      , MsgTimeZone, MsgCurrency
       )
     )
 
@@ -53,7 +54,11 @@ import Model
     ( statusError, statusSuccess
     , BusinessId, Business(Business)
     , UserId, User (User)
-    , WorkspaceId, Workspace (Workspace, workspaceName, workspaceAddress, workspaceTzo, workspaceCurrency)
+    , WorkspaceId
+    , Workspace
+      ( Workspace, workspaceName, workspaceAddress, workspaceTzo
+      , workspaceCurrency
+      )
     , EntityField
       ( UserId, BusinessId, BusinessOwner, WorkspaceId
       , WorkspaceBusiness, WorkspaceName
@@ -64,8 +69,6 @@ import Settings (widgetFile)
 
 import Text.Hamlet (Html)
 import Text.Shakespeare.I18N (SomeMessage (SomeMessage))
-
-import Widgets (widgetBanner, widgetSnackbar, widgetAccount, widgetMenu)
 
 import Yesod.Core
     ( Yesod(defaultLayout), getMessages, getMessageRender
@@ -376,5 +379,7 @@ getBusinessesR uid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgBusinesses
+        idOverlay <- newIdent
+        idDialogMainMenu <- newIdent
         idFabAdd <- newIdent
         $(widgetFile "business/businesses")

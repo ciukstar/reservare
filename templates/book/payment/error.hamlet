@@ -9,6 +9,4 @@
 
 <main>
 
-  ^{widgetBanner msgs}
-
   ^{widgetSnackbar msgs}

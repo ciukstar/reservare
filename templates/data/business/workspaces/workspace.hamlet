@@ -52,8 +52,6 @@
 
   <div ##{idPanelDetails} role=tabpanel aria-labelledby=#{idTabDetails}>
 
-    ^{widgetBanner msgs}
-
     $maybe (Entity _ (Workspace _ name address tzo currency), Entity _ (Business _ bname _ _), Entity _ (User oemail _ _ _ _ oname _ _)) <- workspace
       <dl>
 

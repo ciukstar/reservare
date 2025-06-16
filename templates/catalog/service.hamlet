@@ -24,8 +24,6 @@
       
 
   <div ##{idPanelDetails} role=tabpanel aria-labelledby=#{idTabDetails}>
-  
-    ^{widgetBanner msgs}
 
     $with (service,photos) <- service
       <div.app-carousel>

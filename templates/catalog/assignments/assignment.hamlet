@@ -29,8 +29,6 @@
       
 
   <div ##{idPanelDetails} role=tabpanel aria-labelledby=#{idTabDetails}>
-  
-    ^{widgetBanner msgs}
 
     $maybe ((Entity aid (Assignment _ _ role _ _ _),(employee,(service,(workspace,buisiness)))),_) <- assignment
       $with Entity eid (Staff ename _ _ _) <- employee

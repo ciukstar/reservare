@@ -8,8 +8,6 @@
 
 <main>
 
-  ^{widgetBanner msgs}
-
   <form method=post action=@{DataR $ PayOptionsR bid wid} enctype=#{et} novalidate ##{idFormPayOption}>
     ^{fw}
     <div.form-actions>

@@ -1,16 +1,17 @@
 
-<header.primary>
-  ^{widgetMenu}
+^{widgetMainMenu idOverlay idDialogMainMenu}
 
-  <span.md-typescale-title-large>
-    _{MsgSectors}
+<header.fixed.primary>
+  <nav.responsive.max>
+    <button.circle.transparent data-ui=##{idDialogMainMenu}>
+      <i>menu
 
-  <span #headerEnd>
+    <h6.max>
+      _{MsgSectors}
+
     ^{widgetAccount}
 
-<main>
-
-  ^{widgetBanner msgs}
+<main.responsive>
 
   $if null sectors
     <figure style="text-align:center">

@@ -26,8 +26,6 @@
   <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
 
   <div ##{idPanelPhotos} role=tabpanel aria-labelledby=#{idTabPhotos}>
-  
-    ^{widgetBanner msgs}
 
     $if null photos
       <figure style="text-align:center">

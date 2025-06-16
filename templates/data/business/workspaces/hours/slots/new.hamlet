@@ -8,8 +8,6 @@
 
 <main>
 
-  ^{widgetBanner msgs}
-
   <p>
     $with d <- show day
       <time.day-of-month.md-typescale-label-large datetime=#{d}>

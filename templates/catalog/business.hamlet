@@ -26,8 +26,6 @@
   <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
 
   <div ##{idPanelBusiness} role=tabpanel aria-labelledby=#{idTabBusiness}>
-  
-    ^{widgetBanner msgs}
 
     $maybe ((Entity _ (Workspace _ wname address tzo currency),(business,attrib)),owner) <- workspace
       $with Entity bid _ <- business

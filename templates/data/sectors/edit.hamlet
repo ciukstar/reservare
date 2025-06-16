@@ -7,8 +7,6 @@
       
 <main>
 
-  ^{widgetBanner msgs}
-
   <form method=post action=@{DataR $ SectorR gid ps} enctype=#{et} novalidate ##{idFormSector}>
     ^{fw}
     <div.form-actions>

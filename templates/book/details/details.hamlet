@@ -9,8 +9,6 @@
 
 <main>
 
-  ^{widgetBanner msgs}
-
   $maybe (Entity _ (Book _ _ _ time charge currency),(service,(workspace,employee))) <- book
     <fieldset>
       <legend>_{MsgTheAppointment}

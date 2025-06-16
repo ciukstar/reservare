@@ -47,7 +47,7 @@ import Database.Persist (Entity (Entity))
 import Database.Persist.Sql (toSqlKey, fromSqlKey)
 
 import Foundation
-    ( Handler
+    ( Handler, widgetSnackbar
     , Route
       ( CatalogR, HomeR, StaticR, CatalogServicePhotoR, CatalogServiceR
       , CatalogServiceBusinessR, CatalogServiceAssignmentsR
@@ -102,8 +102,6 @@ import Settings.StaticFiles
 import Text.Hamlet (Html)
 import Text.Read (readMaybe)
 import Text.Printf (printf)
-
-import Widgets (widgetBanner, widgetSnackbar)
 
 import Yesod.Core
     ( Yesod(defaultLayout), setTitleI, lookupGetParams, getMessages

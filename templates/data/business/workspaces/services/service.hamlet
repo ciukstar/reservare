@@ -43,7 +43,6 @@
       
 
   <div ##{idPanelDetails} role=tabpanel aria-labelledby=#{idTabDetails}>
-    ^{widgetBanner msgs}
 
     $maybe (Entity _ (Service _ name descr price available duration _),Entity _ (Workspace _ _ _ _ currency)) <- service
       <dl>
