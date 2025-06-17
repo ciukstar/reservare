@@ -26,7 +26,7 @@ import Database.Persist
 import qualified Database.Persist as P ((=.))
 
 import Foundation
-    ( Handler, Form, Widget, widgetMainMenu, widgetAccount, widgetSnackbar
+    ( Handler, Form, widgetMainMenu, widgetAccount, widgetSnackbar
     , Route (DataR, StaticR, AccountPhotoR)
     , DataR (UserR, UsersR, UserDeleR, UserEditR)
     , AppMessage
@@ -40,7 +40,7 @@ import Foundation
       )
     )
     
-import Material3 ( md3textField, md3switchField, md3htmlField, md3mopt, md3mreq )
+import Material3 ( md3widgetSwitch, md3widget, md3widgetTextarea )
 
 import Model
     ( statusError, statusSuccess
@@ -67,15 +67,15 @@ import Yesod (YesodPersist(runDB))
 import Yesod.Core.Widget (setTitleI, whamlet)
 import Yesod.Core
     ( defaultLayout, newIdent, getMessages, setUltDestCurrent
-    , SomeMessage (SomeMessage), getMessageRender, FileInfo (fileContentType)
+    , SomeMessage (SomeMessage), FileInfo (fileContentType)
     , addMessageI, redirect, fileSourceByteString, MonadHandler (liftHandler)
     )
-import Yesod.Form.Fields (fileField)
-import Yesod.Form.Functions (generateFormPost, runFormPost)
+import Yesod.Form.Fields (fileField, htmlField, textField, checkBoxField)
+import Yesod.Form.Functions (mopt, mreq, generateFormPost, runFormPost)
 import Yesod.Form.Types
-    ( MForm, FormResult (FormSuccess)
+    ( FormResult (FormSuccess)
     , FieldSettings (FieldSettings, fsLabel, fsTooltip, fsName, fsAttrs, fsId)
-    , FieldView (fvInput, fvLabel, fvId)
+    , FieldView (fvInput, fvId)
     )
 
 
@@ -108,6 +108,10 @@ postUserDeleR uid = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgUser
+              idFormDelete <- newIdent
+              idDialogDelete <- newIdent
+              idOverlay <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/users/user")
           
 
@@ -121,9 +125,11 @@ getUserEditR uid = do
         return x
         
     (fw,et) <- generateFormPost $ formUser user
-    
+
+    msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgUser
+        $(widgetFile "common/css/header")
         $(widgetFile "data/users/edit")
 
 
@@ -151,24 +157,32 @@ postUserR uid = do
           addMessageI statusSuccess MsgRecordEdited
           redirect $ DataR $ UserR uid
       _otherwise -> do
+          msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgUser
+              $(widgetFile "common/css/header")
               $(widgetFile "data/users/edit") 
 
 
 getUserR :: UserId -> Handler Html
 getUserR uid = do
 
-    user <- (second (join . unValue) <$>) <$> runDB ( selectOne $ do
+    user <- ((second (join . unValue) <$>) <$>) $ runDB $ selectOne $ do
         x :& h <- from $ table @User
             `leftJoin` table @UserPhoto `on` (\(x :& h) -> just (x ^. UserId) ==. h ?. UserPhotoUser)
         where_ $ x ^. UserId ==. val uid
-        return (x, h ?. UserPhotoAttribution) )
+        return (x, h ?. UserPhotoAttribution)
     
     (fw,et) <- generateFormPost formDelete
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgUser
+        
+        idFormDelete <- newIdent
+        idDialogDelete <- newIdent
+        idOverlay <- newIdent
+        
+        $(widgetFile "common/css/header")
         $(widgetFile "data/users/user")
 
 
@@ -177,31 +191,28 @@ formDelete extra = return (FormSuccess (),[whamlet|#{extra}|])
 
 
 data UserData = UserData
-    (Maybe Text) -- ^ userDataName
-    Bool -- ^ userDataAdmin
-    (Maybe FileInfo) -- ^ userDataPhoto
-    (Maybe Html) -- ^ userDataPhotoAttribution
+    !(Maybe Text) -- ^ userDataName
+    !Bool -- ^ userDataAdmin
+    !(Maybe FileInfo) -- ^ userDataPhoto
+    !(Maybe Html) -- ^ userDataPhotoAttribution
 
 
-formUser :: Maybe (Entity User)
-         -> Html -> MForm Handler (FormResult UserData, Widget)
-formUser user extra = do
-
-    rndr <- getMessageRender
+formUser :: Maybe (Entity User) -> Form UserData
+formUser user extra = do 
     
-    (nameR,nameV) <- md3mopt md3textField FieldSettings
+    (nameR,nameV) <- mopt textField FieldSettings
         { fsLabel = SomeMessage MsgFullName
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", rndr MsgFullName)]
+        , fsAttrs = []
         } (userName . entityVal <$> user)
         
-    (adminR,adminV) <- md3mreq md3switchField FieldSettings
+    (adminR,adminV) <- mreq checkBoxField FieldSettings 
         { fsLabel = SomeMessage MsgAdministrator
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("icons","")]
+        , fsAttrs = []
         } (userAdmin . entityVal <$> user)
 
-    (photoR,photoV) <- md3mopt fileField FieldSettings
+    (photoR,photoV) <- mopt fileField FieldSettings
         { fsLabel = SomeMessage MsgPhoto
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("style","display:none")]
@@ -214,10 +225,10 @@ formUser user extra = do
           return $ x ^. UserPhotoAttribution
       Nothing -> return Nothing
     
-    (attribR,attribV) <- md3mopt md3htmlField FieldSettings
+    (attribR,attribV) <- mopt htmlField FieldSettings
         { fsLabel = SomeMessage MsgAttribution
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", rndr MsgAttribution)]
+        , fsAttrs = []
         } (Just attrib)
 
     let r = UserData <$> nameR <*> adminR <*> photoR <*> attribR
@@ -226,9 +237,7 @@ formUser user extra = do
     idFigurePhoto <- newIdent
     idImgPhoto <- newIdent
     
-    let w = $(widgetFile "data/users/form")
-
-    return (r,w)
+    return (r, $(widgetFile "data/users/form"))
 
 
 getUsersR :: Handler Html
@@ -244,8 +253,13 @@ getUsersR = do
     setUltDestCurrent
     defaultLayout $ do
         setTitleI MsgUsers
+
         idOverlay <- newIdent
         idDialogMainMenu <- newIdent
         classHeadline <- newIdent
         classSupportingText <- newIdent
+        classAttribution <- newIdent
+        
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "data/users/users")

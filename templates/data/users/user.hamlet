@@ -1,58 +1,46 @@
 
-<header>
-  <md-icon-button href=@{DataR UsersR} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed>
+  <nav>
+    <a.button.transparent.circle href=@{DataR UsersR} title=_{MsgBack} role=button>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgUser}
+    <h6.max>
+      _{MsgUser}
 
-  <span #headerEnd>
-    <md-icon-button type=button aria-label=_{MsgDele}
-      onclick="document.getElementById('idDialogDelete').open = true">
-      <md-icon>delete
-    <md-icon-button href=@{DataR $ UserEditR uid} aria-label=_{MsgEdit}>
-      <md-icon>edit
+    <button.transparent.circle data-ui=##{idDialogDelete} title=_{MsgDele} role=button>
+      <i.error-text>delete
 
-<md-dialog #idDialogDelete>
-  <div slot=headline>
-    _{MsgConfirmPlease}
-  <div slot=content>
-    _{MsgDeleteAreYouSure}
-  <div slot=actions>
-    <md-text-button type=button onclick="document.getElementById('idDialogDelete').open = false">
-      _{MsgCancel}
-    <form slot=content method=post action=@{DataR $ UserDeleR uid} enctype=#{et}>
-      ^{fw}
-      <md-filled-button type=submit>
-        _{MsgDele}
-
-<main>
+    <a.button.transparent.circle href=@{DataR $ UserEditR uid} title=_{MsgEdit} role=button>
+      <i>edit
+      
+<main.responsive>
       
   $maybe (Entity uid (User email authType _ verkey verified name super admin),attrib) <- user
     
-    <figure>
-      <img src=@{AccountPhotoR uid} width=auto height=56 loading=lazy alt=_{MsgPhoto}>
-      <figcaption.md-typescale-body-medium>
+    <figure.center-align>
+    
+      <img.extra src=@{AccountPhotoR uid} loading=lazy alt=_{MsgPhoto}>
+      
+      <figcaption.secondary-text.small-text>
         $maybe attrib <- attrib
-          <small.app-attribution.md-typescale-body-small>
-            #{attrib}
+          #{attrib}
         $nothing
           _{MsgPhoto}
         
     <dl>
       
-      <dt.md-typescale-label-large scope=row>_{MsgEmailAddress}
-      <dd.md-typescale-body-medium>#{email}
+      <dt.bold>_{MsgEmailAddress}
+      <dd.small-margin>#{email}
       
-      <dt.md-typescale-label-large scope=row>_{MsgFullName}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgFullName}
+      <dd.small-margin>
         $maybe name <- name
           #{name}
         $nothing
           <i>_{MsgNotSpecified}
       
-      <dt.md-typescale-label-large scope=row>_{MsgAuthentication}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgAuthentication}
+      <dd.small-margin>
         $case authType
           $of UserAuthTypePassword
             _{MsgPassword}
@@ -61,32 +49,52 @@
           $of UserAuthTypeGoogle
             _{MsgGoogle}
         
-      <dt.md-typescale-label-large scope=row>_{MsgVerificationKey}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgVerificationKey}
+      <dd.small-margin>
         $maybe verkey <- verkey
           #{verkey}
         $nothing
-          <i>_{MsgNotSpecified}
+          <span.lower>_{MsgNotSpecified}
         
-      <dt.md-typescale-label-large scope=row>_{MsgVerified}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgVerified}
+      <dd.small-margin>
         $if verified
           _{MsgYes}
         $else
           _{MsgNo}
         
-      <dt.md-typescale-label-large scope=row>_{MsgSuperuser}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgSuperuser}
+      <dd.small-margin>
         $if super
           _{MsgYes}
         $else
           _{MsgNo}
         
-      <dt.md-typescale-label-large scope=row>_{MsgAdministrator}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgAdministrator}
+      <dd.small-margin>
         $if admin
           _{MsgYes}
         $else
           _{MsgNo}
 
 ^{widgetSnackbar msgs}
+      
+<div.overlay ##{idOverlay}>
+
+<dialog ##{idDialogDelete}>
+  <h6>
+    _{MsgConfirmPlease}
+    
+  <p>
+    _{MsgDeleteAreYouSure}
+    
+  <nav.right-align>
+
+    <form slot=content method=post action=@{DataR $ UserDeleR uid} enctype=#{et} ##{idFormDelete}>
+      ^{fw}
+      
+    <button.transparent.link type=button data-ui=##{idDialogDelete}>
+      _{MsgCancel}
+
+    <button.error type=submit form=#{idFormDelete}>
+      _{MsgDele}

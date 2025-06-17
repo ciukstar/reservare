@@ -101,7 +101,7 @@ fillDemoRo appSettings = do
 
     let freepik = [shamlet|
                           Designed by #
-                          <a href="https://www.freepik.com/" target=_blank>
+                          <a.link href="https://www.freepik.com/" target=_blank>
                             Freepik
                           |]
 

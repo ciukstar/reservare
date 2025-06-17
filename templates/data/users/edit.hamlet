@@ -1,17 +1,23 @@
 
-<header>
-  <md-icon-button href=@{DataR $ UserR uid} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed>
+  <nav>
+    <a.button.transparent.circle href=@{DataR $ UserR uid} title=_{MsgBack} role=button>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgUser}
+    <h6.max>
+      _{MsgUser}
       
-<main>
+<main.responsive>
 
   <form method=post action=@{DataR $ UserR uid} enctype=#{et} novalidate>
     ^{fw}
-    <div.app-form-actions>
-      <md-text-button type=button href=@{DataR $ UserR uid}>
+    
+    <nav.right-align>
+      <a.button.transparent.link href=@{DataR $ UserR uid} role=button>
         _{MsgCancel}
-      <md-filled-button type=submit>
+        
+      <button type=submit>
         _{MsgSave}
+
+
+^{widgetSnackbar msgs}

@@ -6,6 +6,7 @@
 
 module Material3
   ( md3widget
+  , md3widgetTextarea
   , md3widgetSelect
   , md3widgetSwitch
   , md3widgetFile
@@ -14,6 +15,7 @@ module Material3
 
 
 import Data.Foldable (find)
+import Data.Maybe (isJust)
 import qualified Data.List.Safe as LS (head, tail)
 import Data.Text (Text, pack, splitOn)
 import Data.Text.Lazy (toStrict)
@@ -23,35 +25,24 @@ import Data.Time (TimeOfDay, LocalTime, formatTime, defaultTimeLocale)
 import qualified Text.Blaze.Html.Renderer.String as S (renderHtml)
 import qualified Text.Blaze.Html.Renderer.Text as T (renderHtml)
 import Text.Hamlet (Html)
+import Text.Julius (julius)
 import Text.Shakespeare.I18N (RenderMessage)
 
 import Yesod.Core (MonadHandler(HandlerSite), newIdent, WidgetFor, ToWidget (toWidget))
 import Yesod.Core.Handler (HandlerFor)
 import Yesod.Core.Widget (whamlet, handlerToWidget)
 import Yesod.Form.Fields
-    ( emailField, passwordField, textField, OptionList (olOptions), radioField
+    ( emailField, passwordField, textField, OptionList (olOptions)
     , Option (optionExternalValue, optionDisplay, optionInternalValue)
     , textareaField, Textarea (Textarea), selectField, checkBoxField, htmlField
     , FormMessage, doubleField, dayField, timeField, datetimeLocalField
-    , optionsPairs, multiSelectField, intField
+    , optionsPairs, multiSelectField, intField, radioField'
     )
 import Yesod.Form.Functions (mopt, mreq)
 import Yesod.Form.Types
-    ( Field (fieldView)
+    ( Field (fieldView), MForm, FormResult
     , FieldSettings (fsId, fsName, fsAttrs)
-    , FieldView (fvErrors), MForm, FormResult
-    )
-
-    
-
-import Data.Maybe (isJust)
-import Text.Julius (julius)
-
-import Yesod.Form.Fields
-    ( radioField'
-    )
-import Yesod.Form.Types
-    ( FieldView (fvInput, fvId, fvLabel, fvRequired)
+    , FieldView (fvErrors, fvInput, fvId, fvLabel, fvRequired)
     )
 
 
@@ -111,21 +102,6 @@ md3selectField options = (selectField options)
     get :: (Eq a) => [Option a] -> a -> Text
     get os a = maybe "undefied" optionExternalValue $ find (\o -> optionInternalValue o == a) os          
 
-{--
-md3radioField :: (RenderMessage m FormMessage, Eq a) => HandlerFor m (OptionList a) -> Field (HandlerFor m) a
-md3radioField options = (radioField options)
-    { fieldView = \theId name attrs x isReq -> do
-          opts <- zip [1 :: Int ..] . olOptions <$> handlerToWidget options
-          let sel (Left _) _ = False
-              sel (Right y) opt = optionInternalValue opt == y
-          [whamlet|
-<div ##{theId} *{attrs}>
-  $forall (i,opt) <- opts
-    <div>
-      <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt} :sel x opt:checked>
-      <label.label-large for=#{theId}-#{i}>#{optionDisplay opt}
-|] }
---}
 
 md3telField :: RenderMessage m FormMessage => Field (HandlerFor m) Text
 md3telField = textField { fieldView = \theId name attrs x req -> [whamlet|
@@ -330,6 +306,19 @@ md3widgetFile v = do
         $maybe err <- fvErrors v
           <span.error-text>#{err}
     |]
+
+    
+md3widgetTextarea :: RenderMessage m FormMessage => FieldView m -> WidgetFor m ()
+md3widgetTextarea v = [whamlet|
+  <div.field.border.round.label.textarea :isJust (fvErrors v):.invalid>
+    ^{fvInput v}
+    <label for=#{fvId v}>
+      #{fvLabel v}
+      $if fvRequired v
+        <sup>*
+    $maybe err <- fvErrors v
+      <span.error>#{err}
+|]
 
 
 md3widget :: RenderMessage m FormMessage => FieldView m -> WidgetFor m ()

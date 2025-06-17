@@ -2,28 +2,27 @@
 #{extra}
   
 <label for=#{fvId photoV} ##{idLabelPhoto}>
+
   <figure ##{idFigurePhoto}>
     $maybe Entity uid _ <- user
-      <img src=@{AccountPhotoR uid} width=auto height=56 ##{idImgPhoto} loading=lazy alt=_{MsgPhoto}>
+      <img.extra src=@{AccountPhotoR uid} ##{idImgPhoto} loading=lazy alt=_{MsgPhoto}>
     $nothing
-      <img src=@{StaticR img_account_circle_24dp_FILL0_wght400_GRAD0_opsz24_svg} width=auto height=56
+      <img.extra src=@{StaticR img_account_circle_24dp_FILL0_wght400_GRAD0_opsz24_svg}
            ##{idImgPhoto} loading=lazy alt=_{MsgPhoto}>
-    <figcaption.body-medium>
+           
+    <figcaption.secondary-text>
       _{MsgPhoto}
+      
 ^{fvInput photoV}
 
 <details.app-attribution
   ontoggle="this.querySelector('.app-expand').textContent = this.open ? 'expand_less' : 'expand_more'">
-  <summary.label-large>
-    <md-ripple>
+  <summary.large-text.wave>
     <span>_{MsgAttribution}
-    <md-icon.app-expand>expand_more
+    <i.app-expand>expand_more
     
-  ^{fvInput attribV}
+  ^{md3widgetTextarea attribV}
 
-^{fvInput nameV}
+^{md3widget nameV}
 
-<div style="display:flex;align-items:center;gap:1rem">
-  ^{fvInput adminV}
-  <label.body-large for=#{fvId adminV}>
-    #{fvLabel adminV}
+^{md3widgetSwitch adminV}

@@ -61,7 +61,11 @@ import Model
       )
     , StaffPhoto
       ( StaffPhoto, staffPhotoStaff, staffPhotoMime, staffPhotoPhoto, staffPhotoAttribution
-      ), ServicePhoto (ServicePhoto, servicePhotoService, servicePhotoMime, servicePhotoPhoto, servicePhotoAttribution)
+      )
+    , ServicePhoto
+      ( ServicePhoto, servicePhotoService, servicePhotoMime, servicePhotoAttribution
+      , servicePhotoPhoto
+      )
     )
 
 import Settings (AppSettings)
@@ -96,7 +100,7 @@ fillDemoEn appSettings = do
 
     let freepik = [shamlet|
                           Designed by #
-                          <a href="https://www.freepik.com/" target=_blank>
+                          <a.link href="https://www.freepik.com/" target=_blank>
                             Freepik
                           |]
 

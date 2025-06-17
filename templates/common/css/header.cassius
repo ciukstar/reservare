@@ -1,0 +1,15 @@
+
+header
+
+    max-width: 100vw
+    box-sizing: border-box
+    
+    nav.max
+    
+        min-width: 0
+
+        h6.max
+            font-size: 1.5rem
+            white-space: nowrap
+            overflow: hidden
+            text-overflow: ellipsis
