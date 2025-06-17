@@ -5,27 +5,7 @@
 {-# LANGUAGE TypeOperators #-}
 
 module Material3
-  ( md3mopt
-  , md3mreq
-  , md3emailField
-  , md3passwordField
-  , md3radioField
-  , md3telField
-  , md3textField
-  , md3textareaField
-  , md3selectField
-  , md3switchField
-  , md3htmlField
-  , md3doubleField
-  , md3intField
-  , md3dayField
-  , md3timeField
-  , md3datetimeLocalField
-  , md3checkboxesField
-  , md3checkboxesFieldList
-  , tsep
-
-  , md3widget
+  ( md3widget
   , md3widgetSelect
   , md3widgetSwitch
   , md3widgetFile

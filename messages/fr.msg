@@ -1,3 +1,7 @@
+
+TakePhoto: Prendre une photo
+UploadPhoto: Télécharger une photo
+Close: Fermer
 Home: Accueil
 SelectAppointeePlease: Veuillez sélectionner une personne désignée
 SelectServiceToBookPlease: Veuillez sélectionner un service à réserver

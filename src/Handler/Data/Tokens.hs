@@ -50,7 +50,7 @@ import Foundation
       )
     )
 
-import Material3 (md3radioField, md3emailField)
+import Material3 (md3radioField, md3widget)
 
 import Model
     ( gmailAccessToken, gmailRefreshToken, apiInfoGoogle
@@ -82,14 +82,14 @@ import Text.Shakespeare.Text (st)
 
 import Yesod.Core
     ( Yesod(defaultLayout), whamlet, SomeMessage (SomeMessage), getYesod
-    , getUrlRender, deleteSession, getMessageRender, getMessages, logWarn
+    , getUrlRender, deleteSession, getMessages, logWarn
     , addMessage, setUltDestCurrent, newIdent
     )
 import Yesod.Core.Handler (redirect, addMessageI, setSession)
 import Yesod.Core.Widget (setTitleI)
 import Yesod (YesodPersist(runDB))
 import Yesod.Form.Input (ireq, runInputGet)
-import Yesod.Form.Fields (optionsPairs, textField)
+import Yesod.Form.Fields (optionsPairs, textField, emailField)
 import Yesod.Form.Functions (generateFormPost, mreq, runFormPost)
 import Yesod.Form.Types
     ( FormResult (FormSuccess), FieldView (fvInput)
@@ -287,13 +287,13 @@ postTokensR = do
     case fr of
       FormSuccess x -> do
           app <- appSettings <$> getYesod
-          urlRender <- getUrlRender
+          rndr <- getUrlRender
 
           let scope :: Text
               scope = "https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/cloud-platform"
 
           r <- liftIO $ post "https://accounts.google.com/o/oauth2/v2/auth"
-              [ "redirect_uri" := urlRender (DataR TokensGoogleapisHookR)
+              [ "redirect_uri" := rndr (DataR TokensGoogleapisHookR)
               , "response_type" := ("code" :: Text)
               , "prompt" := ("consent" :: Text)
               , "client_id" := (googleApiConfClientId . appGoogleApiConf $ app)
@@ -339,27 +339,30 @@ getTokensR = do
 
 formStoreOptions :: Maybe (Entity Token)-> Form (Text,StoreType)
 formStoreOptions token extra = do
-    msg <- getMessageRender
+    
     let storeOptions = [ (MsgUserSession, StoreTypeSession)
                        , (MsgDatabase, StoreTypeDatabase)
                        , (MsgGoogleSecretManager, StoreTypeGoogleSecretManager)
                        ]
-    (emailR,emailV) <- mreq md3emailField FieldSettings
+                       
+    (emailR,emailV) <- mreq emailField FieldSettings
         { fsLabel = SomeMessage MsgEmailAddress
         , fsId = Nothing, fsName = Nothing, fsTooltip = Nothing
-        , fsAttrs = [("label", msg MsgGmailAccount)]
+        , fsAttrs = []
         } (Just "ciukstar@gmail.com")
+        
     (storeR,storeV) <- mreq (md3radioField (optionsPairs storeOptions)) FieldSettings
         { fsLabel = SomeMessage MsgStoreType
         , fsId = Nothing, fsName = Nothing, fsTooltip = Nothing
-        , fsAttrs = [("class","app-options-store-type")]
+        , fsAttrs = [("class","row vertical")]
         } (tokenStore . entityVal <$> token)
+        
     return ( (,) <$> emailR <*> storeR
            , [whamlet|
                #{extra}
-               ^{fvInput emailV}
-               <fieldset.shape-medium>
-                 <legend.body-medium>_{MsgStoreType}<sup>*
+               ^{md3widget emailV}
+               <fieldset>
+                 <legend>_{MsgStoreType}<sup>*
                  ^{fvInput storeV}
              |]
            )

@@ -1,3 +1,7 @@
+
+TakePhoto: Take a photo
+UploadPhoto: Upload photo
+Close: Close
 Home: Home
 SelectAppointeePlease: Please select an appointee
 SelectServiceToBookPlease: Please select a service to book

@@ -1,29 +1,22 @@
 
-<header>
-  <md-icon-button href=@{AuthR LoginR} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed>
+  <nav>
+    <a.button.transparent.circle href=@{AuthR LoginR} title=_{MsgBack} role=button>
+      <i>arrow_back
 
-  <section.md-typescale-title-large>
-    _{MsgPasswordRecovery}
+    <h6.max>
+      _{MsgPasswordRecovery}
       
-<main>
+<main.responsive>
 
-  $forall (status,msg) <- filter ((==) statusError . fst) msgs
-    <div.app-banner.error.md-typescale-body-medium>
-      #{status}. #{msg}
-
-
-  <div.md-typescale-body-medium>_{PasswordResetPrompt}
-  <form method=post action=@{parent forgotPasswordR} enctype=#{et} ##{idFormForgotPassword}>
+  <p.medium-text>
+    _{PasswordResetPrompt}
+    
+  <form.responsive method=post action=@{parent forgotPasswordR} enctype=#{et} ##{idFormForgotPassword}>
     ^{fw}
-    <md-filled-button type=submit>
-      _{SendPasswordResetEmail}
+    <nav.center-align>
+      <button type=submit>
+        _{SendPasswordResetEmail}
 
 
-$forall (status,msg) <- filter ((/=) statusError . fst) msgs
-  <aside.app-snackbar.shape-small.elevation-1
-    :status == statusSuccess:.primary-container :status /= statusSuccess:.error-container>
-    <md-elevation>
-    <span.md-typescale-body-medium>#{msg}
-    <md-icon-button type=button>
-      <md-icon>close
+^{widgetSnackbar msgs}

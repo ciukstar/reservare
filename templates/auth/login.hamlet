@@ -1,7 +1,7 @@
 
 <header.fixed>
   <nav>
-    <a.button.transparent href=#{backlink} title=_{MsgBack} ##{idButtonBack}>
+    <a.button.transparent.circle href=#{backlink} title=_{MsgBack} ##{idButtonBack}>
       <i>arrow_back
 
     <h6.max>

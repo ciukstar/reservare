@@ -1,27 +1,15 @@
-
-header
-    position: sticky
-    top: 0
-    z-index: 2
-    height: var(--app-top-appbar-height,64px)
-    padding: 0 0.5rem
-    display: flex
-    justify-content: flex-start
-    align-items: center
-    column-gap: 0.5rem
-    
-    #headerEnd
-        margin-left: auto
     
 main
-    img[slot=start]
-        clip-path: circle(50%)
+
     .app-attribution
+    
         position: relative
         margin: 0
         padding: 0
-        line-height: 0
+        line-height: 1
+        
         .app-attribution-wrapper
+        
             position: absolute
             bottom: 0
             left: 0.4rem

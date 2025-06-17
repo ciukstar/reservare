@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -39,7 +39,7 @@ import Database.Esqueleto.Experimental as E
     )
 import Database.Persist.Sql (ConnectionPool, runSqlPool)
 
-import Material3 (md3passwordField, md3emailField, md3widget)
+import Material3 (md3widget)
 
 import Network.Mail.Mime
     ( Part (partDisposition, partEncoding, partType, partContent, partHeaders, Part)
@@ -636,13 +636,12 @@ instance YesodAuthEmail App where
       where
           formForgotPassword :: Form Text
           formForgotPassword extra = do
-              rndr <- getMessageRender
-              (r,v) <- mreq md3emailField FieldSettings
+              (r,v) <- mreq emailField FieldSettings
                   { fsLabel = SomeMessage MsgEmailAddress
                   , fsId = Just "forgotPassword", fsName = Just "email", fsTooltip = Nothing
-                  , fsAttrs = [("label", rndr MsgEmailAddress)]
+                  , fsAttrs = []
                   } Nothing
-              return (r,[whamlet|#{extra}^{fvInput v}|])
+              return (r,[whamlet|#{extra} ^{md3widget v}|])
 
 
     setPasswordHandler :: Bool -> AuthHandler App TypedContent
@@ -651,7 +650,6 @@ instance YesodAuthEmail App where
         msgs <- getMessages
         selectRep $ provideRep $ authLayout $ do
             setTitleI SetPassTitle
-            idFormSetPassWrapper <- newIdent
             idFormSetPass <- newIdent
             (fw,et) <- liftHandler $ generateFormPost formSetPassword
             toWidget $(cassiusFile "templates/widgets/snackbar.cassius")
@@ -660,41 +658,38 @@ instance YesodAuthEmail App where
       where
           formSetPassword :: Form (Text,Text,Text)
           formSetPassword extra = do
-              rndr <- getMessageRender
-              (currR,currV) <- mreq md3passwordField FieldSettings
+              
+              (currR,currV) <- mreq passwordField FieldSettings
                   { fsLabel = SomeMessage CurrentPassword
                   , fsTooltip = Nothing
                   , fsId = Just "currentPassword"
                   , fsName = Just "current"
-                  , fsAttrs = [("label", rndr CurrentPassword)]
+                  , fsAttrs = []
                   } Nothing
-              (newR,newV) <- mreq md3passwordField FieldSettings
+                  
+              (newR,newV) <- mreq passwordField FieldSettings
                   { fsLabel = SomeMessage NewPass
                   , fsTooltip = Nothing
                   , fsId = Just "newPassword"
                   , fsName = Just "new"
-                  , fsAttrs = [("label", rndr NewPass)]
+                  , fsAttrs = []
                   } Nothing
-              (confR,confV) <- mreq md3passwordField FieldSettings
+                  
+              (confR,confV) <- mreq passwordField FieldSettings
                   { fsLabel = SomeMessage ConfirmPass
                   , fsTooltip = Nothing
                   , fsId = Just "confirmPassword"
                   , fsName = Just "confirm"
-                  , fsAttrs = [("label", rndr ConfirmPass)]
+                  , fsAttrs = []
                   } Nothing
 
               let r = (,,) <$> currR <*> newR <*> confR
-              let w = do
-                      toWidget [cassius|
-                                       ##{fvId currV}, ##{fvId newV}, ##{fvId confV}
-                                         align-self: stretch
-                                       |]
-                      [whamlet|
+              let w = [whamlet|
                               #{extra}
                               $if old
-                                ^{fvInput currV}
-                              ^{fvInput newV}
-                              ^{fvInput confV}
+                                ^{md3widget currV}
+                              ^{md3widget newV}
+                              ^{md3widget confV}
                               |]
               return (r,w)
 
@@ -716,23 +711,22 @@ instance YesodAuthEmail App where
         msgs <- getMessages
         authLayout $ do
             setTitleI RegisterLong
-            formRegisterWrapper <- newIdent
             formRegister <- newIdent
             toWidget $(cassiusFile "templates/widgets/snackbar.cassius")
             toWidget $(juliusFile "templates/widgets/snackbar.julius")
             $(widgetFile "auth/register")
+            
       where
           formRegEmailForm :: Form Text
           formRegEmailForm extra = do
-              renderMsg <- getMessageRender
-              (emailR,emailV) <- mreq md3emailField FieldSettings
+              (emailR,emailV) <- mreq emailField FieldSettings
                   { fsLabel = SomeMessage MsgEmailAddress
                   , fsId = Just "email", fsName = Just "email", fsTooltip = Nothing
-                  , fsAttrs = [("label", renderMsg MsgEmailAddress)]
+                  , fsAttrs = []
                   } Nothing
               let w = [whamlet|
                           #{extra}
-                          ^{fvInput emailV}
+                          ^{md3widget emailV}
                       |]
               return (emailR,w)
 

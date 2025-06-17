@@ -1,20 +1,22 @@
 
-<header>
-  <md-icon-button href=@{HomeR} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed>
+  <nav>
+    <a.button.transparent.circle href=@{HomeR} title=_{MsgBack} role=button>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgAuthentication}
+    <h6.max>
+      _{MsgAuthentication}
+      
+<main.responsive.center-align>
 
-<main>
-
-  <div.md-typescale-body-large>
+  <p.margin.large-text>
     #{msg}.
   
-  <md-filled-button type=button href=@{AuthR LoginR}>
+  <a.button.margin href=@{AuthR LoginR} role=button>
     _{MsgSignIn}
 
-  <div.body-large>_{MsgOr}
+  <div.margin.large-text>
+    _{MsgOr}
 
-  <md-text-button type=button href=@{HomeR}>
+  <a.button.transparent.link.margin href=@{HomeR} role=button>
     _{MsgBackToHomepage}

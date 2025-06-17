@@ -1,40 +1,30 @@
 
-<header.app-top-app-bar>
-  <md-icon-button href=@{HomeR} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed>
+  <nav>
+    <a.button.transparent.circle href=@{HomeR} title=_{MsgBack} role=button>
+      <i>arrow_back
 
-  <section.md-typescale-title-large>
-    _{MsgEmailVerification}
+    <h6.max>
+      _{MsgEmailVerification}
       
-<main>
+<main.responsive>
 
-  $forall (status,msg) <- filter ((==) statusError . fst) msgs
-    <div.app-banner.error.md-typescale-body-medium>
-      #{status}. #{msg}
-  
-
-  <div.md-typescale-body-medium>
+  <p.medium-text>
     _{MsgVerifyEmailPlease}.
 
-  <div.md-typescale-body-medium>
+  <p.medium-text>
     _{MsgJustSentEmailTo} #
-    <code.md-typescale-body-medium.shape-extra-small.surface-variant>
+    <code.medium-text.shape-extra-small>
       #{email}
     \.
-    <div.md-typescale-body-medium>
+    <div.medium-text>
       _{MsgClickToVerifyAccount}.
 
   <p>
-    <div.md-typescale-body-small>
+    <div.secondary-text>
       _{MsgDidNotGetEmail}
-    <md-text-button href=@{parent registerR} type=button>
+    <a.button.transparent.link href=@{parent registerR} role=button>
       _{MsgResendEmail}
 
 
-$forall (status,msg) <- filter ((/=) statusError . fst) msgs
-  <aside.app-snackbar.shape-small.elevation-1
-    :status == statusSuccess:.primary-container :status /= statusSuccess:.error-container>
-    <md-elevation>
-    <span.md-typescale-body-medium>#{msg}
-    <md-icon-button type=button>
-      <md-icon>close
+^{widgetSnackbar msgs}

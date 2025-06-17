@@ -246,4 +246,6 @@ getUsersR = do
         setTitleI MsgUsers
         idOverlay <- newIdent
         idDialogMainMenu <- newIdent
+        classHeadline <- newIdent
+        classSupportingText <- newIdent
         $(widgetFile "data/users/users")

@@ -1,3 +1,7 @@
+
+TakePhoto: Сфотографироваться
+UploadPhoto: Загрузить фото
+Close: Закрыть
 Home: Главная
 SelectAppointeePlease: Пожалуйста, выберите назначенное лицо
 SelectServiceToBookPlease: Выберите услугу для бронирования

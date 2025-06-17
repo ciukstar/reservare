@@ -1,0 +1,23 @@
+
+ ##{idOverlay}
+     z-index: 101
+
+##{idDialogMainMenu}
+    z-index: 102
+    header
+        nav
+            flex: 1
+
+            ##{idButtonMainMenuClose}
+                margin-left: auto
+
+    ol
+        li a
+            display: inline-flex
+        
+        li:is(:hover)
+            background-color: var(--active)
+
+        li:is(.active)
+            background-color: var(--secondary-container)
+            color: var(--on-secondary-container)

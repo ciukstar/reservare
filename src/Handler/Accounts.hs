@@ -1,5 +1,5 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
@@ -36,6 +36,7 @@ import Foundation
       ( MsgUserAccount, MsgSuperuser, MsgAdministrator, MsgSignOut
       , MsgPhoto, MsgPersonalInfo, MsgAccount, MsgBack, MsgEdit, MsgCancel
       , MsgSave, MsgFullName, MsgBirthday, MsgNotIndicated, MsgRecordEdited
+      , MsgClose, MsgUploadPhoto, MsgTakePhoto
       )
     )
     
@@ -54,28 +55,29 @@ import Model
 import Settings (widgetFile)
 import Settings.StaticFiles
     ( img_account_circle_24dp_FILL0_wght400_GRAD0_opsz24_svg
+    , img_camera_24dp_0000F5_FILL0_wght400_GRAD0_opsz24_svg
+    , img_person_FILL0_wght400_GRAD0_opsz24_svg
     )
 
 import Text.Hamlet (Html)
 import Text.Shakespeare.I18N (SomeMessage (SomeMessage))
 
-import Yesod (YesodPersist(runDB))
 import Yesod.Auth (maybeAuth, Route (LogoutR))
 import Yesod.Core
     ( Yesod(defaultLayout), newIdent, FileInfo, getMessageRender
-    , liftHandler
     )
 import Yesod.Core.Content (TypedContent (TypedContent), ToContent (toContent))
 import Yesod.Core.Handler
     ( redirect, getMessages, addMessageI, fileSourceByteString, fileContentType)
 import Yesod.Core.Widget (setTitleI, whamlet)
-import Yesod.Form.Fields (fileField, dayField)
+import Yesod.Form.Fields (fileField, dayField, textField)
 import Yesod.Form.Functions (generateFormPost, runFormPost, mopt)
 import Yesod.Form.Types
     ( FieldSettings (FieldSettings), FormResult (FormSuccess)
-    , fsLabel, fsTooltip, fsId, fsName, fsAttrs
+    , fsLabel, fsTooltip, fsId, fsName, fsAttrs, fvErrors
     , fvId, fvInput
     )
+import Yesod.Persist.Core (runDB)
 
 
 postAccountInfoR :: UserId -> Handler Html
@@ -107,7 +109,9 @@ getAccountInfoEditR uid = do
 getAccountEditR :: UserId -> Handler Html
 getAccountEditR uid = do
     user <- maybeAuth
+    
     (fw,et) <- generateFormPost $ formAccount user
+    
     defaultLayout $ do
         setTitleI MsgUserAccount
         $(widgetFile "accounts/edit")
@@ -115,11 +119,10 @@ getAccountEditR uid = do
 
 formAccount :: Maybe (Entity User) -> Form (Maybe Text, Maybe FileInfo)
 formAccount user extra = do
-    rndr <- liftHandler getMessageRender
-    (nameR,nameV) <- md3mopt md3textField FieldSettings
+    (nameR,nameV) <- mopt textField FieldSettings
         { fsLabel = SomeMessage MsgFullName
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", rndr MsgFullName)]
+        , fsAttrs = []
         } (userName . entityVal <$> user)
     (photoR,photoV) <- mopt fileField FieldSettings
         { fsLabel = SomeMessage MsgPhoto
@@ -127,13 +130,20 @@ formAccount user extra = do
         , fsAttrs = [("style","display:none")]
         } Nothing
 
+    idOverlay <- newIdent
     idUserIdent <- newIdent
     idLabelPhotoUser <- newIdent
     idFigurePhotoUser <- newIdent
     idImgPhotoUser <- newIdent
+    idButtonUploadPhoto <- newIdent
+    idButtonTakePhoto <- newIdent
+    idDialogSnapshot <- newIdent
+    idVideo <- newIdent
+    idButtonCloseDialogSnapshot <- newIdent
+    idButtonCapture <- newIdent
 
     return ( (,) <$> nameR <*> photoR
-           , $(widgetFile "accounts/form")
+           , $(widgetFile "accounts/form")  
            )
 
 
@@ -187,6 +197,7 @@ postAccountR uid = do
             Nothing -> return ()
           addMessageI statusSuccess MsgRecordEdited
           redirect $ AccountR uid
+          
       _otherwise -> defaultLayout $ do
           setTitleI MsgUserAccount
           $(widgetFile "accounts/edit")
