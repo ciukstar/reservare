@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE PatternSynonyms #-}
@@ -86,13 +86,14 @@ import Foundation
       , MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
       , MsgSymbolHour, MsgSymbolMinute, MsgWorkingHours, MsgStartTime
       , MsgEndTime, MsgDay, MsgFillFromPreviousMonth, MsgFillFromWorkingSchedule
-      , MsgPriority, MsgRole, MsgAlreadyExists, MsgPhoto, MsgAttribution
+      , MsgPriority, MsgRole, MsgAlreadyExists, MsgAttribution, MsgUploadPhoto
+      , MsgPhoto, MsgTakePhoto, MsgClose
       )
     )
     
 import Material3
-    ( md3mreq, md3telField, md3textField, md3mopt, md3selectField
-    , md3datetimeLocalField, md3intField, md3timeField, md3htmlField
+    ( md3widget, md3widgetTextarea, md3widgetSelect, md3mreq, md3textField, md3selectField
+    , md3datetimeLocalField, md3intField, md3timeField
     )
 
 import Model
@@ -107,18 +108,23 @@ import Model
     , ServiceId, Service (Service, serviceName)
     , Workspace (Workspace)
     , Business (Business)
-    , Schedule (Schedule, scheduleStart, scheduleEnd), ScheduleId
+    , ScheduleId, Schedule (Schedule, scheduleStart, scheduleEnd)
+    , WorkingHours (WorkingHours), StaffPhoto (StaffPhoto)
     , EntityField
       ( StaffId, UserName, UserId, AssignmentService, ServiceId
       , ServiceWorkspace, WorkspaceId, WorkspaceBusiness, BusinessId
       , AssignmentStaff, AssignmentId, ServiceName, ScheduleAssignment
       , ScheduleDay, ScheduleId, WorkingHoursDay, WorkingHoursWorkspace
-      , AssignmentRole, StaffPhotoStaff, StaffPhotoAttribution, StaffPhotoMime, StaffPhotoPhoto
-      ), WorkingHours (WorkingHours), StaffPhoto (StaffPhoto)
+      , AssignmentRole, StaffPhotoStaff, StaffPhotoAttribution, StaffPhotoMime
+      , StaffPhotoPhoto
+      )
     )
 
 import Settings (widgetFile)
-import Settings.StaticFiles (img_account_circle_24dp_FILL0_wght400_GRAD0_opsz24_svg)
+import Settings.StaticFiles
+    ( img_account_circle_24dp_FILL0_wght400_GRAD0_opsz24_svg
+    , img_camera_24dp_0000F5_FILL0_wght400_GRAD0_opsz24_svg
+    )
 
 import Text.Hamlet (Html)
 import Text.Printf (printf)
@@ -135,10 +141,11 @@ import Yesod.Form
     ( FieldSettings
       ( FieldSettings, fsLabel, fsTooltip, fsId, fsName, fsAttrs
       )
-    , FormResult (FormSuccess), FieldView (fvInput, fvId, fvErrors), optionsPairs, runFormPost
-    , Field, mopt, fileField
+    , Field, FormResult (FormSuccess)
+    , FieldView (fvInput, fvId, fvErrors), optionsPairs, runFormPost
     )
-import Yesod.Form.Functions (generateFormPost, checkM)
+import Yesod.Form.Fields (textField, htmlField, selectField, fileField)
+import Yesod.Form.Functions (mopt, mreq, generateFormPost, checkM)
 import Yesod.Persist (YesodPersist(runDB))
 
 
@@ -684,10 +691,12 @@ postStaffR = do
                     ]
           addMessageI statusSuccess MsgRecordAdded
           redirect $ DataR StaffR
+          
       FormSuccess (r,_) -> do
           runDB $ insert_ r
           addMessageI statusSuccess MsgRecordAdded
           redirect $ DataR StaffR
+          
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
@@ -703,20 +712,18 @@ getEmployeeNewR = do
     
     msgs <- getMessages
     defaultLayout $ do
-        setTitleI MsgStaff 
+        setTitleI MsgStaff
         idFormStaff <- newIdent
         $(widgetFile "data/staff/new")
 
 
 formEmployee :: Maybe (Entity Staff) -> Form (Staff,(Maybe FileInfo,Maybe Html))
 formEmployee staff extra = do
-
-    msgr <- getMessageRender
     
-    (nameR,nameV) <- md3mreq md3textField FieldSettings
+    (nameR,nameV) <- mreq textField FieldSettings
         { fsLabel = SomeMessage MsgFullName
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgFullName)]
+        , fsAttrs = []
         } (staffName . entityVal <$> staff)
 
     users <- liftHandler $ runDB $ select $ do
@@ -724,22 +731,22 @@ formEmployee staff extra = do
         orderBy [asc (x ^. UserName), desc (x ^. UserId)]
         return x
         
-    (accountR, accountV) <- md3mopt (md3selectField (optionsPairs (options <$> users))) FieldSettings
+    (accountR, accountV) <- mopt (selectField (optionsPairs (options <$> users))) FieldSettings
         { fsLabel = SomeMessage MsgAccount
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgAccount)]
+        , fsAttrs = []
         } (staffAccount . entityVal <$> staff)
     
-    (mobileR,mobileV) <- md3mopt md3telField FieldSettings
+    (mobileR,mobileV) <- mopt textField FieldSettings
         { fsLabel = SomeMessage MsgMobile
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgMobile)]
+        , fsAttrs = []
         } (staffMobile . entityVal <$> staff)
     
-    (phoneR,phoneV) <- md3mopt md3telField FieldSettings
+    (phoneR,phoneV) <- mopt textField FieldSettings
         { fsLabel = SomeMessage MsgPhone
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgPhone)]
+        , fsAttrs = []
         } (staffPhone . entityVal <$> staff)
 
     (photoR,photoV) <- mopt fileField FieldSettings
@@ -755,15 +762,23 @@ formEmployee staff extra = do
           return $ x ^. StaffPhotoAttribution
       Nothing -> return Nothing
     
-    (attribR,attribV) <- md3mopt md3htmlField FieldSettings
+    (attribR,attribV) <- mopt htmlField FieldSettings
         { fsLabel = SomeMessage MsgAttribution
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgAttribution)]
+        , fsAttrs = []
         } (Just attrib)
 
-    idFigurePhoto <- newIdent
     idLabelPhoto <- newIdent
-    idImgPhoto <- newIdent 
+    idFigurePhoto <- newIdent
+    idImgPhoto <- newIdent
+    idButtonUploadPhoto <- newIdent
+    idButtonTakePhoto <- newIdent
+
+    idOverlay <- newIdent 
+    idDialogSnapshot <- newIdent
+    idVideo <- newIdent
+    idButtonCloseDialogSnapshot <- newIdent
+    idButtonCapture <- newIdent
 
     return ( (,) <$> (Staff <$> nameR <*> accountR <*> mobileR <*> phoneR) <*> ((,) <$> photoR <*> attribR)
            , $(widgetFile "data/staff/form")
@@ -786,13 +801,14 @@ getEmployeeR eid = do
         where_ $ x ^. StaffPhotoStaff ==. val eid
         return (x ^. StaffPhotoAttribution) )
 
-    (fw2,et2) <- generateFormPost formEmployeeDelete
+    (fw0,et0) <- generateFormPost formEmployeeDelete
     
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgEmployee 
-        idPanelDetails <- newIdent
-        idTabDetails <- newIdent
+        idOverlay <- newIdent
+        idDialogDelete <- newIdent
+        idFormDelete <- newIdent
         $(widgetFile "data/staff/employee")
 
 
@@ -820,7 +836,11 @@ getStaffR = do
         setTitleI MsgStaff
         idOverlay <- newIdent
         idDialogMainMenu <- newIdent
-        idFabAdd <- newIdent
+        classHeadline <- newIdent
+        classSupportingText <- newIdent
+        classAttribution <- newIdent
+        
+        $(widgetFile "common/css/main")
         $(widgetFile "data/staff/staff")
 
 

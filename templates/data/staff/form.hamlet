@@ -1,31 +1,58 @@
 
 #{extra}
+
+<figure.center-align.vertical-margin ##{idFigurePhoto}>
+
+  <label for=#{fvId photoV} ##{idLabelPhoto}>
   
-<label for=#{fvId photoV} ##{idLabelPhoto}>
-  <figure ##{idFigurePhoto}>
     $maybe Entity eid _ <- staff
-      <img src=@{DataR $ EmployeePhotoR eid} width=auto height=56 ##{idImgPhoto} loading=lazy alt=_{MsgPhoto}>
+      <img.extra.circle src=@{DataR $ EmployeePhotoR eid} ##{idImgPhoto} loading=lazy alt=_{MsgPhoto}>
     $nothing
-      <img src=@{StaticR img_account_circle_24dp_FILL0_wght400_GRAD0_opsz24_svg} width=auto height=56
+      <img.extra.circle src=@{StaticR img_account_circle_24dp_FILL0_wght400_GRAD0_opsz24_svg}
            ##{idImgPhoto} loading=lazy alt=_{MsgPhoto}>
-    <figcaption>
 
-      $maybe errs <- fvErrors photoV
-        <div.body-medium style="color:var(--md-sys-color-error)">
-          #{errs}
-   
-      <md-outlined-button type=button onclick="document.getElementById('#{idLabelPhoto}').click()">
-        <md-icon slot=icon>upload_file
-        _{MsgPhoto}
+    ^{fvInput photoV}
+  
+  <figcaption.margin>
+
+    $maybe errs <- fvErrors photoV
+      <div.error>
+        #{errs}
         
-^{fvInput photoV}
+    <nav.center-align>
+      <button.border.round.transparent type=button ##{idButtonUploadPhoto}>
+        <i>upload_file
+        _{MsgUploadPhoto}
 
-^{fvInput attribV}
+      <button.circle.transparent.border title=_{MsgTakePhoto} type=button ##{idButtonTakePhoto} data-ui=##{idOverlay}>
+        <i>photo_camera
 
-^{fvInput nameV} 
 
-^{fvInput accountV} 
+^{md3widgetTextarea attribV}
 
-^{fvInput mobileV} 
+^{md3widget nameV} 
 
-^{fvInput phoneV}
+^{md3widgetSelect accountV} 
+
+^{md3widget mobileV} 
+
+^{md3widget phoneV}
+
+
+<div.overlay ##{idOverlay} data-ui=##{idDialogSnapshot}>
+
+<dialog ##{idDialogSnapshot}>
+
+  <h6.row>
+    <div.max>
+      _{MsgTakePhoto}
+    <button.transparent.circle type=button title=_{MsgClose} ##{idButtonCloseDialogSnapshot} data-ui=##{idDialogSnapshot}>
+      <i>close
+
+  <figure.center-align>
+    <video ##{idVideo} playsinline autoplay width=128 height=128
+           poster=@{StaticR img_camera_24dp_0000F5_FILL0_wght400_GRAD0_opsz24_svg}>
+
+  <nav.center-align>
+    <button.circle.extra.transparent.border type=button ##{idButtonCapture} data-ui=##{idDialogSnapshot}>
+      <i.extra>circle

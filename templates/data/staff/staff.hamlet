@@ -11,33 +11,35 @@
 
     ^{widgetAccount}
 
-<main.responsive>
+<main.responsive.no-padding>
 
   $if null staff
-    <figure style="text-align:center">
-      <span.on-secondary style="font-size:4rem">&varnothing;
-      <figcaption.md-typescale-body-large>
+    <figure.center-align>
+      <span.secondary-text style="font-size:4rem">&varnothing;
+      <figcaption.large-text>
         _{MsgThereAreNoDataYet}
-        <div.md-typescale-body-small>
+        <div.small-text>
           _{MsgYouMightWantToAddAFew}
   $else
-    <md-list>
-      $forall ((Entity eid (Staff name _ _ _), attrib), assignments) <- staff
-        <md-list-item type=link href=@{DataR $ EmployeeR eid}>
-          <img slot=start src=@{DataR $ EmployeePhotoR eid} width=56 height=56 loading=lazy>
-          <div slot=headline>
+    $forall ((Entity eid (Staff name _ _ _), attrib), assignments) <- staff
+      <a.row.padding.wave href=@{DataR $ EmployeeR eid}>
+        <img.circle src=@{DataR $ EmployeePhotoR eid} loading=lazy>
+        <div.max>
+          <div.#{classHeadline}.large-text>
             #{name}
-          <div slot=supporting-text>
+          <div.#{classSupportingText}.secondary-text>
             _{MsgServiceAssignments}: #{show assignments}
-          <md-icon slot=end>arrow_forward_ios
-        $maybe attrib <- attrib
-          <div.app-attribution>
-            <div.app-attribution-wrapper.md-typescale-body-small>
-              #{attrib}
-        <md-divider>
+     
+        <i.secondary-text>arrow_forward_ios
+ 
+      $maybe attrib <- attrib
+        <div.#{classAttribution}>
+          #{attrib}
 
-  <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-    <a href=@{DataR EmployeeNewR}>
-    <md-icon slot=icon>add
+      <hr.secondary-text>
+
+  <a.button.circle.extra.fixed.right.bottom.margin.medium-elevate href=@{DataR EmployeeNewR} title=_{MsgAdd}>
+    <i>add
+
 
 ^{widgetSnackbar msgs}
