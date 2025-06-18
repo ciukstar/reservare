@@ -1,63 +1,65 @@
 
-<header.background>
-  <md-icon-button href=@{DataR StaffR} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed>
+  <nav.responsive.max>
+    <a.button.circle.transparent href=@{DataR StaffR} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgEmployee}
+    <h6.max>
+      _{MsgEmployee}
 
-<main>
+<main.responsive.no-padding>
 
-  <figure>
-    <img slot=start src=@{DataR $ EmployeePhotoR eid} width=64 height=64 loading=lazy alt=_{MsgPhoto}>
-    <figcaption>
-      $maybe attrib <- attribution
-        <div.app-attribution>
-          <div.app-attribution-wrapper.md-typescale-body-small>
-            ^{attrib}
+  <figure.center-align>
+    <img.extra.circle src=@{DataR $ EmployeePhotoR eid} loading=lazy alt=_{MsgPhoto}>
+    
+    $maybe attrib <- attribution
+      <figcaption.small-text.secondary-text>
+        ^{attrib}
 
-  <md-tabs>
+  <div.tabs.min>
   
-    <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails
-      onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ EmployeeR eid}>
+    <a href=@{DataR $ EmployeeR eid}>
       _{MsgDetails}
       
-    <md-primary-tab ##{idTabAssignments} aria-cotrols=#{idPanelAssignments} active 
-      onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ StaffAssignmentsR eid}>
+    <a.active href=@{DataR $ StaffAssignmentsR eid}>
       _{MsgServiceAssignments}
       
 
-  <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
-
-  <div ##{idPanelAssignments} role=tabpanel aria-labelledby=#{idTabAssignments}>
+  <div.page.active.no-padding>
 
     $if null assignments
-      <figure style="text-align:center">
-        <span.on-secondary style="font-size:4rem">&varnothing;
-        <figcaption.md-typescale-body-large>
+      <figure.center-align>
+        <span.secondary-text style="font-size:4rem">&varnothing;
+        <figcaption.large-text>
           _{MsgThereAreNoDataYet}
-          <div.md-typescale-body-small>
+          <div.secondary-text.small-txt>
             _{MsgYouMightWantToAddAFew}
+            
     $else
-      <md-list>
-        $forall (Entity aid (Assignment _ _ role _ _ _),(service,(workspace,buisiness))) <- assignments
-          $with Entity sid (Service _ sname _ _ _ _ _) <- service
-            <md-list-item type=link href=@{DataR $ StaffAssignmentR eid aid}>
-              <img slot=start src=@{DataR $ ServicePhotoDefaultR sid} width=auto height=56 loading=lazy>
-              <div slot=headline>
+      
+      $forall (Entity aid (Assignment _ _ role _ _ _),(service,(workspace,buisiness))) <- assignments
+        $with Entity sid (Service _ sname _ _ _ _ _) <- service
+          <a.row.padding.wave href=@{DataR $ StaffAssignmentR eid aid}>
+            <img.circle src=@{DataR $ ServicePhotoDefaultR sid} loading=lazy alt=_{MsgLogo}>
+
+            <div.max>
+            
+              <div.#{classHeadline}.large-text>
                 #{role}
-              <div slot=supporting-text>
+  
+              <div.#{classSupportingText}.secondary-text>
                 #{sname}
-              <div slot=supporting-text>
+  
+              <div.#{classSupportingText}.secondary-text>
                 $with (Entity _ (Workspace _ wname _ _ _), Entity _ (Business _ bname _ _)) <- (workspace,buisiness)
                   #{wname} (#{bname})
-              <md-icon slot=end>arrow_forward_ios
-          <md-divider>    
- 
-    <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ StaffAssignmentNewR eid}>
-      <md-icon slot=icon>add
 
-    ^{widgetSnackbar msgs}
+            <i.secondary-text>arrow_forward_ios
+
+        <hr.secondary-text>
+
+  <a.button.circle.extra.fixed.right.bottom.margin.medium-elevate href=@{DataR $ StaffAssignmentNewR eid} title=_{MsgAdd}>
+    <i>add
+
+
+  ^{widgetSnackbar msgs}

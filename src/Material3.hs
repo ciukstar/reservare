@@ -1,4 +1,3 @@
-    
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -11,6 +10,7 @@ module Material3
   , md3widgetSwitch
   , md3widgetFile
   , md3radioField
+  , md3datetimeLocalField
   ) where
 
 
@@ -20,7 +20,7 @@ import qualified Data.List.Safe as LS (head, tail)
 import Data.Text (Text, pack, splitOn)
 import Data.Text.Lazy (toStrict)
 import Data.Time.Calendar (Day)
-import Data.Time (TimeOfDay, LocalTime, formatTime, defaultTimeLocale)
+import Data.Time (TimeOfDay, LocalTime)
 
 import qualified Text.Blaze.Html.Renderer.String as S (renderHtml)
 import qualified Text.Blaze.Html.Renderer.Text as T (renderHtml)
@@ -44,9 +44,7 @@ import Yesod.Form.Types
     , FieldSettings (fsId, fsName, fsAttrs)
     , FieldView (fvErrors, fvInput, fvId, fvLabel, fvRequired)
     )
-
-
-
+import Data.Time.Format.ISO8601 (iso8601Show)
 
 
 
@@ -146,3 +144,13 @@ md3radioField options = (radioField' options)
         #{optionDisplay opt}
 
 |] }
+
+
+md3datetimeLocalField :: RenderMessage m FormMessage => Field (HandlerFor m) LocalTime
+md3datetimeLocalField = datetimeLocalField
+    { fieldView = \theId name attrs x isReq -> [whamlet|
+        $newline never
+        <input type=datetime-local ##{theId} name=#{name} value=#{either id showVal x} *{attrs} :isReq:required>
+    |] }
+  where
+    showVal = pack . takeWhile (/= '.') . iso8601Show

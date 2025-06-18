@@ -1,24 +1,26 @@
 
-<header>
-  <md-icon-button href=@{DataR $ StaffScheduleSlotsR eid aid day} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed>
+  <nav>
+    <a.button.circle.transparent href=@{DataR $ StaffScheduleSlotsR eid aid day} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgWorkingHours}
+    <h6.max>
+      _{MsgWorkingHours}
 
-<main>
+<main.responsive>
 
-  <p>
+  <p.secondary-text.padding>
     $with d <- show day
-      <time.day-of-month.md-typescale-label-large datetime=#{d}>
+      <time.day-of-month.large-text datetime=#{d}>
         #{d}
 
   <form method=post action=@{DataR $ StaffScheduleSlotsR eid aid day} enctype=#{et} novalidate ##{idFormWorkSlot}>
     ^{fw}
-    <div.form-actions>
-      <md-text-button type=button href=@{DataR $ StaffScheduleSlotsR eid aid day}>
+    <nav.right-align>
+      <a.button.transparent.link href=@{DataR $ StaffScheduleSlotsR eid aid day} role=button>
         _{MsgCancel}
-      <md-filled-button type=submit>
+        
+      <button type=submit>
         _{MsgSave}
 
   ^{widgetSnackbar msgs}

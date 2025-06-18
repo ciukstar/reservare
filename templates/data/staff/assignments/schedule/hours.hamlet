@@ -1,64 +1,56 @@
 
-<header>
-  <md-icon-button href=@{DataR $ StaffAssignmentsR eid} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed>
+  <nav>
+    <a.button.circle.transparent href=@{DataR $ StaffAssignmentsR eid} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgServiceAssignment}
-
-  
-  <span #headerEnd>
-    <md-icon-button type=button ##{idButtonMenuAnchor}
-      onclick="document.getElementById('#{idMenuActions}').open = !document.getElementById('#{idMenuActions}').open">
-      <md-icon>more_vert
-    <md-menu anchor=#{idButtonMenuAnchor} x-offset=16 y-offset=16 ##{idMenuActions}>
-
-      <md-menu-item onclick="document.getElementById('#{idFormFillFromWorkingHours}').submit()">
-        <div slot=headline>
-          _{MsgFillFromWorkingSchedule}
-
-      <md-menu-item onclick="document.getElementById('#{idFormFillFromPreviousMonth}').submit()">
-        <div slot=headline>
-          _{MsgFillFromPreviousMonth}
-
-<form method=post action=@{DataR $ StaffScheduleFillFromWorkingHoursR eid aid month} enctype=#{et1} 
-  ##{idFormFillFromWorkingHours}>
-  ^{fw1}
-
-<form method=post action=@{DataR $ StaffScheduleFillFromPreviousMonthR eid aid month} enctype=#{et2} 
-  ##{idFormFillFromPreviousMonth}>
-  ^{fw2}
-
-<main>
-
-  <md-tabs>
-  
-    <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails
-      onclick="this.querySelector('a[href]').click()">
+    <h6.max>
+      _{MsgServiceAssignment}
       
-      <a href=@{DataR $ StaffAssignmentR eid aid}>
+    <button.transparent.circle data-ui=##{idMenuActions}>
+      <i>more_vert
+
+      <menu.left.no-wrap ##{idMenuActions}>
+
+        <li onclick="document.getElementById('#{idFormFillFromWorkingHours}').submit()">
+          <i>manage_accounts
+          <div.max>_{MsgFillFromWorkingSchedule}
+
+        <li onclick="document.getElementById('#{idFormFillFromPreviousMonth}').submit()">
+          <i>manage_accounts
+          <div.max>_{MsgFillFromPreviousMonth}
+
+    <form method=post action=@{DataR $ StaffScheduleFillFromWorkingHoursR eid aid month} enctype=#{et1} 
+          ##{idFormFillFromWorkingHours} hidden>
+      ^{fw1}
+
+    <form method=post action=@{DataR $ StaffScheduleFillFromPreviousMonthR eid aid month} enctype=#{et2} 
+          ##{idFormFillFromPreviousMonth} hidden>
+      ^{fw2}
+
+
+<main.responsive.no-padding>
+
+  <div.tabs.min>
+  
+    <a href=@{DataR $ StaffAssignmentR eid aid}>
       _{MsgDetails}
       
-    <md-primary-tab ##{idTabWorkingHours} aria-cotrols=#{idPanelWorkingHours} active
-      onclick="this.querySelector('a[href]').click()">
-      
-      <a href=@{DataR $ StaffScheduleR eid aid month}>
+    <a.active href=@{DataR $ StaffScheduleR eid aid month}>
       _{MsgWorkSchedule}
       
 
-  <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
-
-  <div ##{idPanelWorkingHours} role=tabpanel aria-labelledby=#{idTabWorkingHours}>
+  <div.page.active.padding>
 
     <div.calendar ##{idCalendarPage}>
       <div.header>
-        <md-icon-button type=link href=@{DataR $ StaffScheduleR eid aid prev} rel=nofollow>
-          <md-icon>arrow_back_ios
+        <a.button.transparent.circle href=@{DataR $ StaffScheduleR eid aid prev} role=button rel=nofollow>
+          <i>arrow_back_ios_new
         $with m <- show month
           <time.month-of-year datetime=#{m}>
             #{m}
-        <md-icon-button type=link href=@{DataR $ StaffScheduleR eid aid next} rel=nofollow>
-          <md-icon>arrow_forward_ios
+        <a.button.transparent.circle href=@{DataR $ StaffScheduleR eid aid next} role=button rel=nofollow>
+          <i>arrow_forward_ios
 
       $forall wd <- [MsgMon,MsgTue,MsgWed,MsgThu,MsgFri,MsgSat,MsgSun]
         <div.col-header>
@@ -68,7 +60,7 @@
           $with (y,m,d) <- toGregorian day
             $if (==) month (YearMonth y m)
               <a.cell href=@{DataR $ StaffScheduleSlotsR eid aid day} 
-                :M.member day hours:.primary :M.notMember day hours:.primary-negative>
+                :M.member day hours:.primary :M.notMember day hours:.primary-text>
                 
                 <time.day-of-month datetime=#{show day}>
                   <small>#{d}
@@ -90,4 +82,5 @@
             $else
               <div>
 
-    ^{widgetSnackbar msgs}
+
+^{widgetSnackbar msgs}

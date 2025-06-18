@@ -1,0 +1,13 @@
+
+            
+main
+
+    a.row
+
+        div.max
+            min-width: 0
+
+            .#{classHeadline}, .#{classSupportingText}
+                white-space: nowrap
+                overflow: hidden
+                text-overflow: ellipsis

@@ -1,6 +1,6 @@
 
 <header.fixed>
-  <nav.responsive.max>
+  <nav>
     <a.button.circle.transparent href=@{DataR StaffR} role=button title=_{MsgBack}>
       <i>arrow_back
 

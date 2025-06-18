@@ -1,19 +1,22 @@
 
-<header>
-  <md-icon-button href=@{DataR $ StaffAssignmentR eid aid} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed>
+  <nav>
+    <a.button.circle.transparent href=@{DataR $ StaffAssignmentR eid aid} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgServiceAssignment}
+    <h6.max>
+      _{MsgServiceAssignment}
 
-<main>
+<main.responsive>
 
   <form method=post action=@{DataR $ StaffAssignmentR eid aid} enctype=#{et} novalidate ##{idFormAssignment}>
     ^{fw}
-    <div.form-actions>
-      <md-text-button type=button href=@{DataR $ StaffAssignmentR eid aid}>
+    <nav.right-align>
+      <a.button.transparent.link href=@{DataR $ StaffAssignmentR eid aid} role=button>
         _{MsgCancel}
-      <md-filled-button type=submit>
+        
+      <button type=submit>
         _{MsgSave}
+        
 
 ^{widgetSnackbar msgs}

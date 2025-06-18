@@ -36,7 +36,7 @@ import Control.Monad (void, forM_, join)
 
 import Data.Bifunctor (Bifunctor(second, bimap))
 import qualified Data.Map as M (Map, fromListWith, member, notMember, lookup)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isJust)
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
 import Data.Time
@@ -87,13 +87,12 @@ import Foundation
       , MsgSymbolHour, MsgSymbolMinute, MsgWorkingHours, MsgStartTime
       , MsgEndTime, MsgDay, MsgFillFromPreviousMonth, MsgFillFromWorkingSchedule
       , MsgPriority, MsgRole, MsgAlreadyExists, MsgAttribution, MsgUploadPhoto
-      , MsgPhoto, MsgTakePhoto, MsgClose
+      , MsgPhoto, MsgTakePhoto, MsgClose, MsgLogo
       )
     )
     
 import Material3
-    ( md3widget, md3widgetTextarea, md3widgetSelect, md3mreq, md3textField, md3selectField
-    , md3datetimeLocalField, md3intField, md3timeField
+    ( md3widget, md3widgetTextarea, md3widgetSelect, md3datetimeLocalField
     )
 
 import Model
@@ -138,13 +137,17 @@ import Yesod.Core
 import Yesod.Core.Handler (getMessageRender)
 import Yesod.Core.Widget (setTitleI)
 import Yesod.Form
-    ( FieldSettings
+    ( optionsPairs, runFormPost
+    , FieldSettings
       ( FieldSettings, fsLabel, fsTooltip, fsId, fsName, fsAttrs
       )
     , Field, FormResult (FormSuccess)
-    , FieldView (fvInput, fvId, fvErrors), optionsPairs, runFormPost
+    , FieldView (fvInput, fvId, fvErrors, fvRequired, fvLabel)
     )
-import Yesod.Form.Fields (textField, htmlField, selectField, fileField)
+import Yesod.Form.Fields
+    ( textField, htmlField, selectField, fileField, timeField
+    , intField
+    )
 import Yesod.Form.Functions (mopt, mreq, generateFormPost, checkM)
 import Yesod.Persist (YesodPersist(runDB))
 
@@ -228,6 +231,7 @@ getStaffScheduleSlotEditR eid aid day sid = do
     defaultLayout $ do
         setTitleI MsgWorkingHours
         idFormWorkSlot <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/staff/assignments/schedule/slots/edit")
 
 
@@ -240,28 +244,27 @@ getStaffScheduleSlotNewR eid aid day = do
     defaultLayout $ do
         setTitleI MsgWorkingHours
         idFormWorkSlot <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/staff/assignments/schedule/slots/new")
 
 
 formWorkSlot :: AssignmentId -> Day -> Maybe (Entity Schedule) -> Form Schedule
 formWorkSlot wid day slot extra = do
-
-    msgr <- getMessageRender
     
-    (startR,startV) <- md3mreq md3timeField FieldSettings
+    (startR,startV) <- mreq timeField FieldSettings
         { fsLabel = SomeMessage MsgStartTime
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgStartTime)]
+        , fsAttrs = []
         } (scheduleStart . entityVal <$> slot)
         
-    (endR,endV) <- md3mreq md3timeField FieldSettings
+    (endR,endV) <- mreq timeField FieldSettings
         { fsLabel = SomeMessage MsgEndTime
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgEndTime)]
+        , fsAttrs = []
         } (scheduleEnd . entityVal <$> slot)
 
     let r = Schedule wid day <$> startR <*> endR
-    let w = [whamlet|#{extra} ^{fvInput startV} ^{fvInput endV}|]
+    let w = [whamlet|#{extra} ^{md3widget startV} ^{md3widget endV}|]
     return (r,w)
 
 
@@ -285,6 +288,7 @@ postStaffScheduleSlotR eid aid day sid = do
           defaultLayout $ do
               setTitleI MsgWorkingHours
               idFormWorkSlot <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/staff/assignments/schedule/slots/edit")
 
 
@@ -296,11 +300,15 @@ getStaffScheduleSlotR eid aid day sid = do
         where_ $ x ^. ScheduleId ==. val sid
         return x
 
-    (fw2,et2) <- generateFormPost formWorkingSlotDelete
+    (fw0,et0) <- generateFormPost formWorkingSlotDelete
     
     msgs <- getMessages
     defaultLayout $ do
-        setTitleI MsgWorkingHours 
+        setTitleI MsgWorkingHours
+        idOverlay <- newIdent
+        idDialogDelete <- newIdent
+        idFormDelete <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/staff/assignments/schedule/slots/slot")
 
 
@@ -318,11 +326,13 @@ postStaffScheduleSlotsR eid aid day = do
           runDB $ insert_ r
           addMessageI statusSuccess MsgRecordAdded
           redirect $ DataR $ StaffScheduleSlotsR eid aid day
+          
       _otherwise -> do    
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgWorkingHours
               idFormWorkSlot <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/staff/assignments/schedule/slots/new") 
 
 
@@ -340,7 +350,8 @@ getStaffScheduleSlotsR eid aid day = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkingHours
-        idFabAdd <- newIdent
+        classHeadline <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/staff/assignments/schedule/slots/slots")
 
 
@@ -368,13 +379,11 @@ getStaffScheduleR eid aid month = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkSchedule
-        idButtonMenuAnchor <- newIdent
         idMenuActions <- newIdent
         idFormFillFromWorkingHours <- newIdent
         idFormFillFromPreviousMonth <- newIdent
-        idTabWorkingHours <- newIdent
-        idPanelWorkingHours <- newIdent
         idCalendarPage <- newIdent
+        $(widgetFile "common/css/header")  
         $(widgetFile "data/staff/assignments/schedule/hours")
   where
       
@@ -454,6 +463,7 @@ postStaffAssignmentR eid aid = do
           defaultLayout $ do
               setTitleI MsgServiceAssignment
               idFormAssignment <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/staff/assignments/edit")
 
 
@@ -471,13 +481,15 @@ getStaffAssignmentR eid aid = do
 
     month <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
 
-    (fw2,et2) <- generateFormPost formServiceAssignmentDelete
+    (fw0,et0) <- generateFormPost formServiceAssignmentDelete
         
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignment
-        idTabDetails <- newIdent
-        idPanelDetails <- newIdent
+        idOverlay <- newIdent
+        idDialogDelete <- newIdent
+        idFormDelete <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/staff/assignments/assignment")
 
   where
@@ -496,6 +508,7 @@ postStaffAssignmentsR eid = do
           runDB $ insert_ r
           addMessageI statusSuccess MsgRecordAdded
           redirect $ DataR $ StaffAssignmentsR eid
+          
       _otherwise -> do        
           msgs <- getMessages
           defaultLayout $ do
@@ -506,42 +519,40 @@ postStaffAssignmentsR eid = do
 
 formServiceAssignment :: StaffId -> Maybe (Entity Assignment) -> Form Assignment
 formServiceAssignment eid assignment extra = do
-     
-    msgr <- getMessageRender
     
     services <- liftHandler $ runDB $ select $ do
         x <- from $ table @Service
         orderBy [asc (x ^. ServiceName), desc (x ^. ServiceId)]
         return x
     
-    (serviceR, serviceV) <- md3mreq (md3selectField (optionsPairs (options <$> services))) FieldSettings
+    (serviceR, serviceV) <- mreq (selectField (optionsPairs (options <$> services))) FieldSettings
         { fsLabel = SomeMessage MsgService
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgService)]
+        , fsAttrs = []
         } (assignmentService . entityVal <$> assignment)
     
-    (roleR, roleV) <- md3mreq (uniqueRoleField eid serviceR) FieldSettings
+    (roleR, roleV) <- mreq (uniqueRoleField eid serviceR) FieldSettings
         { fsLabel = SomeMessage MsgRole
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgRole)]
+        , fsAttrs = []
         } (assignmentRole . entityVal <$> assignment)
     
-    (startR, startV) <- md3mreq md3datetimeLocalField FieldSettings
+    (startR, startV) <- mreq md3datetimeLocalField FieldSettings
         { fsLabel = SomeMessage MsgAssignmentDate
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgAssignmentDate),("step","1")]
+        , fsAttrs = [("step","1")]
         } (utcToLocalTime utc . assignmentTime . entityVal <$> assignment)
     
-    (intervalR, intervalV) <- md3mreq md3intField FieldSettings
+    (intervalR, intervalV) <- mreq (intField @_ @Integer) FieldSettings
         { fsLabel = SomeMessage MsgSchedulingInterval
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgSchedulingInterval),("supporting-text", msgr MsgUnitMinutes)]
+        , fsAttrs = []
         } (truncate . (/ 60) . nominalDiffTimeToSeconds . assignmentSlotInterval . entityVal <$> assignment)
     
-    (priorityR, priorityV) <- md3mreq md3intField FieldSettings
+    (priorityR, priorityV) <- mreq intField FieldSettings
         { fsLabel = SomeMessage MsgPriority
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgPriority)]
+        , fsAttrs = []
         } (assignmentPriority . entityVal <$> assignment)
 
     let r = Assignment eid <$> serviceR <*> roleR <*> (localTimeToUTC utc <$> startR)
@@ -550,11 +561,23 @@ formServiceAssignment eid assignment extra = do
 
     let w = [whamlet|
                     #{extra}
-                    ^{fvInput serviceV}
-                    ^{fvInput roleV}
-                    ^{fvInput startV}
-                    ^{fvInput intervalV}
-                    ^{fvInput priorityV}
+                    ^{md3widgetSelect serviceV}
+                    ^{md3widget roleV}
+                    ^{md3widget startV}
+
+                    <div.field.label.border.round :isJust (fvErrors intervalV):.invalid>
+                      ^{fvInput intervalV}
+                      <label for=#{fvId intervalV}>
+                        #{fvLabel intervalV}
+                        $if fvRequired intervalV
+                          <sup>*
+                      $maybe err <- fvErrors intervalV
+                        <span.error>#{err}
+                      $nothing
+                        <span.helper>_{MsgUnitMinutes}                     
+                      
+                                            
+                    ^{md3widget priorityV}
                     |]
 
     return (r, w)
@@ -563,7 +586,7 @@ formServiceAssignment eid assignment extra = do
       options e = (serviceName . entityVal $ e, entityKey e)
       
       uniqueRoleField :: StaffId -> FormResult ServiceId -> Field Handler Text
-      uniqueRoleField eid' sid = checkM (uniqueRole eid' sid) md3textField
+      uniqueRoleField eid' sid = checkM (uniqueRole eid' sid) textField
 
       uniqueRole :: StaffId -> FormResult ServiceId -> Text -> Handler (Either AppMessage Text)
       uniqueRole eid' sid role = do
@@ -603,9 +626,10 @@ getStaffAssignmentsR eid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignments
-        idTabAssignments <- newIdent
-        idPanelAssignments <- newIdent
-        idFabAdd <- newIdent 
+        classHeadline <- newIdent
+        classSupportingText <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/rows")
         $(widgetFile "data/staff/assignments/assignments")
 
 
@@ -809,6 +833,7 @@ getEmployeeR eid = do
         idOverlay <- newIdent
         idDialogDelete <- newIdent
         idFormDelete <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/staff/employee")
 
 

@@ -1,38 +1,43 @@
 
-<header.background>
-  <md-icon-button href=@{DataR $ StaffScheduleR eid aid month} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed>
+  <nav>
+    <a.button.circle.transparent href=@{DataR $ StaffScheduleR eid aid month} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgWorkingHours}
+    <h6.max>
+      _{MsgWorkingHours}
 
-<main>
+<main.responsive.no-padding>
   
-  <p.day-label>
+  <p.secondary-text.padding>
     $with d <- show day
-      <time.day.md-typescale-label-large datetime=#{d}>
+      <time.day.large-text datetime=#{d}>
         #{d}
 
   $if null slots
-    <figure style="text-align:center">
-      <span.on-secondary style="font-size:4rem">&varnothing;
-      <figcaption.md-typescale-body-large>
+    <figure.center-align>
+      <span.secondary-text style="font-size:4rem">&varnothing;
+      <figcaption.large-text>
         _{MsgThereAreNoDataYet}
-        <div.md-typescale-body-small>
+        <div.small-text>
           _{MsgYouMightWantToAddAFew}
+          
   $else
-    <md-list>
-      $forall Entity sid (Schedule _ _ start end) <- slots
-        <md-list-item type=link href=@{DataR $ StaffScheduleSlotR eid aid day sid}>
-          <div slot=headline>
+    
+    $forall Entity sid (Schedule _ _ start end) <- slots
+      <a.row.padding.wave href=@{DataR $ StaffScheduleSlotR eid aid day sid}>
+        <div.max>
+          <div.#{classHeadline}.large-text>
             <time.time-of-day datetime=#{show $ LocalTime day start}>#{show start}
             \ &mdash; #
             <time.time-of-day datetime=#{show $ LocalTime day end}>#{show end}
-          <md-icon slot=end>arrow_forward_ios
-        <md-divider>
+     
+        <i.secondary-text>arrow_forward_ios
+   
+      <hr.secondary-text>
 
-  <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-    <a href=@{DataR $ StaffScheduleSlotNewR eid aid day}>
-    <md-icon slot=icon>add
+  <a.button.circle.extra.fixed.right.bottom.margin.medium-elevate 
+            href=@{DataR $ StaffScheduleSlotNewR eid aid day} title=_{MsgAdd}>
+    <i>add
 
   ^{widgetSnackbar msgs}
