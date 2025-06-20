@@ -14,12 +14,7 @@
 <main.responsive.no-padding>
 
   $if null staff
-    <figure.center-align>
-      <span.secondary-text style="font-size:4rem">&varnothing;
-      <figcaption.large-text>
-        _{MsgThereAreNoDataYet}
-        <div.small-text>
-          _{MsgYouMightWantToAddAFew}
+    ^{widgetEmpty}
   $else
     $forall ((Entity eid (Staff name _ _ _), attrib), assignments) <- staff
       <a.row.padding.wave href=@{DataR $ EmployeeR eid}>

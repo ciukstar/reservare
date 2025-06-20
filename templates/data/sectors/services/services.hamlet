@@ -13,7 +13,7 @@
 
 <main.responsive.no-padding>
 
-  <div.tabs>
+  <div.tabs.min>
   
     <a href=@{DataR $ SectorR (last gids) (Sectors (init gids))}>
       _{MsgDetails}
@@ -28,28 +28,23 @@
   <div.page.active.no-padding>
 
     $if null services
-      <figure.center-align>
-        <span.secondary-text style="font-size:4rem">&varnothing;
-        <figcaption.large-text>
-          _{MsgThereAreNoDataYet}
-          <div.small-text>
-            _{MsgYouMightWantToAddAFew}
+      ^{widgetEmpty}
     $else
-      <md-list>
-        $forall (Entity sid (Service _ name _ price _ _ _),Entity _ (Workspace _ _ _ _ currency)) <- services
-          <a.row.padding.wave href=@?{(DataR $ SectorServiceR gid sid ps,stati)}>
-            <img.circle src=@{DataR $ ServicePhotoDefaultR sid} loading=lazy>
-            <div.max>
-            
-              <div.#{classHeadline}.large-text>
-                #{name}
-  
-              <div.#{classCurrency}.#{classSupportingText}.secondary-text data-value=#{price} data-currency=#{currency}>
-                #{currency}#{price}
+      
+      $forall (Entity sid (Service _ name _ price _ _ _),Entity _ (Workspace _ _ _ _ currency)) <- services
+        <a.row.padding.wave href=@?{(DataR $ SectorServiceR gid sid ps,stati)}>
+          <img.circle src=@{DataR $ ServicePhotoDefaultR sid} loading=lazy>
+          <div.max>
 
-            <i.secondary-text>arrow_forward_ios
-            
-          <hr>
+            <div.#{classHeadline}.large-text>
+              #{name}
+
+            <div.#{classCurrency}.#{classSupportingText}.secondary-text data-value=#{price} data-currency=#{currency}>
+              #{currency}#{price}
+
+          <i.secondary-text>arrow_forward_ios
+
+        <hr>
 
 
   <a.button.circle.extra.fixed.right.bottom.margin.medium-elevate href=@{DataR $ SectorServiceNewR gid ps} title=_{MsgAdd}>

@@ -29,12 +29,7 @@
   <div.page.active.no-padding>
 
     $if null assignments
-      <figure.center-align>
-        <span.secondary-text style="font-size:4rem">&varnothing;
-        <figcaption.large-text>
-          _{MsgThereAreNoDataYet}
-          <div.secondary-text.small-txt>
-            _{MsgYouMightWantToAddAFew}
+      ^{widgetEmpty}
             
     $else
       

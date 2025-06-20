@@ -24,12 +24,7 @@
   <div.page.active>
 
     $if null assignments
-      <figure.center-align>
-        <span.secondary-text style="font-size:4rem">&varnothing;
-        <figcaption.large-text>
-          _{MsgThereAreNoDataYet}
-          <div.small-text>
-            _{MsgYouMightWantToAddAFew}
+      ^{widgetEmpty}
     $else
       
       $forall (Entity aid (Assignment _ _ role _ _ _),(employee,(service,(workspace,(buisiness,attrib))))) <- assignments

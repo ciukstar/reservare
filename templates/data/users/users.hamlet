@@ -14,8 +14,8 @@
 <main.responsive.no-padding>
 
   $if null users
-    <figure style="text-align:center">
-      <span.on-secondary style="font-size:4rem">&varnothing;
+    <figure.center-align.padding>
+      <i.extra.secondary-text>folder-open
       <figcaption.body-large>
         _{MsgNoUsersYet}
         

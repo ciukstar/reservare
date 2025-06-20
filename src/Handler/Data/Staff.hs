@@ -62,10 +62,10 @@ import Database.Esqueleto.Experimental
 import Database.Persist
     ( Entity (Entity), entityVal, entityKey, insert, insert_, upsert
     )
-import qualified Database.Persist as P ((=.), delete, PersistStoreWrite (replace))
+import qualified Database.Persist as P ((=.), delete, replace)
     
 import Foundation
-    ( Handler, Form, widgetMainMenu, widgetAccount, widgetSnackbar
+    ( Handler, Form, widgetMainMenu, widgetAccount, widgetSnackbar, widgetEmpty
     , Route (DataR, StaticR)
     , DataR
       ( EmployeeR, EmployeeNewR, StaffR, EmployeeEditR, EmployeeDeleR
@@ -77,7 +77,7 @@ import Foundation
       , ServicePhotoDefaultR
       )
     , AppMessage
-      ( MsgStaff, MsgAdd, MsgYouMightWantToAddAFew, MsgThereAreNoDataYet
+      ( MsgStaff, MsgAdd
       , MsgCancel, MsgSave, MsgBack, MsgFullName, MsgAccount, MsgMobile
       , MsgPhone, MsgRecordAdded, MsgEmployee, MsgServiceAssignments
       , MsgDetails, MsgDeleteAreYouSure, MsgEdit, MsgDele, MsgConfirmPlease

@@ -1,19 +1,24 @@
 
-<header>
-  <md-icon-button href=@?{(DataR $ SectorServiceAssignmentR gid sid aid ps,stati)} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed>
+  <nav>
+    <a.button.circle.transparent href=@?{(DataR $ SectorServiceAssignmentR gid sid aid ps,stati)} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgServiceAssignment}
+    <h6.max>
+      _{MsgServiceAssignment}
 
-<main>
+<main.responsive>
 
-  <form method=post action=@?{(DataR $ SectorServiceAssignmentR gid sid aid ps,stati)} enctype=#{et} novalidate ##{idFormAssignment}>
+  <form method=post enctype=#{et} novalidate ##{idFormAssignment}
+        action=@?{(DataR $ SectorServiceAssignmentR gid sid aid ps,stati)}>
     ^{fw}
-    <div.form-actions>
-      <md-text-button type=button href=@?{(DataR $ SectorServiceAssignmentR gid sid aid ps,stati)}>
+    <nav.right-align>
+      <a.button.transparent.link href=@?{(DataR $ SectorServiceAssignmentR gid sid aid ps,stati)} role=button>
         _{MsgCancel}
-      <md-filled-button type=submit>
+        
+      <button type=submit>
         _{MsgSave}
 
   ^{widgetSnackbar msgs}
+
+

@@ -14,12 +14,7 @@
 <main.responsive.no-padding>
 
   $if null sectors
-    <figure.center-align>
-      <span.secondary-text style="font-size:4rem">&varnothing;
-      <figcaption.large-text>
-        _{MsgThereAreNoDataYet}
-        <div.secondary-text.small-text>
-          _{MsgYouMightWantToAddAFew}
+    ^{widgetEmpty}
   $else
     
     $forall Entity gid (Sector name _ _) <- sectors

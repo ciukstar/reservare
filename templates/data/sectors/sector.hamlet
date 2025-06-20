@@ -15,7 +15,7 @@
 
 <main.responsive.no-padding>
 
-  <div.tabs>
+  <div.tabs.min>
   
     <a.active href=@{DataR $ SectorR gid ps}>
       _{MsgDetails}
@@ -43,7 +43,7 @@
           <dt.bold>_{MsgSector}
           <dd.small-margin>#{name}
 
-    ^{widgetSnackbar msgs}
+  ^{widgetSnackbar msgs}
 
 
 <div.overlay ##{idOverlay} data-ui=##{idDialogDelete}>

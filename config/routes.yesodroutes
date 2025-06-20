@@ -97,14 +97,14 @@
     /assignments/edit/#SectorId/services/#ServiceId/#AssignmentId/+Sectors   SectorServiceAssignmentEditR GET
     /assignments/new/#SectorId/services/#ServiceId/+Sectors                  SectorServiceAssignmentNewR  GET
     /assignment/sectors/#SectorId/services/#ServiceId/#AssignmentId/+Sectors SectorServiceAssignmentR     GET POST
-    /assignments/sectors/#SectorId/services/#ServiceId/+Sectors              SectorServiceAssignmentsR    GET POST
+    /assignments/sectors/#SectorId/services/#ServiceId/+Sectors              SectorServiceAssignmentsR    GET
 
     
     /photos/dele/sectors/#SectorId/services/#ServiceId/#ServicePhotoId/+Sectors SectorServicePhotoDeleR POST
     /photos/edit/sectors/#SectorId/services/#ServiceId/#ServicePhotoId/+Sectors SectorServicePhotoEditR GET
     /photos/new/sectors/#SectorId/services/#ServiceId/+Sectors                  SectorServicePhotoNewR  GET
     /photos/sectors/#SectorId/services/#ServiceId/#ServicePhotoId/+Sectors      SectorServicePhotoR     POST
-    /photo/sectors/#SectorId/services/#ServiceId/+Sectors                       SectorServicePhotosR    GET
+    /photo/sectors/#SectorId/services/#ServiceId/+Sectors                       SectorServicePhotosR    GET POST
     
     /forms/dele/sectors/#SectorId/services/#ServiceId/+Sectors SectorServiceDeleR POST
     /forms/edit/sectors/#SectorId/services/#ServiceId/+Sectors SectorServiceEditR GET

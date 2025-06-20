@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -48,7 +48,7 @@ import Database.Persist
 import qualified Database.Persist as P (delete, replace)
 
 import Foundation
-    ( Handler, Form, widgetMainMenu, widgetAccount, widgetSnackbar
+    ( Handler, Form, widgetMainMenu, widgetAccount, widgetSnackbar, widgetEmpty
     , Route (DataR, StaticR)
     , DataR
       ( SectorsR, SectorR, SectorNewR, SectorEditR, SectorDeleR, SectorServicesR
@@ -62,7 +62,7 @@ import Foundation
       , SectorServiceAssignmentDeleR
       )
     , AppMessage
-      ( MsgSectors, MsgAdd, MsgYouMightWantToAddAFew, MsgThereAreNoDataYet
+      ( MsgSectors, MsgAdd
       , MsgSector, MsgBack, MsgSave, MsgCancel, MsgAlreadyExists, MsgPhotos
       , MsgTheName, MsgDescription, MsgRecordAdded, MsgRecordDeleted
       , MsgInvalidFormData, MsgEdit, MsgDetails, MsgDeleteAreYouSure
@@ -75,9 +75,8 @@ import Foundation
     )
     
 import Material3
-    ( md3mreq, md3textField, md3mopt, md3textareaField, md3selectField
-    , md3intField, md3datetimeLocalField, md3widgetSelect
-    , md3widget, md3widgetTextarea, md3widgetSwitch
+    ( md3datetimeLocalField, md3widgetSelect, md3widgetTextarea, md3widgetSwitch
+    , md3widget
     )
     
 import Model
@@ -110,15 +109,16 @@ import Model
 
 import Settings (widgetFile)
 import Settings.StaticFiles
-    ( img_add_photo_alternate_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg )
+    ( img_add_photo_alternate_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg
+    )
 
 import Text.Hamlet (Html)
 import Text.Julius (RawJS(rawJS))
 
 import Yesod.Core
     ( Yesod(defaultLayout), setTitleI, getMessages, newIdent, whamlet
-    , SomeMessage (SomeMessage), getMessageRender, redirect, addMessageI
-    , MonadHandler (liftHandler), getRequest, YesodRequest (reqGetParams)
+    , SomeMessage (SomeMessage), redirect, addMessageI, getRequest
+    , MonadHandler (liftHandler), YesodRequest (reqGetParams)
     , FileInfo (fileContentType), fileSourceByteString
     )
 import Yesod.Form
@@ -179,47 +179,46 @@ getSectorServiceAssignmentNewR gid sid ps = do
     defaultLayout $ do
         setTitleI MsgServiceAssignment
         idFormAssignment <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/sectors/services/assignments/new")
 
 
 formServiceAssignment :: ServiceId -> Maybe (Entity Assignment) -> Form Assignment
 formServiceAssignment sid assignment extra = do
 
-    msgr <- getMessageRender
-
     staff <- liftHandler $ runDB $ select $ do
         x <- from $ table @Staff
         orderBy [asc (x ^. StaffName), desc (x ^. StaffId)]
         return x
 
-    (employeeR, employeeV) <- md3mreq (md3selectField (optionsPairs (options <$> staff))) FieldSettings
+    (employeeR, employeeV) <- mreq (selectField (optionsPairs (options <$> staff))) FieldSettings
         { fsLabel = SomeMessage MsgEmployee
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgEmployee)]
+        , fsAttrs = []
         } (assignmentStaff . entityVal <$> assignment)
 
-    (roleR, roleV) <- md3mreq (uniqueRoleField sid employeeR) FieldSettings
+    (roleR, roleV) <- mreq (uniqueRoleField sid employeeR) FieldSettings
         { fsLabel = SomeMessage MsgRole
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgRole)]
+        , fsAttrs = []
         } (assignmentRole . entityVal <$> assignment)
 
-    (startR, startV) <- md3mreq md3datetimeLocalField FieldSettings
+    (startR, startV) <- mreq md3datetimeLocalField FieldSettings
         { fsLabel = SomeMessage MsgAssignmentDate
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgAssignmentDate),("step","1")]
+        , fsAttrs = [("step","1")]
         } (utcToLocalTime utc . assignmentTime . entityVal <$> assignment)
 
-    (intervalR, intervalV) <- md3mreq md3intField FieldSettings
+    (intervalR, intervalV) <- mreq (intField @_ @Integer) FieldSettings
         { fsLabel = SomeMessage MsgSchedulingInterval
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgSchedulingInterval),("supporting-text", msgr MsgUnitMinutes)]
+        , fsAttrs = []
         } (truncate . (/ 60) . nominalDiffTimeToSeconds . assignmentSlotInterval . entityVal <$> assignment)
 
-    (priorityR, priorityV) <- md3mreq md3intField FieldSettings
+    (priorityR, priorityV) <- mreq intField FieldSettings
         { fsLabel = SomeMessage MsgPriority
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgPriority)]
+        , fsAttrs = []
         } (assignmentPriority . entityVal <$> assignment)
 
     let r = Assignment <$> employeeR <*> pure sid <*> roleR <*> (localTimeToUTC utc <$> startR)
@@ -228,20 +227,33 @@ formServiceAssignment sid assignment extra = do
 
     let w = [whamlet|
                     #{extra}
-                    ^{fvInput employeeV}
-                    ^{fvInput roleV}
-                    ^{fvInput startV}
-                    ^{fvInput intervalV}
-                    ^{fvInput priorityV}
+                    ^{md3widgetSelect employeeV}
+                    ^{md3widget roleV}
+                    ^{md3widget startV}
+
+
+                    <div.field.label.border.round :isJust (fvErrors intervalV):.invalid>
+                      ^{fvInput intervalV}
+                      <label for=#{fvId intervalV}>
+                        #{fvLabel intervalV}
+                        $if fvRequired intervalV
+                          <sup>*
+                      $maybe err <- fvErrors intervalV
+                        <span.error>#{err}
+                      $nothing
+                        <span.helper>_{MsgUnitMinutes}
+                        
+                    
+                    ^{md3widget priorityV}
                     |]
 
     return (r, w)
-
+    
   where
       options e = (staffName . entityVal $ e, entityKey e)
 
       uniqueRoleField :: ServiceId -> FormResult StaffId -> Field Handler Text
-      uniqueRoleField sid' eid = checkM (uniqueRole sid' eid) md3textField
+      uniqueRoleField sid' eid = checkM (uniqueRole sid' eid) textField
 
       uniqueRole :: ServiceId -> FormResult StaffId -> Text -> Handler (Either AppMessage Text)
       uniqueRole sid' eid name = do
@@ -329,6 +341,7 @@ postSectorServiceAssignmentsR gid sid ps = do
           defaultLayout $ do
               setTitleI MsgServiceAssignment
               idFormAssignment <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/sectors/services/assignments/new")
 
 
@@ -853,24 +866,23 @@ getSectorNewR ps@(Sectors gids) = do
     defaultLayout $ do
         setTitleI MsgSector
         idFormSector <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/sectors/new")
 
 
 formSector :: Maybe SectorId -> Maybe (Entity Sector) -> Form Sector
 formSector pid sector extra = do
 
-    rndr <- getMessageRender
-
-    (nameR,nameV) <- md3mreq uniqueNameField FieldSettings
+    (nameR,nameV) <- mreq uniqueNameField FieldSettings
         { fsLabel = SomeMessage MsgTheName
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", rndr MsgTheName)]
+        , fsAttrs = []
         } (sectorName . entityVal <$> sector)
 
-    (descrR,descrV) <- md3mopt md3textareaField FieldSettings
+    (descrR,descrV) <- mopt textareaField FieldSettings
         { fsLabel = SomeMessage MsgDescription
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", rndr MsgDescription)]
+        , fsAttrs = []
         } (sectorDescr . entityVal <$> sector)
 
     sectors <- liftHandler $ (bimap unValue unValue <$>) <$> runDB ( select $ do
@@ -878,19 +890,24 @@ formSector pid sector extra = do
         orderBy [asc (x ^. SectorName)]
         return (x ^. SectorName, x ^. SectorId) )
 
-    (parentR,parentV) <- md3mopt (md3selectField (optionsPairs sectors)) FieldSettings
+    (parentR,parentV) <- mopt (selectField (optionsPairs sectors)) FieldSettings
         { fsLabel = SomeMessage MsgGroup
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", rndr MsgGroup)]
+        , fsAttrs = []
         } ((sectorParent . entityVal <$> sector) <|> pure pid)
 
     let r = Sector <$> nameR <*> descrR <*> parentR
-    let w = [whamlet|#{extra} ^{fvInput nameV} ^{fvInput descrV} ^{fvInput parentV}|]
+    let w = [whamlet|
+                    #{extra}
+                    ^{md3widget nameV}
+                    ^{md3widgetTextarea descrV}
+                    ^{md3widgetSelect parentV}
+                    |]
     return (r,w)
     
   where
       uniqueNameField :: Field Handler Text
-      uniqueNameField = checkM uniqueName md3textField
+      uniqueNameField = checkM uniqueName textField
 
       uniqueName :: Text -> Handler (Either AppMessage Text)
       uniqueName name = do

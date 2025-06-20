@@ -9,7 +9,7 @@
 
 <main.responsive.no-padding>
 
-  <div.tabs>
+  <div.tabs.min>
   
     <a href=@{DataR $ SectorR (last gids) (Sectors (init gids))}>
       _{MsgDetails}
@@ -21,15 +21,10 @@
       _{MsgServices}
       
 
-  <div.page.active.padding>
+  <div.page.active>
 
     $if null sectors
-      <figure.center-align>
-        <span.secondary-text style="font-size:4rem">&varnothing;
-        <figcaption.large-text>
-          _{MsgThereAreNoDataYet}
-          <div.small-text>
-            _{MsgYouMightWantToAddAFew}
+      ^{widgetEmpty}
     $else
       
       $forall (Value level, Entity gid (Sector name _ _)) <- sectors
