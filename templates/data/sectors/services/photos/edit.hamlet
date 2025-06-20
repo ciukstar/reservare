@@ -1,35 +1,45 @@
-<header.background>
-  <md-icon-button href=@{DataR $ SectorServicePhotosR gid sid ps} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgPhoto}
+<header.fixed>
+  <nav>
+    <a.button.circle.transparent href=@{DataR $ SectorServicePhotosR gid sid ps} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span #headerEnd>
-    <md-icon-button type=button aria-label=_{MsgDele} onclick="document.getElementById('idDialogDelete').show()">
-      <md-icon>delete
-
-<md-dialog #idDialogDelete>
-  <div slot=headline>
-    _{MsgConfirmPlease}
-  <div slot=content>
-    _{MsgDeleteAreYouSure}
-  <div slot=actions>
-    <md-text-button type=button onclick="document.getElementById('idDialogDelete').close()">
-      _{MsgCancel}
-    <form slot=content method=post action=@{DataR $ SectorServicePhotoDeleR gid sid fid ps} enctype=#{et2}>
-      ^{fw2}
-      <md-filled-button type=submit>
-        _{MsgDele}
+    <h6.max>
+      _{MsgPhoto}
       
-<main>
+    <a.button.transparent.circle role=button aria-label=_{MsgDele} data-ui=##{idDialogDelete}>
+      <i.error-text>delete
+
+<main.responsive>
 
   <form method=post action=@{DataR $ SectorServicePhotoR gid sid fid ps} enctype=#{et} novalidate ##{idFormEdit}>
     ^{fw}
-    <div.form-actions>
-      <md-text-button type=button href=@{DataR $ SectorServicePhotosR gid sid ps}>
+    <nav.right-align>
+      <a.button.transparent.link href=@{DataR $ SectorServicePhotosR gid sid ps} role=button>
         _{MsgCancel}
-      <md-filled-button type=submit>
+        
+      <button type=submit>
         _{MsgSave}
 
   ^{widgetSnackbar msgs}
+
+
+<div.overlay ##{idOverlay} data-ui=##{idDialogDelete}>
+
+<dialog ##{idDialogDelete}>
+  <h6>
+    _{MsgConfirmPlease}
+    
+  <p>
+    _{MsgDeleteAreYouSure}
+    
+  <nav.right-align>
+      
+    <form method=post action=@{DataR $ SectorServicePhotoDeleR gid sid fid ps} enctype=#{et0} ##{idFormDelete}>
+      ^{fw0}
+      
+    <button.transparent.link type=button data-ui=##{idDialogDelete}>
+      _{MsgCancel}
+
+    <button.error type=submit form=#{idFormDelete}>
+      _{MsgDele}

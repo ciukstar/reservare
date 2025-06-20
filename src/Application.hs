@@ -126,7 +126,7 @@ import Handler.Data.Sectors
   , getSectorServiceNewR
   , getSectorServiceEditR
   , postSectorServiceDeleR
-  , getSectorServicePhotosR
+  , getSectorServicePhotosR, postSectorServicePhotosR
   , postSectorServicePhotoR
   , getSectorServicePhotoNewR
   , getSectorServicePhotoEditR

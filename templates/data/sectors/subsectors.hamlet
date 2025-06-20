@@ -1,53 +1,51 @@
 
-<header.background>
-  <md-icon-button href=@{DataR $ SectorsR (Sectors (init gids))} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed>
+  <nav>
+    <a.button.circle.transparent href=@{DataR $ SectorsR (Sectors (init gids))} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgSector}
-      
-<main>
+    <h6.max>
+      _{MsgSector}
+
+<main.responsive.no-padding>
+
+  <div.tabs>
   
-  <md-tabs aria-label=_{MsgTabs}>
-  
-    <md-primary-tab #idTabDetails aria-controls=idPanelDetails onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ SectorR (last gids) (Sectors (init gids))}>
+    <a href=@{DataR $ SectorR (last gids) (Sectors (init gids))}>
       _{MsgDetails}
       
-    <md-primary-tab #idTabSubsectors aria-controls=#{idPanelSubsectors} active=true
-      onclick="this.querySelector('a[href]').click()">
-      
-      <a href=@{DataR $ SectorsR ps}>
+    <a.active href=@{DataR $ SectorsR ps}>
       _{MsgSubsectors}
       
-    <md-primary-tab #idTabServices aria-cotrols=idPanelServices onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ SectorServicesR (last gids) (Sectors gids)}>
+    <a href=@{DataR $ SectorServicesR (last gids) (Sectors gids)}>
       _{MsgServices}
+      
 
-  <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
-
-  <div ##{idPanelSubsectors} role=tabpanel aria-labelledby=idTabSubsectors>
+  <div.page.active.padding>
 
     $if null sectors
-      <figure style="text-align:center">
-        <span.on-secondary style="font-size:4rem">&varnothing;
-        <figcaption.md-typescale-body-large>
+      <figure.center-align>
+        <span.secondary-text style="font-size:4rem">&varnothing;
+        <figcaption.large-text>
           _{MsgThereAreNoDataYet}
-          <div.md-typescale-body-small>
+          <div.small-text>
             _{MsgYouMightWantToAddAFew}
     $else
-      <md-list>
-        $forall (Value level, Entity gid (Sector name _ _)) <- sectors
-          <md-list-item type=link href=@{DataR $ SectorR gid ps}>
-            <md-icon slot=start>counter_#{level}
-            <div slot=headline>#{name}
-            <md-icon slot=end>arrow_forward_ios
-          <md-divider>
+      
+      $forall (Value level, Entity gid (Sector name _ _)) <- sectors
+        <a.row.padding.wave href=@{DataR $ SectorR gid ps}>
+          <i>counter_#{level}
+   
+          <div.max>
+            <div.#{classHeadline}.large-text>
+              #{name}
 
-    ^{widgetSnackbar msgs}
+          <i.secondary-text>arrow_forward_ios
 
-    <md-fab aria-label=_{MsgEdit} ##{idFabAdd} onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ SectorNewR ps}>
-      <md-icon slot=icon>add
+        <hr>
 
-  <div #idPanelServices role=tabpanel aria-labelledby=idTabServices hidden>
+  ^{widgetSnackbar msgs}
+
+
+  <a.button.circle.extra.fixed.right.bottom.margin.medium-elevate href=@{DataR $ SectorNewR ps} title=_{MsgAdd}>
+    <i>add

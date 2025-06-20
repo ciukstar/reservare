@@ -18,11 +18,13 @@
   <figure.center-align>
     <img.extra.circle src=@{DataR $ EmployeePhotoR eid} loading=lazy alt=_{MsgPhoto}>
     
-    $maybe attrib <- attribution
-      <figcaption.small-text.secondary-text>
-        ^{attrib}
+    <figcaption>
+      $maybe attrib <- attribution
+        <small.small-text.secondary-text>^{attrib}
+      $maybe Entity _ (Staff name _ _ _) <- employee
+        <p.large-text>#{name}
 
-  <div.tabs.min>
+  <div.tabs>
   
     <a.active href=@{DataR $ EmployeeR eid}>
       _{MsgDetails}

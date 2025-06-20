@@ -36,7 +36,7 @@
         <div.#{classAttribution}>
           #{attrib}
 
-      <hr.secondary-text>
+      <hr>
 
   <a.button.circle.extra.fixed.right.bottom.margin.medium-elevate href=@{DataR EmployeeNewR} title=_{MsgAdd}>
     <i>add

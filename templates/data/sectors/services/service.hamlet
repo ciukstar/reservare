@@ -1,74 +1,77 @@
 
-<header>
-  <md-icon-button href=@?{(DataR $ SectorServicesR gid ps,stati)} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed>
+  <nav>
+    <a.button.circle.transparent href=@?{(DataR $ SectorServicesR gid ps,stati)} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgService}
+    <h6.max>
+      _{MsgService}
+      
+    <a.button.transparent.circle role=button title=_{MsgDele} data-ui=##{idDialogDelete}>
+      <i.error-text>delete
+      
+    <a.button.transparent.circle href=@?{(DataR $ SectorServiceEditR gid sid ps,stati)} role=button title=_{MsgEdit}>
+      <i>edit
 
-  <span #headerEnd>
-    <md-icon-button type=button aria-label=_{MsgDele} onclick="document.getElementById('idDialogDelete').show()">
-      <md-icon>delete
-    <md-icon-button href=@?{(DataR $ SectorServiceEditR gid sid ps,stati)} aria-label=_{MsgEdit}>
-      <md-icon>edit
+<main.responsive.no-padding>
 
-<md-dialog #idDialogDelete>
-  <div slot=headline>
-    _{MsgConfirmPlease}
-  <div slot=content>
-    _{MsgDeleteAreYouSure}
-  <div slot=actions>
-    <md-text-button type=button onclick="document.getElementById('idDialogDelete').close()">
-      _{MsgCancel}
-    <form slot=content method=post action=@?{(DataR $ SectorServiceDeleR gid sid ps,stati)} enctype=#{et2}>
-      ^{fw2}
-      <md-filled-button type=submit>
-        _{MsgDele}
-
-<main>
-
-  <md-tabs>
+  <div.tabs.min>
   
-    <md-primary-tab ##{idTabDetails} aria-cotrols=#{idPanelDetails} active onclick="this.querySelector('a[href]').click()">
-      <a href=@?{(DataR $ SectorServiceR gid sid ps,stati)}>
+    <a.active href=@?{(DataR $ SectorServiceR gid sid ps,stati)}>
       _{MsgDetails}
       
-    <md-primary-tab #idTabPhotos aria-cotrols=idPanelPhotos onclick="this.querySelector('a[href]').click()">
-      <a href=@?{(DataR $ SectorServicePhotosR gid sid ps,stati)}>
+    <a href=@?{(DataR $ SectorServicePhotosR gid sid ps,stati)}>
       _{MsgPhotos}
       
-    <md-primary-tab #idTabAssignments aria-cotrols=idPanelAssignments onclick="this.querySelector('a[href]').click()">
-      <a href=@?{(DataR $ SectorServiceAssignmentsR gid sid ps,stati)}>
+    <a href=@?{(DataR $ SectorServiceAssignmentsR gid sid ps,stati)}>
       _{MsgServiceAssignments}
       
 
-  <div ##{idPanelDetails} role=tabpanel aria-labelledby=#{idTabDetails}>
+  <div.page.active.padding>
 
     $maybe (Entity _ (Service _ name descr price available duration _),Entity _ (Workspace _ _ _ _ currency)) <- service
       <dl>
-        <dt.md-typescale-label-large scope=row>_{MsgTheName}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgTheName}
+        <dd.small-margin>
           #{name}
 
-        <dt.md-typescale-label-large scope=row>_{MsgDescription}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgDescription}
+        <dd.small-margin>
           $maybe descr <- descr
             #{descr}
       
-        <dt.md-typescale-label-large scope=row>_{MsgPrice}
-        <dd.md-typescale-body-medium.currency data-value=#{price} data-currency=#{currency}>
+        <dt.bold>_{MsgPrice}
+        <dd.#{classCurrency}.small-margin data-value=#{price} data-currency=#{currency}>
           #{currency}#{price}
 
-        <dt.md-typescale-label-large>_{MsgAvailable}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgAvailable}
+        <dd.small-margin>
           #{show available}
 
-        <dt.md-typescale-label-large>_{MsgDuration}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgDuration}
+        <dd.small-margin>
           #{show duration}
 
-    ^{widgetSnackbar msgs}
+  ^{widgetSnackbar msgs}
 
-  <div #idPanelPotos role=tabpanel aria-labelledby=idTabPotos hidden>
 
-  <div #idPanelAssignments role=tabpanel aria-labelledby=idTabAssignments hidden>
+
+<div.overlay ##{idOverlay} data-ui=##{idDialogDelete}>
+
+<dialog ##{idDialogDelete}>
+  <h6>
+    _{MsgConfirmPlease}
+    
+  <p>
+    _{MsgDeleteAreYouSure}
+    
+  <nav.right-align>
+      
+    <form method=post action=@?{(DataR $ SectorServiceDeleR gid sid ps,stati)} enctype=#{et0} ##{idFormDelete}>
+      ^{fw0}
+      
+    <button.transparent.link type=button data-ui=##{idDialogDelete}>
+      _{MsgCancel}
+
+    <button.error type=submit form=#{idFormDelete}>
+      _{MsgDele}

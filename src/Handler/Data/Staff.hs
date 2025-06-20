@@ -60,7 +60,8 @@ import Database.Esqueleto.Experimental
     , SqlExpr, subSelectCount, update, set
     )
 import Database.Persist
-    ( Entity (Entity), entityVal, entityKey, insert, insert_, upsert)
+    ( Entity (Entity), entityVal, entityKey, insert, insert_, upsert
+    )
 import qualified Database.Persist as P ((=.), delete, PersistStoreWrite (replace))
     
 import Foundation
@@ -608,6 +609,11 @@ formServiceAssignment eid assignment extra = do
 
 getStaffAssignmentsR :: StaffId -> Handler Html
 getStaffAssignmentsR eid = do
+
+    employee <- runDB $ selectOne $ do
+        x <- from $ table @Staff
+        where_ $ x ^. StaffId ==. val eid
+        return x
     
     assignments <- runDB $ select $ do
         x :& s :& w :& b <- from $ table @Assignment
@@ -618,10 +624,10 @@ getStaffAssignmentsR eid = do
         orderBy [desc (x ^. AssignmentId)]
         return (x,(s,(w,b)))
 
-    attribution <- (unValue =<<) <$> runDB ( selectOne $ do
+    attribution <- ((unValue =<<) <$>) $ runDB $ selectOne $ do
         x <- from $ table @StaffPhoto
         where_ $ x ^. StaffPhotoStaff ==. val eid
-        return (x ^. StaffPhotoAttribution) )
+        return (x ^. StaffPhotoAttribution)
         
     msgs <- getMessages
     defaultLayout $ do

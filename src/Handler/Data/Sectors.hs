@@ -14,7 +14,7 @@ module Handler.Data.Sectors
   , getSectorServiceNewR
   , getSectorServiceEditR
   , postSectorServiceDeleR
-  , getSectorServicePhotosR
+  , getSectorServicePhotosR, postSectorServicePhotosR
   , postSectorServicePhotoR
   , getSectorServicePhotoNewR
   , getSectorServicePhotoEditR
@@ -31,7 +31,9 @@ import Control.Monad (void, join)
 
 import Data.Bifunctor (Bifunctor(bimap, second))
 import qualified Data.List.Safe as LS (last)
+import Data.Maybe (isJust) 
 import Data.Text (Text)
+import Data.Time (utcToLocalTime, utc, localTimeToUTC)
 import Data.Time.Clock (nominalDiffTimeToSeconds, secondsToNominalDiffTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
 
@@ -64,17 +66,18 @@ import Foundation
       , MsgSector, MsgBack, MsgSave, MsgCancel, MsgAlreadyExists, MsgPhotos
       , MsgTheName, MsgDescription, MsgRecordAdded, MsgRecordDeleted
       , MsgInvalidFormData, MsgEdit, MsgDetails, MsgDeleteAreYouSure
-      , MsgDele, MsgConfirmPlease, MsgSubsectors, MsgTabs, MsgRecordEdited
+      , MsgDele, MsgConfirmPlease, MsgSubsectors, MsgRecordEdited
       , MsgGroup, MsgServices, MsgWorkspace, MsgPrice, MsgAvailable, MsgDuration
       , MsgUnitMinutes, MsgService, MsgServiceAssignments, MsgServiceAssignment
       , MsgPhoto, MsgAttribution, MsgTheStart, MsgSchedulingInterval, MsgRole
-      , MsgPriority, MsgEmployee, MsgBusiness, MsgAssignmentDate
+      , MsgPriority, MsgEmployee, MsgBusiness, MsgAssignmentDate, MsgUploadPhoto
       )
     )
     
 import Material3
     ( md3mreq, md3textField, md3mopt, md3textareaField, md3selectField
-    , md3intField, md3switchField, md3htmlField, md3datetimeLocalField
+    , md3intField, md3datetimeLocalField, md3widgetSelect
+    , md3widget, md3widgetTextarea, md3widgetSwitch
     )
     
 import Model
@@ -110,6 +113,7 @@ import Settings.StaticFiles
     ( img_add_photo_alternate_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg )
 
 import Text.Hamlet (Html)
+import Text.Julius (RawJS(rawJS))
 
 import Yesod.Core
     ( Yesod(defaultLayout), setTitleI, getMessages, newIdent, whamlet
@@ -118,16 +122,21 @@ import Yesod.Core
     , FileInfo (fileContentType), fileSourceByteString
     )
 import Yesod.Form
-    ( mreq, fileField, mopt, checkM, runFormPost, optionsPairs
-    , Field, FormResult (FormSuccess)
+    ( Field, FormResult (FormSuccess)
     , FieldView (fvInput, fvLabel, fvId, fvErrors)
     , FieldSettings
       ( FieldSettings, fsLabel, fsTooltip, fsId, fsName, fsAttrs
       )
     )
-import Yesod.Form.Functions (generateFormPost)
+import Yesod.Form.Fields
+    ( optionsPairs, selectField, textField, textareaField, intField, checkBoxField
+    , fileField, htmlField
+    )
+import Yesod.Form.Functions
+    ( mopt, mreq, generateFormPost, checkM, runFormPost
+    )
+import Yesod.Form.Types (fvRequired)
 import Yesod.Persist (YesodPersist(runDB))
-import Data.Time (utcToLocalTime, utc, localTimeToUTC)
 
 
 postSectorServiceAssignmentDeleR :: SectorId -> ServiceId -> AssignmentId -> Sectors -> Handler Html
@@ -289,11 +298,15 @@ getSectorServiceAssignmentR gid sid aid ps = do
         where_ $ x ^. AssignmentId ==. val aid
         return (x,(e,(s,(w,b))))
 
-    (fw2,et2) <- generateFormPost formServiceAssignmentDelete
+    (fw0,et0) <- generateFormPost formServiceAssignmentDelete
 
     msgs <- getMessages
     defaultLayout $ do
-        setTitleI MsgServiceAssignment 
+        setTitleI MsgServiceAssignment
+        idOverlay <- newIdent
+        idDialogDelete <- newIdent
+        idFormDelete <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/sectors/services/assignments/assignment")
   where
       toMinutes interval = truncate @_ @Integer (nominalDiffTimeToSeconds interval / 60)
@@ -337,9 +350,11 @@ getSectorServiceAssignmentsR gid sid ps = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignments
-        idTabAssignments <- newIdent
-        idPanelAssignments <- newIdent
-        idFabAdd <- newIdent
+        classHeadline <- newIdent
+        classSupportingText <- newIdent
+        classAttribution <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "data/sectors/services/assignments/assignments")
 
 
@@ -351,6 +366,7 @@ postSectorServicePhotoDeleR gid sid fid ps = do
           void $ runDB $ P.delete fid
           addMessageI statusSuccess MsgRecordDeleted
           redirect $ DataR $ SectorServicePhotosR gid sid ps
+          
       _otherwise -> do
           addMessageI statusError MsgInvalidFormData
           redirect $ DataR $ SectorServicePhotoEditR gid sid fid ps
@@ -375,20 +391,28 @@ postSectorServicePhotoR gid sid fid ps = do
                     , ServicePhotoAttribution =. val attribution
                     ]
               where_ $ x ^. ServicePhotoId ==. val fid
+
+          addMessageI statusSuccess MsgRecordEdited
           redirect $ DataR $ SectorServicePhotosR gid sid ps
           
       FormSuccess (Nothing,attribution) -> do
           runDB $ update $ \x -> do
               set x [ ServicePhotoAttribution =. val attribution ]
               where_ $ x ^. ServicePhotoId ==. val fid
+              
+          addMessageI statusSuccess MsgRecordEdited
           redirect $ DataR $ SectorServicePhotosR gid sid ps
               
       _otherwise -> do
-          (fw2,et2) <- generateFormPost formPhotoDelete
+          (fw0,et0) <- generateFormPost formPhotoDelete
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgService
               idFormEdit <- newIdent
+              idOverlay <- newIdent
+              idDialogDelete <- newIdent
+              idFormDelete <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/sectors/services/photos/edit")
 
 
@@ -400,14 +424,18 @@ getSectorServicePhotoEditR gid sid fid ps = do
         where_ $ x ^. ServicePhotoId ==. val fid
         return x
         
-    (fw2,et2) <- generateFormPost formPhotoDelete
+    (fw0,et0) <- generateFormPost formPhotoDelete
     
     (fw,et) <- generateFormPost $ formPhoto sid photo
     
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
-        idFormEdit <- newIdent
+        idFormEdit <- newIdent 
+        idOverlay <- newIdent
+        idDialogDelete <- newIdent
+        idFormDelete <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/sectors/services/photos/edit")
 
 
@@ -417,8 +445,6 @@ formPhotoDelete extra = return (pure (),[whamlet|#{extra}|])
 
 formPhoto :: ServiceId -> Maybe (Entity ServicePhoto) -> Form (Maybe FileInfo,Maybe Html)
 formPhoto sid photo extra = do
-
-    msgr <- getMessageRender
     
     (photoR,photoV) <- mopt fileField FieldSettings
         { fsLabel = SomeMessage MsgPhoto
@@ -426,10 +452,10 @@ formPhoto sid photo extra = do
         , fsAttrs = [("style","display:none")]
         } Nothing
     
-    (attribR,attribV) <- md3mopt md3htmlField FieldSettings
+    (attribR,attribV) <- mopt htmlField FieldSettings
         { fsLabel = SomeMessage MsgAttribution
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgAttribution)]
+        , fsAttrs = []
         } (servicePhotoAttribution . entityVal <$> photo)
 
     let r = (,) <$> photoR <*> attribR
@@ -451,13 +477,12 @@ getSectorServicePhotoNewR gid sid ps = do
     defaultLayout $ do
         setTitleI MsgService
         idFormNew <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/sectors/services/photos/new")
 
 
 formPhotoNew :: ServiceId -> Maybe (Entity ServicePhoto) -> Form (FileInfo,Maybe Html)
 formPhotoNew sid photo extra = do
-
-    msgr <- getMessageRender
     
     (photoR,photoV) <- mreq fileField FieldSettings
         { fsLabel = SomeMessage MsgPhoto
@@ -465,10 +490,10 @@ formPhotoNew sid photo extra = do
         , fsAttrs = [("style","display:none")]
         } Nothing
     
-    (attribR,attribV) <- md3mopt md3htmlField FieldSettings
+    (attribR,attribV) <- mopt htmlField FieldSettings
         { fsLabel = SomeMessage MsgAttribution
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgAttribution)]
+        , fsAttrs = []
         } (servicePhotoAttribution . entityVal <$> photo)
 
     let r = (,) <$> photoR <*> attribR
@@ -479,6 +504,28 @@ formPhotoNew sid photo extra = do
     
     let w = $(widgetFile "data/sectors/services/photos/form")
     return (r,w)
+
+
+postSectorServicePhotosR :: SectorId -> ServiceId -> Sectors -> Handler Html
+postSectorServicePhotosR gid sid ps = do
+
+    ((fr,fw),et) <- runFormPost $ formPhotoNew sid Nothing
+
+    case fr of
+      FormSuccess (fi,attribution) -> do
+          bs <- fileSourceByteString fi
+          runDB $ insert_ $ ServicePhoto sid (fileContentType fi) bs attribution
+
+          addMessageI statusSuccess MsgRecordAdded
+          redirect $ DataR $ SectorServicePhotosR gid sid ps
+          
+      _otherwise -> do
+          msgs <- getMessages
+          defaultLayout $ do
+              setTitleI MsgService
+              idFormNew <- newIdent
+              $(widgetFile "common/css/header")
+              $(widgetFile "data/sectors/services/photos/new")
 
 
 getSectorServicePhotosR :: SectorId -> ServiceId -> Sectors -> Handler Html
@@ -494,9 +541,8 @@ getSectorServicePhotosR gid sid ps = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
-        idTabPhotos <- newIdent
-        idPanelPhotos <- newIdent
-        idFabAdd <- newIdent
+        classAttribution <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/sectors/services/photos/photos")
 
 
@@ -509,6 +555,7 @@ postSectorServiceDeleR gid sid ps = do
           void $ runDB $ P.delete sid
           addMessageI statusSuccess MsgRecordDeleted
           redirect (DataR $ SectorServicesR gid ps,stati)
+          
       _otherwise -> do
           addMessageI statusError MsgInvalidFormData
           redirect (DataR $ SectorServiceR gid sid ps,stati)
@@ -529,6 +576,7 @@ getSectorServiceEditR gid sid ps = do
     defaultLayout $ do
         setTitleI MsgServices
         idFormService <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/sectors/services/edit")
 
 
@@ -547,11 +595,13 @@ postSectorServiceR gid sid ps = do
           runDB $ P.replace sid r
           addMessageI statusSuccess MsgRecordEdited
           redirect $ DataR $ SectorServiceR gid sid ps
+          
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgServices
               idFormService <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/sectors/services/edit")
 
 
@@ -566,13 +616,16 @@ getSectorServiceR gid sid ps = do
         where_ $ x ^. ServiceId ==. val sid
         return (x,w)
 
-    (fw2,et2) <- generateFormPost formServiceDelete
+    (fw0,et0) <- generateFormPost formServiceDelete
 
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
-        idTabDetails <- newIdent
-        idPanelDetails <- newIdent
+        classCurrency <- newIdent
+        idOverlay <- newIdent
+        idDialogDelete <- newIdent
+        idFormDelete <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/sectors/services/service")
 
 
@@ -596,47 +649,45 @@ getSectorServiceNewR gid ps = do
 formService :: SectorId -> Maybe (Entity Service) -> Form Service
 formService gid service extra = do
 
-    msgr <- getMessageRender
-
     workspaces <- liftHandler $ runDB $ select $ do
         x <- from $ table @Workspace
         orderBy [asc (x ^. WorkspaceName), desc (x ^. WorkspaceId)]
         return x
 
-    (workspaceR, workspaceV) <- md3mreq (md3selectField (optionsPairs (optionsWorkspace <$> workspaces))) FieldSettings
+    (workspaceR, workspaceV) <- mreq (selectField (optionsPairs (optionsWorkspace <$> workspaces))) FieldSettings
         { fsLabel = SomeMessage MsgWorkspace
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgWorkspace)]
+        , fsAttrs = []
         } (serviceWorkspace . entityVal <$> service)
 
-    (nameR,nameV) <- md3mreq (uniqueNameField workspaceR) FieldSettings
+    (nameR,nameV) <- mreq (uniqueNameField workspaceR) FieldSettings
         { fsLabel = SomeMessage MsgTheName
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgTheName)]
+        , fsAttrs = []
         } (serviceName . entityVal <$> service)
 
-    (descrR,descrV) <- md3mopt md3textareaField FieldSettings
+    (descrR,descrV) <- mopt textareaField FieldSettings
         { fsLabel = SomeMessage MsgDescription
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgDescription)]
+        , fsAttrs = []
         } (serviceDescr . entityVal <$> service)
 
-    (priceR,priceV) <- md3mreq md3intField FieldSettings
+    (priceR,priceV) <- mreq intField FieldSettings
         { fsLabel = SomeMessage MsgPrice
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgPrice)]
+        , fsAttrs = []
         } (servicePrice . entityVal <$> service)
 
-    (availableR,availableV) <- md3mreq md3switchField FieldSettings
+    (availableR,availableV) <- mreq checkBoxField FieldSettings
         { fsLabel = SomeMessage MsgAvailable
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgAvailable)]
+        , fsAttrs = []
         } (serviceAvailable . entityVal <$> service)
 
-    (durationR,durationV) <- md3mreq md3intField FieldSettings
+    (durationR,durationV) <- mreq (intField @_ @Integer) FieldSettings
         { fsLabel = SomeMessage MsgDuration
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgDuration),("supporting-text", msgr MsgUnitMinutes)]
+        , fsAttrs = []
         } (truncate . (/ 60) . nominalDiffTimeToSeconds . serviceDuration . entityVal <$> service)
 
     let r = Service <$> workspaceR <*> nameR <*> descrR <*> priceR <*> availableR
@@ -645,17 +696,23 @@ formService gid service extra = do
 
     let w = [whamlet|
                     #{extra}
-                    ^{fvInput workspaceV}
-                    ^{fvInput nameV}
-                    ^{fvInput descrV}
-                    ^{fvInput priceV}
-
-                    <div style="display:flex;align-items:center;gap:1rem">
-                      ^{fvInput availableV}
-                      <label.body-large for=#{fvId availableV}>
-                        #{fvLabel availableV}
-
-                    ^{fvInput durationV}
+                    ^{md3widgetSelect workspaceV}
+                    ^{md3widget nameV}
+                    ^{md3widgetTextarea descrV}
+                    ^{md3widget priceV}
+                    ^{md3widgetSwitch availableV}
+                    
+                    <div.field.label.border.round :isJust (fvErrors durationV):.invalid>
+                      ^{fvInput durationV}
+                      <label for=#{fvId durationV}>
+                          #{fvLabel durationV}
+                          $if fvRequired durationV
+                            <sup>*
+                      $maybe err <- fvErrors durationV
+                        <span.error>#{err}
+                      $nothing
+                        <span.helper>_{MsgUnitMinutes}
+                      
                     |]
     return (r,w)
 
@@ -664,7 +721,7 @@ formService gid service extra = do
       optionsWorkspace e = (workspaceName . entityVal $ e, entityKey e)
 
       uniqueNameField :: FormResult WorkspaceId -> Field Handler Text
-      uniqueNameField wid = checkM (uniqueName wid) md3textField
+      uniqueNameField wid = checkM (uniqueName wid) textField
 
       uniqueName :: FormResult WorkspaceId -> Text -> Handler (Either AppMessage Text)
       uniqueName wid name = do
@@ -692,6 +749,7 @@ postSectorServicesR gid ps = do
           runDB $ insert_ r
           addMessageI statusSuccess MsgRecordAdded
           redirect (DataR $ SectorServicesR gid ps, stati)
+          
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
@@ -714,12 +772,13 @@ getSectorServicesR gid ps@(Sectors gids) = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServices
-        idTabServices <- newIdent
-        idPanelServices <- newIdent
-        idFabAdd <- newIdent
+        classHeadline <- newIdent
+        classCurrency <- newIdent
+        classSupportingText <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/rows")
         $(widgetFile "data/sectors/services/services")
         
-
 
 postSectorDeleR :: SectorId -> Sectors -> Handler Html
 postSectorDeleR gid ps = do
@@ -856,11 +915,15 @@ getSectorR gid ps@(Sectors gids) = do
         where_ $ x ^. SectorId ==. val gid
         return (x,p)
 
-    (fw,et) <- generateFormPost formSectorDelete
+    (fw0,et0) <- generateFormPost formSectorDelete
+    
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgSector
-        idPanelDetails <- newIdent
+        idOverlay <- newIdent
+        idDialogDelete <- newIdent
+        idFormDelete <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/sectors/sector")
 
 
@@ -881,7 +944,8 @@ getSectorsR ps@(Sectors []) = do
         setTitleI MsgSectors
         idOverlay <- newIdent
         idDialogMainMenu <- newIdent
-        idFabAdd <- newIdent
+        classHeadline <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/sectors/sectors")
              
 getSectorsR ps@(Sectors gids) = do
@@ -896,7 +960,6 @@ getSectorsR ps@(Sectors gids) = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgSectors
-        idPanelSubsectors <- newIdent
-        idFabAdd <- newIdent
+        classHeadline <- newIdent        
         $(widgetFile "data/sectors/subsectors")
         

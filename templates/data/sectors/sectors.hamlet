@@ -11,26 +11,29 @@
 
     ^{widgetAccount}
 
-<main.responsive>
+<main.responsive.no-padding>
 
   $if null sectors
-    <figure style="text-align:center">
-      <span.on-secondary style="font-size:4rem">&varnothing;
-      <figcaption.md-typescale-body-large>
+    <figure.center-align>
+      <span.secondary-text style="font-size:4rem">&varnothing;
+      <figcaption.large-text>
         _{MsgThereAreNoDataYet}
-        <div.md-typescale-body-small>
+        <div.secondary-text.small-text>
           _{MsgYouMightWantToAddAFew}
   $else
-    <md-list>
-      $forall Entity gid (Sector name _ _) <- sectors
-        <md-list-item type=link href=@{DataR $ SectorR gid ps}>
-          <div slot=headline>
+    
+    $forall Entity gid (Sector name _ _) <- sectors
+      <a.row.padding.wave type=link href=@{DataR $ SectorR gid ps}>
+      
+        <div.max>
+          <div.#{classHeadline}.large-text>
             #{name}
-          <md-icon slot=end>arrow_forward_ios
-        <md-divider>
+            
+        <i.secondary-text>arrow_forward_ios
 
-  <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-    <a href=@{DataR $ SectorNewR ps}>
-    <md-icon slot=icon>add
+      <hr>
+
+  <a.button.circle.extra.fixed.right.bottom.margin.medium-elevate href=@{DataR $ SectorNewR ps} title=_{MsgAdd}>
+    <i>add
 
   ^{widgetSnackbar msgs}

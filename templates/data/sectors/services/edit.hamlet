@@ -1,19 +1,20 @@
 
-<header.background>
-  <md-icon-button href=@?{(DataR $ SectorServiceR gid sid ps,stati)} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed>
+  <nav>
+    <a.button.circle.transparent href=@?{(DataR $ SectorServiceR gid sid ps,stati)} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgService}
+    <h6.max>
+      _{MsgService}
 
-<main>
+<main.responsive>
 
   <form method=post action=@?{(DataR $ SectorServiceR gid sid ps,stati)} enctype=#{et} novalidate ##{idFormService}>
     ^{fw}
-    <div.form-actions>
-      <md-text-button type=button href=@?{(DataR $ SectorServiceR gid sid ps,stati)}>
+    <nav.right-align>
+      <a.button.transparent.link href=@?{(DataR $ SectorServiceR gid sid ps,stati)} role=button>
         _{MsgCancel}
-      <md-filled-button type=submit>
+      <button type=submit>
         _{MsgSave}
 
   ^{widgetSnackbar msgs}

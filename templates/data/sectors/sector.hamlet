@@ -1,69 +1,67 @@
-<header.background>
-  <md-icon-button href=@{DataR $ SectorsR ps} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgSector}
+<header.fixed>
+  <nav>
+    <a.button.circle.transparent href=@{DataR $ SectorsR ps} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <div #headerEnd>
-    <md-icon-button type=button aria-label=_{MsgDele}
-      onclick="document.getElementById('idDialogDelete').open = true">
-      <md-icon>delete
-    <md-icon-button href=@{DataR $ SectorEditR gid ps} aria-label=_{MsgEdit}>
-      <md-icon>edit
+    <h6.max>
+      _{MsgSector}
+      
+    <a.button.transparent.circle role=button aria-label=_{MsgDele} data-ui=##{idDialogDelete}>
+      <i.error-text>delete
+      
+    <a.button.transparent.circle href=@{DataR $ SectorEditR gid ps} role=button title=_{MsgEdit}>
+      <i>edit
 
-<md-dialog #idDialogDelete>
-  <div slot=headline>
-    _{MsgConfirmPlease}
-  <div slot=content>
-    _{MsgDeleteAreYouSure}
-  <div slot=actions>
-    <md-text-button type=button onclick="document.getElementById('idDialogDelete').open = false">
-      _{MsgCancel}
-    <form slot=content method=post action=@{DataR $ SectorDeleR gid ps} enctype=#{et}>
-      ^{fw}
-      <md-filled-button type=submit>
-        _{MsgDele}
+<main.responsive.no-padding>
 
-
-<main>
-
-  <md-tabs aria-label=_{MsgTabs}>
+  <div.tabs>
   
-    <md-primary-tab #idTabDetails aria-controls=#{idPanelDetails} active=true
-      onclick="this.querySelector('a[href]').click()">
-
-      <a href=@{DataR $ SectorR gid ps}>
+    <a.active href=@{DataR $ SectorR gid ps}>
       _{MsgDetails}
       
-    <md-primary-tab #idTabSubsectors aria-controls=idPanelSubsectors
-      onclick="this.querySelector('a[href]').click()">
-
-      <a href=@{DataR $ SectorsR (Sectors (gids <> [gid]))}>
+    <a href=@{DataR $ SectorsR (Sectors (gids <> [gid]))}>
       _{MsgSubsectors}
       
-    <md-primary-tab #idTabServices aria-cotrols=idPanelServices onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ SectorServicesR gid (Sectors (gids <> [gid]))}>
+    <a href=@{DataR $ SectorServicesR gid (Sectors (gids <> [gid]))}>
       _{MsgServices}
+      
 
-  <div ##{idPanelDetails} role=tabpanel aria-labelledby=idTabDetails>
+  <div.page.active.padding>
 
     $maybe (Entity _ (Sector name descr _),parent) <- sector
       <dl>
-        <dt.md-typescale-label-large>_{MsgTheName}
-        <dd.md-typescale-body-medium>#{name}        
+        <dt.bold>_{MsgTheName}
+        <dd.small-margin>#{name}        
 
-        <dt.md-typescale-label-large>_{MsgDescription}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgDescription}
+        <dd.small-margin>
           $maybe descr <- descr
             #{descr}
 
         $maybe Entity _ (Sector name _ _) <- parent
-          <dt.md-typescale-label-large>_{MsgSector}
-          <dd.md-typescale-body-medium>#{name}
+          <dt.bold>_{MsgSector}
+          <dd.small-margin>#{name}
 
     ^{widgetSnackbar msgs}
 
-  <div #idPanelSubsectors role=tabpanel aria-labelledby=idTabSubsectors hidden>
 
-  <div #idPanelServices role=tabpanel aria-labelledby=idTabServices hidden>
+<div.overlay ##{idOverlay} data-ui=##{idDialogDelete}>
+
+<dialog ##{idDialogDelete}>
+  <h6>
+    _{MsgConfirmPlease}
+    
+  <p>
+    _{MsgDeleteAreYouSure}
+    
+  <nav.right-align>
+      
+    <form method=post action=@{DataR $ SectorDeleR gid ps} enctype=#{et0} ##{idFormDelete}>
+      ^{fw0}
+      
+    <button.transparent.link type=button data-ui=##{idDialogDelete}>
+      _{MsgCancel}
+
+    <button.error type=submit form=#{idFormDelete}>
+      _{MsgDele}
