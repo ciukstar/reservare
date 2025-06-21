@@ -1,0 +1,5 @@
+
+##{idMain}
+
+    nav.scroll
+        display: block

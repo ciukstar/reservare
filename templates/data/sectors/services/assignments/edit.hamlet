@@ -1,5 +1,5 @@
 
-<header.fixed>
+<header.fixed ##{idHeader}>
   <nav>
     <a.button.circle.transparent href=@?{(DataR $ SectorServiceAssignmentR gid sid aid ps,stati)} role=button title=_{MsgBack}>
       <i>arrow_back
@@ -7,7 +7,7 @@
     <h6.max>
       _{MsgServiceAssignment}
 
-<main.responsive>
+<main.responsive ##{idMain}>
 
   <form method=post enctype=#{et} novalidate ##{idFormAssignment}
         action=@?{(DataR $ SectorServiceAssignmentR gid sid aid ps,stati)}>

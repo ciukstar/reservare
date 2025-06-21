@@ -1,5 +1,5 @@
 
-<header.fixed>
+<header.fixed ##{idHeader}>
   <nav>
     <a.button.circle.transparent href=@?{(DataR $ BusinessServicesR bid,stati)} role=button title=_{MsgBack}>
       <i>arrow_back
@@ -7,18 +7,19 @@
     <h6.max>
       _{MsgService}
 
-<main.responsive.no-padding>
+<main.responsive.no-padding ##{idMain}>
 
-  <div.tabs.min>
-  
-    <a href=@?{(DataR $ BusinessServiceR bid sid,stati)}>
-      _{MsgDetails}
-      
-    <a href=@?{(DataR $ BusinessServicePhotosR bid sid,stati)}>
-      _{MsgPhotos}
-      
-    <a.active href=@{DataR $ BusinessServiceAssignmentsR bid sid}>
-      _{MsgServiceAssignments}
+  <nav.sroll>
+    <div.tabs.min>
+
+      <a.no-wrap href=@?{(DataR $ BusinessServiceR bid sid,stati)}>
+        _{MsgDetails}
+
+      <a.no-wrap href=@?{(DataR $ BusinessServicePhotosR bid sid,stati)}>
+        _{MsgPhotos}
+
+      <a.active.no-wrap href=@{DataR $ BusinessServiceAssignmentsR bid sid}>
+        _{MsgServiceAssignments}
       
 
   <div.page.active>

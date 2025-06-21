@@ -1,5 +1,5 @@
 
-<header.fixed>
+<header.fixed ##{idHeader}>
   <nav>
     <a.button.transparent.circle href=@{DataR $ UserR uid} title=_{MsgBack} role=button>
       <i>arrow_back
@@ -7,7 +7,7 @@
     <h6.max>
       _{MsgUser}
       
-<main.responsive>
+<main.responsive ##{idMain}>
 
   <form method=post action=@{DataR $ UserR uid} enctype=#{et} novalidate>
     ^{fw}

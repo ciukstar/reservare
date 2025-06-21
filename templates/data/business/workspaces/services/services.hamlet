@@ -1,64 +1,52 @@
 
-<header.background>
-  <md-icon-button href=@{DataR $ DataWorkspacesR bid} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{DataR $ DataWorkspacesR bid} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgWorkspace}
+    <h6.max>
+      _{MsgWorkspace}
 
+<main.responsive.no-padding ##{idMain}>
 
-<main>
+  <nav.scroll>
+    <div.tabs.min>
 
-  <md-tabs>
-  
-    <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails onclick="this.querySelector('a[href]').click()">
+      <a.no-wrap href=@{DataR $ DataWorkspaceR bid wid}>
+        _{MsgDetails}
+
+      <a.no-wrap href=@{DataR $ DataWorkingHoursR bid wid month}>
+        _{MsgWorkingHours}
+
+      <a.no-wrap href=@{DataR $ PayOptionsR bid wid}>
+        _{MsgPayOptions}
+
+      <a.active.no-wrap href=@{DataR $ WorkspaceServicesR bid wid}>
+        _{MsgServices}
       
-      <a href=@{DataR $ DataWorkspaceR bid wid}>
-      _{MsgDetails}
-      
-    <md-primary-tab #idTabWorkingHours aria-cotrols=idPanelWorkingHours
-      onclick="this.querySelector('a[href]').click()">
-      
-      <a href=@{DataR $ DataWorkingHoursR bid wid month}>
-      _{MsgWorkingHours}
-      
-    <md-primary-tab #idTabPayOptions aria-cotrols=idPanelPayOptions onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ PayOptionsR bid wid}>
-      _{MsgPayOptions}
-      
-    <md-primary-tab ##{idTabServices} aria-cotrols=#{idPanelServices} active onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ WorkspaceServicesR bid wid}>
-      _{MsgServices}
 
-  <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
-
-  <div #idPanelWorkingHours role=tabpanel aria-labelledby=idTabWorkingHours hidden>
-
-  <div #idPanelPayOptions role=tabpanel aria-labelledby=idTabPayOptions hidden>
-
-  <div ##{idPanelServices} role=tabpanel aria-labelledby=#{idTabServices}>
+  <div.page.active>
 
     $if null services
-      <figure style="text-align:center">
-        <span.on-secondary style="font-size:4rem">&varnothing;
-        <figcaption.md-typescale-body-large>
-          _{MsgThereAreNoDataYet}
-          <div.md-typescale-body-small>
-            _{MsgYouMightWantToAddAFew}
+      ^{widgetEmpty}
     $else
-      <md-list>
-        $forall (Entity sid (Service _ name _ price _ _ _),Entity _ (Workspace _ _ _ _ currency)) <- services
-          <md-list-item type=link href=@?{(DataR $ WorkspaceServiceR bid wid sid,stati)}>
-            <img slot=start src=@{DataR $ ServicePhotoDefaultR sid} width=56 height=56 loading=lazy>
-            <div slot=headline>
+      
+      $forall (Entity sid (Service _ name _ price _ _ _),Entity _ (Workspace _ _ _ _ currency)) <- services
+        <a.row.padding.wave href=@?{(DataR $ WorkspaceServiceR bid wid sid,stati)}>
+          <img.circle src=@{DataR $ ServicePhotoDefaultR sid} loading=lazy alt=_{MsgLogo}>
+   
+          <div.max>
+            <div.#{classHeadline}.large-text>
               #{name}
-            <div.currency slot=supporting-text data-value=#{price} data-currency=#{currency}>
+            <div.#{classCurrency}.#{classSupportingText}.secondary-text data-value=#{price} data-currency=#{currency}>
               #{currency}#{price}
-            <md-icon slot=end>arrow_forward_ios
-          <md-divider>
 
-    <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ WorkspaceServiceNewR bid wid}>
-      <md-icon slot=icon>add
+          <i.secondary-text>arrow_forward_ios
 
-    ^{widgetSnackbar msgs}
+        <hr>
+
+
+  <a.button.circle.extra.fixed.right.bottom.margin.medium-elevate href=@{DataR $ WorkspaceServiceNewR bid wid} title=_{MsgAdd}>
+    <i>add
+
+  ^{widgetSnackbar msgs}

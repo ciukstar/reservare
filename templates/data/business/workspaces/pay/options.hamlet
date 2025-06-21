@@ -1,77 +1,66 @@
 
-<header>
-  <md-icon-button href=@{DataR $ DataWorkspacesR bid} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{DataR $ DataWorkspacesR bid} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgWorkspace}
+    <h6.max>
+      _{MsgWorkspace}
 
-<main>
+<main.responsive.no-padding ##{idMain}>
 
-  <md-tabs>
-  
-    <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ DataWorkspaceR bid wid}>
-      _{MsgDetails}
-      
-    <md-primary-tab #idTabWorkingHours aria-cotrols=idPanelWorkingHours onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ DataWorkingHoursR bid wid month}>
-      _{MsgWorkingHours}
-      
-    <md-primary-tab ##{idTabPayOptions} aria-cotrols=#{idPanelPayOptions} active
-      onclick="this.querySelector('a[href]').click()">
-      
-      <a href=@{DataR $ PayOptionsR bid wid}>
-      _{MsgPayOptions}
-      
-    <md-primary-tab #idTabServices aria-cotrols=idPanelServices onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ WorkspaceServicesR bid wid}>
-      _{MsgServices}
+  <nav.scroll>
+    <div.tabs.min>
+
+      <a.no-wrap href=@{DataR $ DataWorkspaceR bid wid}>
+        _{MsgDetails}
+
+      <a.no-wrap href=@{DataR $ DataWorkingHoursR bid wid month}>
+        _{MsgWorkingHours}
+
+      <a.active.no-wrap href=@{DataR $ PayOptionsR bid wid}>
+        _{MsgPayOptions}
+
+      <a.no-wrap href=@{DataR $ WorkspaceServicesR bid wid}>
+        _{MsgServices}
       
 
-  <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
-
-  <div #idPanelWorkspaces role=tabpanel aria-labelledby=idTabWorkspaces hidden>
-
-  <div ##{idPanelPayOptions} role=tabpanel aria-labelledby=#{idTabPayOptions}>
+  <div.page.active>
 
     $if null options
-      <figure style="text-align:center">
-        <span.on-secondary style="font-size:4rem">&varnothing;
-        <figcaption.md-typescale-body-large>
-          _{MsgThereAreNoDataYet}
-          <div.md-typescale-body-small>
-            _{MsgYouMightWantToAddAFew}
+      ^{widgetEmpty}
     $else
-      <md-list>
-        $forall Entity oid (PayOption _ typ name gate _ icon) <- options
-          <md-list-item type=link href=@{DataR $ PayOptionR bid wid oid}>
-            <div slot=start>
-              $maybe icon <- icon 
-                <md-icon>#{icon}
-            <div slot=headline>
+      
+      $forall Entity oid (PayOption _ typ name gate _ icon) <- options
+        <a.row.padding.wave href=@{DataR $ PayOptionR bid wid oid}>
+
+          $maybe icon <- icon 
+            <i>#{icon}
+
+          <div.max>
+            <div.#{classHeadline}.large-text>
               #{name}
-            <div slot=supporting-text>
+            <div.#{classSupportingText}.secondary-text>
               $case typ
                 $of PayAtVenue
                   _{MsgPayAtVenue}
                 $of PayNow
                   _{MsgPayNow}
+    
             $maybe gate <- gate
-              <div slot=supporting-text>
+              <div.#{classSupportingText}.secondary-text>
                 $case gate
                   $of PayGatewayStripe
                     _{MsgStripe}
                   $of PayGatewayYookassa
                     _{MsgYooKassa}
-            <md-icon slot=end>arrow_forward_ios
-          <md-divider>
 
-    <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ PayOptionNewR bid wid}>
-      <md-icon slot=icon>add
+          <i.secondary-text>arrow_forward_ios
+
+        <hr>
 
 
-    ^{widgetSnackbar msgs}
+  <a.button.circle.extra.fixed.right.bottom.margin.medium-elevate href=@{DataR $ PayOptionNewR bid wid} title=_{MsgAdd}>
+    <i>add
 
-  <div #idPanelServices role=tabpanel aria-labelledby=idTabServices hidden>
+  ^{widgetSnackbar msgs}

@@ -1,47 +1,41 @@
 
-<header>
-  <md-icon-button href=@{DataR $ DataWorkspacesR bid} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{DataR $ DataWorkspacesR bid} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgWorkspace}
+    <h6.max>
+      _{MsgWorkspace}
 
-<main>
+<main.responsive.no-padding ##{idMain}>
 
-  <md-tabs>
-  
-    <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ DataWorkspaceR bid wid}>
-      _{MsgDetails}
-      
-    <md-primary-tab ##{idTabWorkingHours} aria-cotrols=#{idPanelWorkingHours} active
-      onclick="this.querySelector('a[href]').click()">
-      
-      <a href=@{DataR $ DataWorkingHoursR bid wid month}>
-      _{MsgWorkingHours}
-      
-    <md-primary-tab #idTabPayOptions aria-cotrols=idPanelPayOptions onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ PayOptionsR bid wid}>
-      _{MsgPayOptions}
-      
-    <md-primary-tab #idTabServices aria-cotrols=idPanelServices onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ WorkspaceServicesR bid wid}>
-      _{MsgServices}
+  <nav.scroll>
+    <div.tabs.min>
+
+      <a.no-wrap href=@{DataR $ DataWorkspaceR bid wid}>
+        _{MsgDetails}
+
+      <a.active.no-wrap href=@{DataR $ DataWorkingHoursR bid wid month}>
+        _{MsgWorkingHours}
+
+      <a.no-wrap href=@{DataR $ PayOptionsR bid wid}>
+        _{MsgPayOptions}
+
+      <a.no-wrap href=@{DataR $ WorkspaceServicesR bid wid}>
+        _{MsgServices}
       
 
-  <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
-
-  <div ##{idPanelWorkingHours} role=tabpanel aria-labelledby=#{idTabWorkingHours}>
+  <div.page.active.small-padding>
 
     <div.calendar ##{idCalendarPage}>
       <div.header>
-        <md-icon-button type=link href=@?{(DataR $ DataWorkingHoursR bid wid prev,stati)} rel=nofollow>
-          <md-icon>arrow_back
+        <a.button.transparent.circle href=@?{(DataR $ DataWorkingHoursR bid wid prev,stati)} role=button rel=nofollow>
+          <i>arrow_back_ios_new
         $with m <- show month
           <time.month-of-year datetime=#{m}>
             #{m}
-        <md-icon-button type=link href=@?{(DataR $ DataWorkingHoursR bid wid next,stati)} rel=nofollow>
-          <md-icon>arrow_forward
+        <a.button.transparent.circle href=@?{(DataR $ DataWorkingHoursR bid wid next,stati)} role=button rel=nofollow>
+          <i>arrow_forward_ios
 
       $forall wd <- [MsgMon,MsgTue,MsgWed,MsgThu,MsgFri,MsgSat,MsgSun]
         <div.col-header>
@@ -51,7 +45,7 @@
           $with (y,m,d) <- toGregorian day
             $if (==) month (YearMonth y m)
               <a.cell href=@?{(DataR $ DataWorkingSlotsR bid wid day,stati)} 
-                :M.member day hours:.primary :M.notMember day hours:.primary-negative>
+                :M.member day hours:.primary :M.notMember day hours:.primary-text>
                 
                 <time.day-of-month datetime=#{show day}>
                   <small>#{d}
@@ -73,8 +67,5 @@
             $else
               <div>
 
-    ^{widgetSnackbar msgs}
 
-  <div #idPanelPayOptions role=tabpanel aria-labelledby=idTabPayOptions hidden>
-
-  <div #idPanelServices role=tabpanel aria-labelledby=idTabServices hidden>
+  ^{widgetSnackbar msgs}

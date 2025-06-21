@@ -1,9 +1,6 @@
 
-
+            
 ##{idMain}
-
-    nav.scroll
-        display: block
 
     .#{classAttribution}
 

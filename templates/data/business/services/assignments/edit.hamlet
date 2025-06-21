@@ -1,5 +1,5 @@
 
-<header.fixed>
+<header.fixed ##{idHeader}>
   <nav>
     <a.button.circle.transparent href=@?{(DataR $ BusinessServiceAssignmentR bid sid aid,stati)} role=button title=_{MsgBack}>
       <i>arrow_back
@@ -7,7 +7,7 @@
     <h6.max>
       _{MsgServiceAssignment}
 
-<main.responsive>
+<main.responsive ##{idMain}>
 
   <form method=post action=@?{(DataR $ BusinessServiceAssignmentR bid sid aid,stati)} enctype=#{et} ##{idFormAssignment}>
     ^{fw}

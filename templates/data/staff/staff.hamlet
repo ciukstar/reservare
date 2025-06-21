@@ -1,7 +1,7 @@
 
 ^{widgetMainMenu idOverlay idDialogMainMenu}
 
-<header.fixed.primary>
+<header.fixed.primary ##{idHeader}>
   <nav.responsive.max>
     <button.circle.transparent data-ui=##{idDialogMainMenu}>
       <i>menu
@@ -11,14 +11,14 @@
 
     ^{widgetAccount}
 
-<main.responsive.no-padding>
+<main.responsive.no-padding ##{idMain}>
 
   $if null staff
     ^{widgetEmpty}
   $else
     $forall ((Entity eid (Staff name _ _ _), attrib), assignments) <- staff
       <a.row.padding.wave href=@{DataR $ EmployeeR eid}>
-        <img.circle src=@{DataR $ EmployeePhotoR eid} loading=lazy>
+        <img.circle src=@{DataR $ EmployeePhotoR eid} loading=lazy alt=_{MsgPhoto}>
         <div.max>
           <div.#{classHeadline}.large-text>
             #{name}

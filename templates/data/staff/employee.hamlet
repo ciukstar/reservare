@@ -1,5 +1,5 @@
 
-<header.fixed>
+<header.fixed ##{idHeader}>
   <nav>
     <a.button.circle.transparent href=@{DataR StaffR} role=button title=_{MsgBack}>
       <i>arrow_back
@@ -13,7 +13,7 @@
     <a.button.transparent.circle href=@{DataR $ EmployeeEditR eid} role=button title=_{MsgEdit}>
       <i>edit
 
-<main.responsive.no-padding>
+<main.responsive.no-padding ##{idMain}>
 
   <figure.center-align>
     <img.extra.circle src=@{DataR $ EmployeePhotoR eid} loading=lazy alt=_{MsgPhoto}>

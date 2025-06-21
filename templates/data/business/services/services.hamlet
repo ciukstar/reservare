@@ -1,5 +1,5 @@
 
-<header.fixed>
+<header.fixed ##{idHeader}>
   <nav>
     <a.button.circle.transparent href=@{DataR DataBusinessesR} role=button title=_{MsgBack}>
       <i>arrow_back
@@ -7,7 +7,7 @@
     <h6.max>
       _{MsgBusiness}
 
-<main.responsive.no-padding>
+<main.responsive.no-padding ##{idMain}>
 
   <figure.center-align>
     <img.extra.circle src=@{DataR $ DataBusinessLogoR bid} loading=lazy alt=_{MsgLogotype}>
@@ -17,16 +17,17 @@
         <div.small-text.secondary-text>
           ^{attrib}
 
-  <div.tabs>
-  
-    <a href=@{DataR $ DataBusinessR bid}>
-      _{MsgDetails}
-      
-    <a href=@{DataR $ DataWorkspacesR bid}>
-      _{MsgWorkspaces}
-      
-    <a.active href=@{DataR $ BusinessServicesR bid}>
-      _{MsgServices}
+  <nav.scroll>
+    <div.tabs>
+
+      <a.no-wrap href=@{DataR $ DataBusinessR bid}>
+        _{MsgDetails}
+
+      <a.no-wrap href=@{DataR $ DataWorkspacesR bid}>
+        _{MsgWorkspaces}
+
+      <a.active.no-wrap href=@{DataR $ BusinessServicesR bid}>
+        _{MsgServices}
       
 
   <div.page.active>

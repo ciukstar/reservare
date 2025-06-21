@@ -1,5 +1,5 @@
 
-<header.fixed>
+<header.fixed ##{idHeader}>
   <nav>
     <a.button.circle.transparent href=@{DataR $ SectorsR (Sectors (init gids))} role=button title=_{MsgBack}>
       <i>arrow_back
@@ -7,18 +7,19 @@
     <h6.max>
       _{MsgSector}
 
-<main.responsive.no-padding>
+<main.responsive.no-padding ##{idMain}>
 
-  <div.tabs.min>
-  
-    <a href=@{DataR $ SectorR (last gids) (Sectors (init gids))}>
-      _{MsgDetails}
-      
-    <a.active href=@{DataR $ SectorsR ps}>
-      _{MsgSubsectors}
-      
-    <a href=@{DataR $ SectorServicesR (last gids) (Sectors gids)}>
-      _{MsgServices}
+  <nav.scroll>
+    <div.tabs.min>
+
+      <a href=@{DataR $ SectorR (last gids) (Sectors (init gids))}>
+        _{MsgDetails}
+
+      <a.active href=@{DataR $ SectorsR ps}>
+        _{MsgSubsectors}
+
+      <a href=@{DataR $ SectorServicesR (last gids) (Sectors gids)}>
+        _{MsgServices}
       
 
   <div.page.active>

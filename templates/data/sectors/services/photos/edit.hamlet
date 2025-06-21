@@ -1,5 +1,5 @@
 
-<header.fixed>
+<header.fixed ##{idHeader}>
   <nav>
     <a.button.circle.transparent href=@{DataR $ SectorServicePhotosR gid sid ps} role=button title=_{MsgBack}>
       <i>arrow_back
@@ -10,7 +10,7 @@
     <a.button.transparent.circle role=button aria-label=_{MsgDele} data-ui=##{idDialogDelete}>
       <i.error-text>delete
 
-<main.responsive>
+<main.responsive ##{idMain}>
 
   <form method=post action=@{DataR $ SectorServicePhotoR gid sid fid ps} enctype=#{et} novalidate ##{idFormEdit}>
     ^{fw}

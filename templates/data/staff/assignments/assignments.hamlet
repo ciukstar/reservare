@@ -1,5 +1,5 @@
 
-<header.fixed>
+<header.fixed ##{idHeader}>
   <nav.responsive.max>
     <a.button.circle.transparent href=@{DataR StaffR} role=button title=_{MsgBack}>
       <i>arrow_back
@@ -7,7 +7,7 @@
     <h6.max>
       _{MsgEmployee}
 
-<main.responsive.no-padding>
+<main.responsive.no-padding ##{idMain}>
 
   <figure.center-align>
     <img.extra.circle src=@{DataR $ EmployeePhotoR eid} loading=lazy alt=_{MsgPhoto}>

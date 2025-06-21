@@ -108,6 +108,8 @@ postUserDeleR uid = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgUser
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormDelete <- newIdent
               idDialogDelete <- newIdent
               idOverlay <- newIdent
@@ -129,6 +131,8 @@ getUserEditR uid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgUser
+        idHeader <- newIdent
+        idMain <- newIdent
         $(widgetFile "common/css/header")
         $(widgetFile "data/users/edit")
 
@@ -156,10 +160,13 @@ postUserR uid = do
               
           addMessageI statusSuccess MsgRecordEdited
           redirect $ DataR $ UserR uid
+          
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgUser
+              idHeader <- newIdent
+              idMain <- newIdent
               $(widgetFile "common/css/header")
               $(widgetFile "data/users/edit") 
 
@@ -177,11 +184,11 @@ getUserR uid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgUser
-        
+        idHeader <- newIdent
+        idMain <- newIdent        
         idFormDelete <- newIdent
         idDialogDelete <- newIdent
-        idOverlay <- newIdent
-        
+        idOverlay <- newIdent        
         $(widgetFile "common/css/header")
         $(widgetFile "data/users/user")
 
@@ -253,13 +260,15 @@ getUsersR = do
     setUltDestCurrent
     defaultLayout $ do
         setTitleI MsgUsers
-
+        idHeader <- newIdent
+        idMain <- newIdent
         idOverlay <- newIdent
         idDialogMainMenu <- newIdent
         classHeadline <- newIdent
         classSupportingText <- newIdent
-        classAttribution <- newIdent
-        
+        classAttribution <- newIdent        
         $(widgetFile "common/css/header")
         $(widgetFile "common/css/main")
+        $(widgetFile "common/css/rows")
+        $(widgetFile "common/css/attribution")
         $(widgetFile "data/users/users")

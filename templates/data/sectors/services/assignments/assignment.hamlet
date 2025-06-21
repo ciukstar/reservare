@@ -1,5 +1,5 @@
 
-<header.fixed>
+<header.fixed ##{idHeader}>
   <nav>
     <a.button.circle.transparent href=@?{(DataR $ SectorServiceAssignmentsR gid sid ps,stati)} role=button title=_{MsgBack}>
       <i>arrow_back
@@ -14,7 +14,7 @@
               href=@?{(DataR $ SectorServiceAssignmentEditR gid sid aid ps,stati)}>
       <i>edit
 
-<main.responsive>
+<main.responsive ##{idMain}>
 
   $maybe (Entity _ (Assignment _ _ role start interval priority),(employee,(service,(workspace,buisiness)))) <- assignment
     <dl>

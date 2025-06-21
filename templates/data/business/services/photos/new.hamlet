@@ -1,5 +1,5 @@
 
-<header.fixed>
+<header.fixed ##{idHeader}>
   <nav>
     <a.button.circle.transparent href=@{DataR $ BusinessServicePhotosR bid sid} role=button title=_{MsgBack}>
       <i>arrow_back
@@ -7,7 +7,7 @@
     <h6.max>
       _{MsgPhoto}
 
-<main.responsive>
+<main.responsive ##{idMain}>
 
   <form method=post action=@{DataR $ BusinessServicePhotosR bid sid} enctype=#{et} novalidate ##{idForm}>
     ^{fw}

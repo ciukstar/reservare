@@ -1,91 +1,89 @@
 
-<header>
-  <md-icon-button href=@{DataR $ DataWorkspacesR bid} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{DataR $ DataWorkspacesR bid} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgWorkspace}
+    <h6.max>
+      _{MsgWorkspace}
+      
+    <a.button.transparent.circle role=button aria-label=_{MsgDele} data-ui=##{idDialogDelete}>
+      <i.error-text>delete
+      
+    <a.button.transparent.circle href=@{DataR $ DataWorkspaceEditR bid wid} role=button title=_{MsgEdit}>
+      <i>edit
 
-  <span #headerEnd>
-    <md-icon-button type=button aria-label=_{MsgDele} onclick="document.getElementById('idDialogDelete').show()">
-      <md-icon>delete
-    <md-icon-button href=@{DataR $ DataWorkspaceEditR bid wid} aria-label=_{MsgEdit}>
-      <md-icon>edit
+<main.responsive.no-padding ##{idMain}>
 
-<md-dialog #idDialogDelete>
-  <div slot=headline>
-    _{MsgConfirmPlease}
-  <div slot=content>
-    _{MsgDeleteAreYouSure}
-  <div slot=actions>
-    <md-text-button type=button onclick="document.getElementById('idDialogDelete').close()">
-      _{MsgCancel}
-    <form slot=content method=post action=@{DataR $ DataWorkspaceDeleR bid wid} enctype=#{et2}>
-      ^{fw2}
-      <md-filled-button type=submit>
-        _{MsgDele}
+  <nav.scroll>
+    <div.tabs.min>
 
-<main>
+      <a.active.no-wrap href=@{DataR $ DataWorkspaceR bid wid}>
+        _{MsgDetails}
 
-  <md-tabs>
-  
-    <md-primary-tab ##{idTabDetails} aria-cotrols=#{idPanelDetails} active
-      onclick="this.querySelector('a[href]').click()">
-      
-      <a href=@{DataR $ DataWorkspaceR bid wid}>
-      _{MsgDetails}
-      
-    <md-primary-tab #idTabWorkingHours aria-cotrols=idPanelWorkingHours
-      onclick="this.querySelector('a[href]').click()">
-      
-      <a href=@{DataR $ DataWorkingHoursR bid wid month}>
-      _{MsgWorkingHours}
-      
-    <md-primary-tab #idTabPayOptions aria-cotrols=idPanelPayOptions onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ PayOptionsR bid wid}>
-      _{MsgPayOptions}
-      
-    <md-primary-tab #idTabServices aria-cotrols=idPanelServices onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ WorkspaceServicesR bid wid}>
-      _{MsgServices}
+      <a.no-wrap href=@{DataR $ DataWorkingHoursR bid wid month}>
+        _{MsgWorkingHours}
+
+      <a.no-wrap href=@{DataR $ PayOptionsR bid wid}>
+        _{MsgPayOptions}
+
+      <a.no-wrap href=@{DataR $ WorkspaceServicesR bid wid}>
+        _{MsgServices}
       
 
-  <div ##{idPanelDetails} role=tabpanel aria-labelledby=#{idTabDetails}>
+  <div.page.active.padding>
 
-    $maybe (Entity _ (Workspace _ name address tzo currency), Entity _ (Business _ bname _ _), Entity _ (User oemail _ _ _ _ oname _ _)) <- workspace
+    $maybe (Entity _ (Workspace _ name address tzo currency), business, owner) <- workspace
       <dl>
 
-        <dt.md-typescale-label-large scope=row>_{MsgBusiness}
-        <dd.md-typescale-body-medium>
-          #{bname}
+        <dt.bold>_{MsgBusiness}
+        <dd.small-margin>
+          $with Entity _ (Business _ bname _ _) <- business
+            #{bname}
 
-        <dt.md-typescale-label-large scope=row>_{MsgOwner}
-        <dd.md-typescale-body-medium>
-          $maybe name <- oname
-            #{name}
-          $nothing
-            #{oemail}
+        <dt.bold>_{MsgOwner}
+        <dd.small-margin>
+          $with Entity _ (User oemail _ _ _ _ oname _ _) <- owner
+            $maybe name <- oname
+              #{name}
+            $nothing
+              #{oemail}
 
-        <dt.md-typescale-label-large scope=row>_{MsgWorkspace}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgWorkspace}
+        <dd.small-margin>
           #{name}
 
-        <dt.md-typescale-label-large scope=row>_{MsgAddress}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgAddress}
+        <dd.small-margin>
           #{address}
 
-        <dt.md-typescale-label-large scope=row>_{MsgTimeZone}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgTimeZone}
+        <dd.small-margin>
           #{show tzo}
 
-        <dt.md-typescale-label-large scope=row>_{MsgCurrency}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgCurrency}
+        <dd.small-margin>
           #{currency}
 
     ^{widgetSnackbar msgs}
 
-  <div #idPanelWorkingHours role=tabpanel aria-labelledby=idTabWorkingHours hidden>
 
-  <div #idPanelPayOptions role=tabpanel aria-labelledby=idTabPayOptions hidden>
+<div.overlay ##{idOverlay} data-ui=##{idDialogDelete}>
 
-  <div #idPanelServices role=tabpanel aria-labelledby=idTabServices hidden>
+<dialog ##{idDialogDelete}>
+  <h6>
+    _{MsgConfirmPlease}
+    
+  <p>
+    _{MsgDeleteAreYouSure}
+    
+  <nav.right-align>
+      
+    <form method=post action=@{DataR $ DataWorkspaceDeleR bid wid} enctype=#{et0} ##{idFormDelete}>
+      ^{fw0}
+      
+    <button.transparent.link type=button data-ui=##{idDialogDelete}>
+      _{MsgCancel}
+
+    <button.error type=submit form=#{idFormDelete}>
+      _{MsgDele}

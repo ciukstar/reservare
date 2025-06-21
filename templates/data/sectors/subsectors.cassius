@@ -1,6 +1,8 @@
 
-            
-main
+##{idMain}
+
+    nav.scroll
+        display: block
 
     a.row
 

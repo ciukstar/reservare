@@ -17,6 +17,7 @@ module Handler.Business
   , getWorkspaceR
   , getWorkspaceEditR
   , postWorkspaceR
+  , postWorkspaceDeleR
   ) where
 
 import Data.Text (Text, unpack, pack)

@@ -264,10 +264,13 @@ postTokensGoogleapisClearR = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgTokens
+              idHeader <- newIdent
+              idMain <- newIdent
               idOverlay <- newIdent
               idDialogMainMenu <- newIdent
               formTokensGmail <- newIdent
               formTokensGmailClear <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/tokens/tokens")
 
 
@@ -309,10 +312,13 @@ postTokensR = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgTokens
+              idHeader <- newIdent
+              idMain <- newIdent
               idOverlay <- newIdent
               idDialogMainMenu <- newIdent
               formTokensGmail <- newIdent
               formTokensGmailClear <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/tokens/tokens")
 
 
@@ -331,9 +337,12 @@ getTokensR = do
         setUltDestCurrent
         setTitleI MsgTokens
         idOverlay <- newIdent
+        idHeader <- newIdent
+        idMain <- newIdent
         idDialogMainMenu <- newIdent
         formTokensGmail <- newIdent
         formTokensGmailClear <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/tokens/tokens")
 
 

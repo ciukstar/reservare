@@ -1,5 +1,5 @@
 
-<header.fixed>
+<header.fixed ##{idHeader}>
   <nav>
     <a.button.circle.transparent href=@{DataR $ StaffAssignmentsR eid} role=button title=_{MsgBack}>
       <i>arrow_back
@@ -29,7 +29,7 @@
       ^{fw2}
 
 
-<main.responsive.no-padding>
+<main.responsive.no-padding ##{idMain}>
 
   <div.tabs.min>
   
@@ -40,7 +40,7 @@
       _{MsgWorkSchedule}
       
 
-  <div.page.active.padding>
+  <div.page.active.small-padding>
 
     <div.calendar ##{idCalendarPage}>
       <div.header>

@@ -167,7 +167,10 @@ getSectorServiceAssignmentEditR gid sid aid ps = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignment
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormAssignment <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/sectors/services/assignments/edit")
 
 
@@ -178,6 +181,8 @@ getSectorServiceAssignmentNewR gid sid ps = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignment
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormAssignment <- newIdent
         $(widgetFile "common/css/header")
         $(widgetFile "data/sectors/services/assignments/new")
@@ -293,7 +298,10 @@ postSectorServiceAssignmentR gid sid aid ps = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgServiceAssignment
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormAssignment <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/sectors/services/assignments/edit")
 
 
@@ -315,6 +323,8 @@ getSectorServiceAssignmentR gid sid aid ps = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignment
+        idHeader <- newIdent
+        idMain <- newIdent
         idOverlay <- newIdent
         idDialogDelete <- newIdent
         idFormDelete <- newIdent
@@ -340,6 +350,8 @@ postSectorServiceAssignmentsR gid sid ps = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgServiceAssignment
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormAssignment <- newIdent
               $(widgetFile "common/css/header")
               $(widgetFile "data/sectors/services/assignments/new")
@@ -363,11 +375,15 @@ getSectorServiceAssignmentsR gid sid ps = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignments
+        idHeader <- newIdent
+        idMain <- newIdent
         classHeadline <- newIdent
         classSupportingText <- newIdent
         classAttribution <- newIdent
         $(widgetFile "common/css/header")
         $(widgetFile "common/css/main")
+        $(widgetFile "common/css/rows")
+        $(widgetFile "common/css/attribution")        
         $(widgetFile "data/sectors/services/assignments/assignments")
 
 
@@ -421,6 +437,8 @@ postSectorServicePhotoR gid sid fid ps = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgService
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormEdit <- newIdent
               idOverlay <- newIdent
               idDialogDelete <- newIdent
@@ -444,6 +462,8 @@ getSectorServicePhotoEditR gid sid fid ps = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormEdit <- newIdent 
         idOverlay <- newIdent
         idDialogDelete <- newIdent
@@ -489,6 +509,8 @@ getSectorServicePhotoNewR gid sid ps = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormNew <- newIdent
         $(widgetFile "common/css/header")
         $(widgetFile "data/sectors/services/photos/new")
@@ -536,6 +558,8 @@ postSectorServicePhotosR gid sid ps = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgService
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormNew <- newIdent
               $(widgetFile "common/css/header")
               $(widgetFile "data/sectors/services/photos/new")
@@ -554,8 +578,11 @@ getSectorServicePhotosR gid sid ps = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
+        idHeader <- newIdent
+        idMain <- newIdent
         classAttribution <- newIdent
         $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "data/sectors/services/photos/photos")
 
 
@@ -588,6 +615,8 @@ getSectorServiceEditR gid sid ps = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServices
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormService <- newIdent
         $(widgetFile "common/css/header")
         $(widgetFile "data/sectors/services/edit")
@@ -613,6 +642,8 @@ postSectorServiceR gid sid ps = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgServices
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormService <- newIdent
               $(widgetFile "common/css/header")
               $(widgetFile "data/sectors/services/edit")
@@ -634,11 +665,14 @@ getSectorServiceR gid sid ps = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
+        idHeader <- newIdent
+        idMain <- newIdent
         classCurrency <- newIdent
         idOverlay <- newIdent
         idDialogDelete <- newIdent
         idFormDelete <- newIdent
         $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "data/sectors/services/service")
 
 
@@ -785,10 +819,13 @@ getSectorServicesR gid ps@(Sectors gids) = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServices
+        idHeader <- newIdent
+        idMain <- newIdent
         classHeadline <- newIdent
         classCurrency <- newIdent
         classSupportingText <- newIdent
         $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "common/css/rows")
         $(widgetFile "data/sectors/services/services")
         
@@ -851,9 +888,12 @@ postSectorsR ps = do
           runDB $ insert_ r
           addMessageI statusSuccess MsgRecordAdded
           redirect $ DataR $ SectorsR ps
+          
       _otherwise -> defaultLayout $ do
           msgs <- getMessages
           setTitleI MsgSector
+          idHeader <- newIdent
+          idMain <- newIdent
           idFormSector <- newIdent
           $(widgetFile "data/sectors/new")
 
@@ -865,6 +905,8 @@ getSectorNewR ps@(Sectors gids) = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgSector
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormSector <- newIdent
         $(widgetFile "common/css/header")
         $(widgetFile "data/sectors/new")
@@ -937,10 +979,13 @@ getSectorR gid ps@(Sectors gids) = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgSector
+        idHeader <- newIdent
+        idMain <- newIdent
         idOverlay <- newIdent
         idDialogDelete <- newIdent
         idFormDelete <- newIdent
         $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "data/sectors/sector")
 
 
@@ -959,10 +1004,13 @@ getSectorsR ps@(Sectors []) = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgSectors
+        idHeader <- newIdent
+        idMain <- newIdent
         idOverlay <- newIdent
         idDialogMainMenu <- newIdent
         classHeadline <- newIdent
         $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "data/sectors/sectors")
              
 getSectorsR ps@(Sectors gids) = do
@@ -977,6 +1025,10 @@ getSectorsR ps@(Sectors gids) = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgSectors
-        classHeadline <- newIdent        
+        idHeader <- newIdent
+        idMain <- newIdent
+        classHeadline <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "data/sectors/subsectors")
         

@@ -231,6 +231,8 @@ getStaffScheduleSlotEditR eid aid day sid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkingHours
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormWorkSlot <- newIdent
         $(widgetFile "common/css/header")
         $(widgetFile "data/staff/assignments/schedule/slots/edit")
@@ -244,6 +246,8 @@ getStaffScheduleSlotNewR eid aid day = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkingHours
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormWorkSlot <- newIdent
         $(widgetFile "common/css/header")
         $(widgetFile "data/staff/assignments/schedule/slots/new")
@@ -288,6 +292,8 @@ postStaffScheduleSlotR eid aid day sid = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgWorkingHours
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormWorkSlot <- newIdent
               $(widgetFile "common/css/header")
               $(widgetFile "data/staff/assignments/schedule/slots/edit")
@@ -306,6 +312,8 @@ getStaffScheduleSlotR eid aid day sid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkingHours
+        idHeader <- newIdent
+        idMain <- newIdent
         idOverlay <- newIdent
         idDialogDelete <- newIdent
         idFormDelete <- newIdent
@@ -332,6 +340,8 @@ postStaffScheduleSlotsR eid aid day = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgWorkingHours
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormWorkSlot <- newIdent
               $(widgetFile "common/css/header")
               $(widgetFile "data/staff/assignments/schedule/slots/new") 
@@ -351,6 +361,8 @@ getStaffScheduleSlotsR eid aid day = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkingHours
+        idHeader <- newIdent
+        idMain <- newIdent
         classHeadline <- newIdent
         $(widgetFile "common/css/header")
         $(widgetFile "data/staff/assignments/schedule/slots/slots")
@@ -383,6 +395,8 @@ getStaffScheduleR eid aid month = do
         idMenuActions <- newIdent
         idFormFillFromWorkingHours <- newIdent
         idFormFillFromPreviousMonth <- newIdent
+        idHeader <- newIdent
+        idMain <- newIdent
         idCalendarPage <- newIdent
         $(widgetFile "common/css/header")  
         $(widgetFile "data/staff/assignments/schedule/hours")
@@ -429,7 +443,10 @@ getStaffAssignmentEditR eid aid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignment
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormAssignment <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/staff/assignments/edit")
 
 
@@ -440,7 +457,10 @@ getStaffAssignmentNewR eid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignment
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormAssignment <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/staff/assignments/new")
 
 
@@ -459,10 +479,13 @@ postStaffAssignmentR eid aid = do
           runDB $ P.replace aid r
           addMessageI statusSuccess MsgRecordEdited
           redirect $ DataR $ StaffAssignmentR eid aid
+          
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgServiceAssignment
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormAssignment <- newIdent
               $(widgetFile "common/css/header")
               $(widgetFile "data/staff/assignments/edit")
@@ -487,6 +510,8 @@ getStaffAssignmentR eid aid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignment
+        idHeader <- newIdent
+        idMain <- newIdent
         idOverlay <- newIdent
         idDialogDelete <- newIdent
         idFormDelete <- newIdent
@@ -514,6 +539,8 @@ postStaffAssignmentsR eid = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgServiceAssignment
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormAssignment <- newIdent
               $(widgetFile "data/staff/assignments/new")
 
@@ -632,9 +659,12 @@ getStaffAssignmentsR eid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignments
+        idHeader <- newIdent
+        idMain <- newIdent
         classHeadline <- newIdent
         classSupportingText <- newIdent
         $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "common/css/rows")
         $(widgetFile "data/staff/assignments/assignments")
 
@@ -836,6 +866,8 @@ getEmployeeR eid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgEmployee 
+        idHeader <- newIdent
+        idMain <- newIdent
         idOverlay <- newIdent
         idDialogDelete <- newIdent
         idFormDelete <- newIdent
@@ -865,13 +897,17 @@ getStaffR = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgStaff
+        idHeader <- newIdent
+        idMain <- newIdent
         idOverlay <- newIdent
         idDialogMainMenu <- newIdent
         classHeadline <- newIdent
         classSupportingText <- newIdent
-        classAttribution <- newIdent
-        
-        $(widgetFile "common/css/main")
+        classAttribution <- newIdent        
+        $(widgetFile "common/css/header")     
+        $(widgetFile "common/css/main")     
+        $(widgetFile "common/css/rows")     
+        $(widgetFile "common/css/attribution")
         $(widgetFile "data/staff/staff")
 
 
