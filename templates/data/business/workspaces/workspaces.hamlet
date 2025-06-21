@@ -1,62 +1,56 @@
 
-<header.background>
-  <md-icon-button href=@{DataR DataBusinessesR} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed>
+  <nav>
+    <a.button.circle.transparent href=@{DataR DataBusinessesR} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgBusiness}
+    <h6.max>
+      _{MsgBusiness}
 
-<main>
+<main.responsive.no-padding>
 
-  <figure>
-    <img slot=start src=@{DataR $ DataBusinessLogoR bid} width=64 height=64 loading=lazy alt=_{MsgLogotype}>
+  <figure.center-align>
+    <img.extra.circle src=@{DataR $ DataBusinessLogoR bid} loading=lazy alt=_{MsgLogotype}>
+    
     <figcaption>
       $maybe attrib <- attribution
-        <div.app-attribution>
-          <div.app-attribution-wrapper.md-typescale-body-small>
-            ^{attrib}
+        <div.small-text.secondary-text>
+          ^{attrib}
 
-  <md-tabs>
+  <div.tabs>
   
-    <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ DataBusinessR bid}>
+    <a href=@{DataR $ DataBusinessR bid}>
       _{MsgDetails}
       
-    <md-primary-tab ##{idTabWorkspaces} aria-cotrols=#{idPanelWorkspaces} active onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ DataWorkspacesR bid}>
+    <a.active href=@{DataR $ DataWorkspacesR bid}>
       _{MsgWorkspaces}
       
-    <md-primary-tab #idTabServices aria-cotrols=idPanelServices onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ BusinessServicesR bid}>
+    <a href=@{DataR $ BusinessServicesR bid}>
       _{MsgServices}
       
 
-  <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
-
-  <div ##{idPanelWorkspaces} role=tabpanel aria-labelledby=#{idTabWorkspaces}>
+  <div.page.active>
 
     $if null workspaces
-      <figure style="text-align:center">
-        <span.on-secondary style="font-size:4rem">&varnothing;
-        <figcaption.md-typescale-body-large>
-          _{MsgThereAreNoDataYet}
-          <div.md-typescale-body-small>
-            _{MsgYouMightWantToAddAFew}
+      ^{widgetEmpty}
     $else
-      <md-list>
-        $forall Entity wid (Workspace _ name address _ _) <- workspaces
-          <md-list-item type=link href=@{DataR $ DataWorkspaceR bid wid}>
-            <div slot=headline>
+      
+      $forall Entity wid (Workspace _ name address _ _) <- workspaces
+        <a.row.padding.wave href=@{DataR $ DataWorkspaceR bid wid}>
+          <div.max>
+          
+            <div.#{classHeadline}.large-text>
               #{name}
-            <div slot=supporting-text>
+       
+            <div.#{classSupportingText}.secondary-text>
               #{address}
-            <md-icon slot=end>arrow_forward_ios
-          <md-divider>
+       
+          <i.secondary-text>arrow_forward_ios
 
-    <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ DataWorkspaceNewR bid}>
-      <md-icon slot=icon>add
+        <hr>
 
-    ^{widgetSnackbar msgs}
 
-  <div #idPanelServices role=tabpanel aria-labelledby=idTabServices hidden>
+  <a.button.circle.extra.fixed.right.bottom.margin.medium-elevate href=@{DataR $ DataWorkspaceNewR bid} title=_{MsgAdd}>
+    <i>add
+
+  ^{widgetSnackbar msgs}

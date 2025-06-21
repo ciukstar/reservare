@@ -1,76 +1,61 @@
 
-<header.background>
-  <md-icon-button href=@{DataR DataBusinessesR} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed>
+  <nav>
+    <a.button.circle.transparent href=@{DataR DataBusinessesR} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgBusiness}
+    <h6.max>
+      _{MsgBusiness}
+      
+    <a.button.transparent.circle role=button title=_{MsgDele} data-ui=##{idDialogDelete}>
+      <i.error-text>delete
+      
+    <a.button.transparent.circle href=@{DataR $ DataBusinessEditR bid} role=button title=_{MsgEdit}>
+      <i>edit
 
-  <span #headerEnd>
-    <md-icon-button type=button aria-label=_{MsgDele} onclick="document.getElementById('idDialogDelete').show()">
-      <md-icon>delete
-    <md-icon-button href=@{DataR $ DataBusinessEditR bid} aria-label=_{MsgEdit}>
-      <md-icon>edit
+<main.responsive.no-padding>
 
-<md-dialog #idDialogDelete>
-  <div slot=headline>
-    _{MsgConfirmPlease}
-  <div slot=content>
-    _{MsgDeleteAreYouSure}
-  <div slot=actions>
-    <md-text-button type=button onclick="document.getElementById('idDialogDelete').close()">
-      _{MsgCancel}
-    <form slot=content method=post action=@{DataR $ DataBusinessDeleR bid} enctype=#{et2}>
-      ^{fw2}
-      <md-filled-button type=submit>
-        _{MsgDele}
-
-<main>
-
-  <figure>
-    <img slot=start src=@{DataR $ DataBusinessLogoR bid} width=64 height=64 loading=lazy alt=_{MsgLogotype}>
+  <figure.center-align>
+    <img.extra.circle src=@{DataR $ DataBusinessLogoR bid} loading=lazy alt=_{MsgLogotype}>
+    
     <figcaption>
       $maybe attrib <- attribution
-        <div.app-attribution>
-          <div.app-attribution-wrapper.md-typescale-body-small>
-            ^{attrib}
+        <div.small-text.secondary-text>
+          ^{attrib}
 
-  <md-tabs>
+  <div.tabs>
   
-    <md-primary-tab ##{idTabDetails} aria-cotrols=#{idPanelDetails} active onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ DataBusinessR bid}>
+    <a.active href=@{DataR $ DataBusinessR bid}>
       _{MsgDetails}
       
-    <md-primary-tab #idTabWorkspaces aria-cotrols=idPanelWorkspaces onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ DataWorkspacesR bid}>
+    <a href=@{DataR $ DataWorkspacesR bid}>
       _{MsgWorkspaces}
       
-    <md-primary-tab #idTabServices aria-cotrols=idPanelServices onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ BusinessServicesR bid}>
+    <a href=@{DataR $ BusinessServicesR bid}>
       _{MsgServices}
       
 
-  <div ##{idPanelDetails} role=tabpanel aria-labelledby=#{idTabDetails}>
+  <div.page.active.padding>
 
     $maybe (Entity _ (Business _ name fname descr), Entity _ (User ownerEmail _ _ _ _ ownerName _ _)) <- business        
       <dl>
 
-        <dt.md-typescale-label-large scope=row>_{MsgTheName}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgTheName}
+        <dd.small-margin>
           #{name}
 
-        <dt.md-typescale-label-large scope=row>_{MsgBusinessFullName}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgBusinessFullName}
+        <dd.small-margin>
           $maybe fullName <- fname
             #{fullName}
 
-        <dt.md-typescale-label-large scope=row>_{MsgDescription}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgDescription}
+        <dd.small-margin>
           $maybe descr <- descr
             #{descr}
 
-        <dt.md-typescale-label-large scope=row>_{MsgOwner}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgOwner}
+        <dd.small-margin>
           $maybe name <- ownerName
             #{name}
           $nothing
@@ -78,6 +63,23 @@
 
     ^{widgetSnackbar msgs}
 
-  <div #idPanelWorkspaces role=tabpanel aria-labelledby=idTabWorkspaces hidden>
 
-  <div #idPanelServices role=tabpanel aria-labelledby=idTabServices hidden>
+<div.overlay ##{idOverlay} data-ui=##{idDialogDelete}>
+
+<dialog ##{idDialogDelete}>
+  <h6>
+    _{MsgConfirmPlease}
+    
+  <p>
+    _{MsgDeleteAreYouSure}
+    
+  <nav.right-align>
+      
+    <form method=post action=@{DataR $ DataBusinessDeleR bid} enctype=#{et0} ##{idFormDelete}>
+      ^{fw0}
+      
+    <button.transparent.link type=button data-ui=##{idDialogDelete}>
+      _{MsgCancel}
+
+    <button.error type=submit form=#{idFormDelete}>
+      _{MsgDele}

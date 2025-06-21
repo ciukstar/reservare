@@ -1,56 +1,47 @@
 
-<header.background>
-  <md-icon-button href=@?{(DataR $ BusinessServicesR bid,stati)} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed>
+  <nav>
+    <a.button.circle.transparent href=@?{(DataR $ BusinessServicesR bid,stati)} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgService}
+    <h6.max>
+      _{MsgService}
 
-<main>
+<main.responsive.no-padding>
 
-  <md-tabs>
+  <div.tabs.min>
   
-    <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails onclick="this.querySelector('a[href]').click()">
-      <a href=@?{(DataR $ BusinessServiceR bid sid,stati)}>
+    <a href=@?{(DataR $ BusinessServiceR bid sid,stati)}>
       _{MsgDetails}
       
-    <md-primary-tab ##{idTabPhotos} aria-cotrols=#{idPanelPhotos} active onclick="this.querySelector('a[href]').click()">
-      <a href=@?{(DataR $ BusinessServicePhotosR bid sid,stati)}>
+    <a.active href=@?{(DataR $ BusinessServicePhotosR bid sid,stati)}>
       _{MsgPhotos}
       
-    <md-primary-tab #idTabAssignments aria-cotrols=idPanelAssignments onclick="this.querySelector('a[href]').click()">
-      <a href=@?{(DataR $ BusinessServiceAssignmentsR bid sid,stati)}>
+    <a href=@?{(DataR $ BusinessServiceAssignmentsR bid sid,stati)}>
       _{MsgServiceAssignments}
       
 
-  <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
-
-  <div ##{idPanelPhotos} role=tabpanel aria-labelledby=#{idTabPhotos}>
+  <div.page.active>
 
     $if null photos
-      <figure style="text-align:center">
-        <span.on-secondary style="font-size:4rem">&varnothing;
-        <figcaption.md-typescale-body-large>
-          _{MsgThereAreNoDataYet}
-          <div.md-typescale-body-small>
-            _{MsgYouMightWantToAddAFew}
+      ^{widgetEmpty}
     $else
-      <md-list>
-        $forall Entity fid (ServicePhoto _ _ _ attrib) <- photos
-          <md-list-item type=link href=@?{(DataR $ BusinessServicePhotoEditR bid sid fid,stati)}>
-            <img slot=start src=@{DataR $ ServicePhotoR sid fid} width=auto height=64 loading=lazy>
-            <div slot=supporting-text>
-            <md-icon slot=end>arrow_forward_ios
-          $maybe attrib <- attrib
-            <div.attribution>
-              <div.attribution-wrapper.md-typescale-body-small>
-                #{attrib}
-          <md-divider>
+      
+      $forall Entity fid (ServicePhoto _ _ _ attrib) <- photos
+        <a.row.padding.wave href=@?{(DataR $ BusinessServicePhotoEditR bid sid fid,stati)}>
+          <img.circle src=@{DataR $ ServicePhotoR sid fid} loading=lazy alt=_{MsgPhoto}>
+          <div.max>       
+          <i.secondary-text>arrow_forward_ios
+          
+        $maybe attrib <- attrib
+          <div.#{classAttribution}>
+            #{attrib}
 
-    <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-      <a href=@?{(DataR $ BusinessServicePhotoNewR bid sid,stati)}>
-      <md-icon slot=icon>add
+        <hr>
 
-    ^{widgetSnackbar msgs}
 
-  <div #idPanelAssignments role=tabpanel aria-labelledby=idTabAssignments hidden>
+  <a.button.circle.extra.fixed.right.bottom.margin.medium-elevate title=_{MsgAdd}
+            href=@?{(DataR $ BusinessServicePhotoNewR bid sid,stati)}>
+    <i>add
+
+  ^{widgetSnackbar msgs}

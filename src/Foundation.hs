@@ -1128,6 +1128,10 @@ instance YesodYookassa App where
     getBookDetailsR bid = return $ BookDetailsR bid
 
 
+widgetEmpty :: Widget
+widgetEmpty = $(widgetFile "widgets/empty")
+
+
 widgetSnackbar :: [(Text,Html)] -> Widget
 widgetSnackbar msgs = $(widgetFile "widgets/snackbar")
 

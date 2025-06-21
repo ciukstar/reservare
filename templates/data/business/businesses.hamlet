@@ -11,36 +11,34 @@
 
     ^{widgetAccount}
 
-<main.responsive>
+<main.responsive.no-padding>
 
   $if null businesses
-    <figure style="text-align:center">
-      <span.on-secondary style="font-size:4rem">&varnothing;
-      <figcaption.md-typescale-body-large>
-        _{MsgThereAreNoDataYet}
-        <div.md-typescale-body-small>
-          _{MsgYouMightWantToAddAFew}
+    ^{widgetEmpty}
   $else
-    <md-list>
-      $forall (Entity bid (Business _ name fname _),attrib) <- businesses
-        <md-list-item type=link href=@{DataR $ DataBusinessR bid}>
-          <img slot=start src=@{DataR $ DataBusinessLogoR bid} width=56 height=56 loading=lazy alt=_{MsgLogotype}>
-          <div slot=headline>
+    
+    $forall (Entity bid (Business _ name fname _),attrib) <- businesses
+      <a.row.padding.wave href=@{DataR $ DataBusinessR bid}>
+        <img.circle src=@{DataR $ DataBusinessLogoR bid} loading=lazy alt=_{MsgLogotype}>
+        <div.max>
+          <div.#{classHeadline}.large-text>
             #{name}
-          <div slot=supporting-text>
+
+          <div.#{classSupportingText}.secondary-text>
             $maybe fullName <- fname
               #{fullName}
-          <md-icon slot=end>
-            arrow_forward_ios
-            
-        $maybe attribution <- attrib
-          <div.app-attribution>
-            <div.app-attribution-wrapper.md-typescale-body-small>
-              #{attribution}
-        <md-divider>
 
-  <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-    <a href=@{DataR DataBusinessNewR}>
-    <md-icon slot=icon>add
+        <i.secondary-text>
+          arrow_forward_ios
+
+      $maybe attribution <- attrib
+        <div.#{classAttribution}>
+          #{attribution}
+
+      <hr>
+
+
+  <a.button.circle.extra.fixed.right.bottom.margin.medium-elevate href=@{DataR DataBusinessNewR} title=_{MsgAdd}>
+    <i>add
 
 ^{widgetSnackbar msgs}

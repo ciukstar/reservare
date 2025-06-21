@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -64,7 +64,7 @@ import Control.Monad (join, void)
 import Data.Bifunctor (first, second)
 
 import qualified Data.Map as M (Map, fromListWith, member, notMember, lookup)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isJust)
 import Data.Text (Text, unpack, pack)
 import Data.Text.Encoding (encodeUtf8)
 import Data.Time
@@ -93,7 +93,7 @@ import Database.Persist
 import qualified Database.Persist as P ((=.), delete, replace)
 
 import Foundation
-    ( Handler, Form, widgetSnackbar, widgetAccount, widgetMainMenu
+    ( Handler, Form, widgetSnackbar, widgetAccount, widgetMainMenu, widgetEmpty
     , Route (DataR, StaticR)
     , DataR
       ( DataBusinessesR, DataBusinessNewR, DataBusinessR, DataBusinessEditR
@@ -130,13 +130,14 @@ import Foundation
       , MsgService, MsgUnitMinutes, MsgDuration, MsgAvailable, MsgPrice, MsgPhoto
       , MsgServiceAssignments, MsgServiceAssignment, MsgEmployee, MsgRole
       , MsgAssignmentDate, MsgSchedulingInterval, MsgPriority, MsgTheStart
-      , MsgPhotos
+      , MsgPhotos, MsgUploadPhoto
       )
     )
 
 import Material3
     ( md3selectField, md3mreq, md3textField, md3textareaField, md3timeField
-    , md3mopt, md3htmlField, md3intField, md3switchField, md3datetimeLocalField
+    , md3mopt, md3htmlField, md3intField, md3switchField, md3datetimeLocalField, md3widgetSelect
+    , md3widget, md3widgetTextarea
     )
 
 import Model
@@ -191,6 +192,7 @@ import Settings.StaticFiles
     )
 
 import Text.Hamlet (Html)
+import Text.Julius (rawJS)
 import Text.Printf (printf)
 import Text.Shakespeare.I18N (SomeMessage (SomeMessage))
 
@@ -206,11 +208,16 @@ import Yesod.Core.Widget (setTitleI)
 import Yesod.Form
     ( Field
     , FieldSettings (FieldSettings, fsName, fsLabel, fsTooltip, fsId, fsAttrs)
-    , FieldView (fvInput, fvId, fvErrors, fvLabel), FormResult (FormSuccess)
-    , Textarea (Textarea), fileField, mreq, mopt
+    , FieldView (fvInput, fvId, fvErrors, fvLabel, fvRequired)
+    , FormResult (FormSuccess)
+    , Textarea (Textarea)
     )
-import Yesod.Form.Functions (generateFormPost, runFormPost, checkM)
-import Yesod.Form.Fields (optionsPairs)
+import Yesod.Form.Fields
+    ( optionsPairs, selectField, fileField, textField, intField, htmlField
+    )
+import Yesod.Form.Functions
+    ( mreq, mopt, generateFormPost, runFormPost, checkM
+    )
 import Yesod.Persist.Core (runDB)
 
 
@@ -243,6 +250,7 @@ getBusinessServiceAssignmentEditR bid sid aid = do
     defaultLayout $ do
         setTitleI MsgServiceAssignment
         idFormAssignment <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/services/assignments/edit")
 
 
@@ -254,6 +262,7 @@ getBusinessServiceAssignmentNewR bid sid = do
     defaultLayout $ do
         setTitleI MsgServiceAssignment
         idFormAssignment <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/services/assignments/new")
 
 
@@ -278,6 +287,7 @@ postBusinessServiceAssignmentR bid sid aid = do
           defaultLayout $ do
               setTitleI MsgServiceAssignment
               idFormAssignment <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/business/services/assignments/edit")
 
 
@@ -294,11 +304,15 @@ getBusinessServiceAssignmentR bid sid aid = do
         where_ $ x ^. AssignmentId ==. val aid
         return (x,(e,(s,(w,b))))
 
-    (fw2,et2) <- generateFormPost formServiceAssignmentDelete
+    (fw0,et0) <- generateFormPost formServiceAssignmentDelete
 
     msgs <- getMessages
     defaultLayout $ do
-        setTitleI MsgServiceAssignment 
+        setTitleI MsgServiceAssignment
+        idOverlay <- newIdent
+        idDialogDelete <- newIdent
+        idFormDelete <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/services/assignments/assignment")
   where
       toMinutes interval = truncate @_ @Integer (nominalDiffTimeToSeconds interval / 60)
@@ -317,6 +331,7 @@ postBusinessServiceAssignmentsR bid sid = do
           defaultLayout $ do
               setTitleI MsgServiceAssignment
               idFormAssignment <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/business/services/assignments/new")
 
 
@@ -338,9 +353,11 @@ getBusinessServiceAssignmentsR bid sid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignments
-        idTabAssignments <- newIdent
-        idPanelAssignments <- newIdent
-        idFabAdd <- newIdent 
+        classHeadline <- newIdent
+        classSupportingText <- newIdent
+        classAttribution <- newIdent
+        $(widgetFile "common/css/header")   
+        $(widgetFile "common/css/main")
         $(widgetFile "data/business/services/assignments/assignments")
 
 
@@ -389,11 +406,15 @@ postBusinessServicePhotoR bid sid fid = do
           redirect $ DataR $ BusinessServicePhotosR bid sid
               
       _otherwise -> do
-          (fw2,et2) <- generateFormPost formBusinessServicePhotoDelete
+          (fw0,et0) <- generateFormPost formBusinessServicePhotoDelete
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgService
-              idFormEdit <- newIdent
+              idForm <- newIdent
+              idOverlay <- newIdent
+              idDialogDelete <- newIdent
+              idFormDelete <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/business/services/photos/edit")
 
 
@@ -405,21 +426,23 @@ getBusinessServicePhotoEditR bid sid fid = do
         where_ $ x ^. ServicePhotoId ==. val fid
         return x
         
-    (fw2,et2) <- generateFormPost formBusinessServicePhotoDelete
+    (fw0,et0) <- generateFormPost formBusinessServicePhotoDelete
     
     (fw,et) <- generateFormPost $ formBusinessServicePhoto sid photo
     
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
-        idFormEdit <- newIdent
+        idForm <- newIdent
+        idOverlay <- newIdent
+        idDialogDelete <- newIdent
+        idFormDelete <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/services/photos/edit")
     
 
 formBusinessServicePhoto :: ServiceId -> Maybe (Entity ServicePhoto) -> Form (Maybe FileInfo,Maybe Html)
 formBusinessServicePhoto sid photo extra = do
-
-    msgr <- getMessageRender
     
     (photoR,photoV) <- mopt fileField FieldSettings
         { fsLabel = SomeMessage MsgPhoto
@@ -427,10 +450,10 @@ formBusinessServicePhoto sid photo extra = do
         , fsAttrs = [("style","display:none")]
         } Nothing
     
-    (attribR,attribV) <- md3mopt md3htmlField FieldSettings
+    (attribR,attribV) <- mopt htmlField FieldSettings
         { fsLabel = SomeMessage MsgAttribution
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgAttribution)]
+        , fsAttrs = []
         } (servicePhotoAttribution . entityVal <$> photo)
 
     let r = (,) <$> photoR <*> attribR
@@ -456,12 +479,14 @@ postBusinessServicePhotosR bid sid = do
                                        , servicePhotoPhoto = bs
                                        , servicePhotoAttribution = attribution
                                        }
+          addMessageI statusSuccess MsgRecordAdded
           redirect $ DataR $ BusinessServicePhotosR bid sid
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgService
-              idFormNew <- newIdent
+              idForm <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/business/services/photos/new")
 
 
@@ -473,7 +498,8 @@ getBusinessServicePhotoNewR bid sid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
-        idFormNew <- newIdent
+        idForm <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/services/photos/new")
 
 
@@ -490,9 +516,8 @@ getBusinessServicePhotosR bid sid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
-        idTabPhotos <- newIdent
-        idPanelPhotos <- newIdent
-        idFabAdd <- newIdent
+        classAttribution <- newIdent        
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/services/photos/photos")
 
 
@@ -702,13 +727,17 @@ getBusinessServiceR bid sid = do
         where_ $ x ^. ServiceId ==. val sid
         return (x,w)
 
-    (fw2,et2) <- generateFormPost formBusinessServiceDelete
+    (fw0,et0) <- generateFormPost formBusinessServiceDelete
 
     msgs <- getMessages
+    
     defaultLayout $ do
-        setTitleI MsgService 
-        idTabDetails <- newIdent
-        idPanelDetails <- newIdent
+        setTitleI MsgService
+        classCurrency <- newIdent
+        idOverlay <- newIdent
+        idDialogDelete <- newIdent
+        idFormDelete <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/services/service")
 
 
@@ -731,9 +760,11 @@ getBusinessServicesR bid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServices
-        idTabServices <- newIdent
-        idPanelServices <- newIdent
-        idFabAdd <- newIdent
+        classHeadline <- newIdent
+        classSupportingText <- newIdent
+        classCurrency <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/rows")
         $(widgetFile "data/business/services/services")
 
 
@@ -834,41 +865,39 @@ getWorkspaceServiceAssignmentNewR bid wid sid = do
 formServiceAssignment :: ServiceId -> Maybe (Entity Assignment) -> Form Assignment
 formServiceAssignment sid assignment extra = do
 
-    msgr <- getMessageRender
-
     staff <- liftHandler $ runDB $ select $ do
         x <- from $ table @Staff
         orderBy [asc (x ^. StaffName), desc (x ^. StaffId)]
         return x
 
-    (employeeR, employeeV) <- md3mreq (md3selectField (optionsPairs (options <$> staff))) FieldSettings
+    (employeeR, employeeV) <- mreq (selectField (optionsPairs (options <$> staff))) FieldSettings
         { fsLabel = SomeMessage MsgEmployee
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgEmployee)]
+        , fsAttrs = []
         } (assignmentStaff . entityVal <$> assignment)
 
-    (roleR, roleV) <- md3mreq (uniqueRoleField sid employeeR) FieldSettings
+    (roleR, roleV) <- mreq (uniqueRoleField sid employeeR) FieldSettings
         { fsLabel = SomeMessage MsgRole
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgRole)]
+        , fsAttrs = []
         } (assignmentRole . entityVal <$> assignment)
 
-    (startR, startV) <- md3mreq md3datetimeLocalField FieldSettings
+    (startR, startV) <- mreq md3datetimeLocalField FieldSettings
         { fsLabel = SomeMessage MsgAssignmentDate
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgAssignmentDate),("step","1")]
+        , fsAttrs = [("step","1")]
         } (utcToLocalTime utc . assignmentTime . entityVal <$> assignment)
 
-    (intervalR, intervalV) <- md3mreq md3intField FieldSettings
+    (intervalR, intervalV) <- mreq (intField @_ @Integer) FieldSettings
         { fsLabel = SomeMessage MsgSchedulingInterval
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgSchedulingInterval),("supporting-text", msgr MsgUnitMinutes)]
+        , fsAttrs = []
         } (truncate . (/ 60) . nominalDiffTimeToSeconds . assignmentSlotInterval . entityVal <$> assignment)
 
-    (priorityR, priorityV) <- md3mreq md3intField FieldSettings
+    (priorityR, priorityV) <- mreq intField FieldSettings
         { fsLabel = SomeMessage MsgPriority
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgPriority)]
+        , fsAttrs = []
         } (assignmentPriority . entityVal <$> assignment)
 
     let r = Assignment <$> employeeR <*> pure sid <*> roleR <*> (localTimeToUTC utc <$> startR)
@@ -877,11 +906,22 @@ formServiceAssignment sid assignment extra = do
 
     let w = [whamlet|
                     #{extra}
-                    ^{fvInput employeeV}
-                    ^{fvInput roleV}
-                    ^{fvInput startV}
-                    ^{fvInput intervalV}
-                    ^{fvInput priorityV}
+                    ^{md3widgetSelect employeeV}
+                    ^{md3widget roleV}
+                    ^{md3widget startV}
+
+                    <div.field.label.border.round :isJust (fvErrors intervalV):.invalid>
+                      ^{fvInput intervalV}
+                      <label for=#{fvId intervalV}>
+                        #{fvLabel intervalV}
+                        $if fvRequired intervalV
+                          <sup>*
+                      $maybe err <- fvErrors intervalV
+                        <span.error>#{err}
+                      $nothing
+                        <span.helper>_{MsgUnitMinutes}
+                        
+                    ^{md3widget priorityV}
                     |]
 
     return (r, w)
@@ -890,7 +930,7 @@ formServiceAssignment sid assignment extra = do
       options e = (staffName . entityVal $ e, entityKey e)
 
       uniqueRoleField :: ServiceId -> FormResult StaffId -> Field Handler Text
-      uniqueRoleField sid' eid = checkM (uniqueRole sid' eid) md3textField
+      uniqueRoleField sid' eid = checkM (uniqueRole sid' eid) textField
 
       uniqueRole :: ServiceId -> FormResult StaffId -> Text -> Handler (Either AppMessage Text)
       uniqueRole sid' eid name = do
@@ -1927,9 +1967,10 @@ getDataWorkspacesR bid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkspaces
-        idTabWorkspaces <- newIdent
-        idPanelWorkspaces <- newIdent
-        idFabAdd <- newIdent
+        classHeadline <- newIdent
+        classSupportingText <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/rows")
         $(widgetFile "data/business/workspaces/workspaces")
 
 
@@ -2008,18 +2049,21 @@ getDataBusinessR bid = do
         where_ $ x ^. BusinessId ==. val bid
         return (x,o)
 
-    attribution <- (unValue =<<) <$> runDB ( selectOne $ do
+    attribution <- ((unValue =<<) <$>) $ runDB $ selectOne $ do
         x <- from $ table @BusinessLogo
         where_ $ x ^. BusinessLogoBusiness ==. val bid
-        return (x ^. BusinessLogoAttribution) )
+        return (x ^. BusinessLogoAttribution) 
 
-    (fw2,et2) <- generateFormPost formBusinessDelete
+    (fw0,et0) <- generateFormPost formBusinessDelete
 
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgBusiness
-        idTabDetails <- newIdent
-        idPanelDetails <- newIdent
+        idOverlay <- newIdent
+        idDialogDelete <- newIdent
+        idFormDelete <- newIdent
+        
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/business")
 
 
@@ -2146,18 +2190,22 @@ formBusiness business extra = do
 getDataBusinessesR :: Handler Html
 getDataBusinessesR = do
 
-    businesses <- (second (join . unValue) <$>) <$> runDB ( select $ do
+    businesses <- ((second (join . unValue) <$>) <$>) $ runDB $ select $ do
         x :& l <- from $ table @Business
             `leftJoin` table @BusinessLogo `on` (\(x :& l) -> just (x ^. BusinessId) ==. l ?. BusinessLogoBusiness)
         orderBy [desc (x ^. BusinessId)]
-        return (x, l ?. BusinessLogoAttribution) )
+        return (x, l ?. BusinessLogoAttribution)
 
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgBusinesses
         idOverlay <- newIdent
         idDialogMainMenu <- newIdent
-        idFabAdd <- newIdent
+        classHeadline <- newIdent
+        classSupportingText <- newIdent
+        classAttribution <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "data/business/businesses")
 
 
