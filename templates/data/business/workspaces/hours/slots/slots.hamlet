@@ -1,38 +1,38 @@
 
-<header.background>
-  <md-icon-button href=@?{(DataR $ DataWorkingHoursR bid wid month,stati)} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@?{(DataR $ DataWorkingHoursR bid wid month,stati)} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgWorkingHours}
+    <h6.max>
+      _{MsgWorkingHours}
 
-<main>
+<main.responsive.no-padding ##{idMain}>
   
-  <p.day-label>
+  <p.day-label.large-text.secondary-text.padding>
     $with d <- show day
-      <time.day.md-typescale-label-large datetime=#{d}>
+      <time.day datetime=#{d}>
         #{d}
 
   $if null slots
-    <figure style="text-align:center">
-      <span.on-secondary style="font-size:4rem">&varnothing;
-      <figcaption.md-typescale-body-large>
-        _{MsgThereAreNoDataYet}
-        <div.md-typescale-body-small>
-          _{MsgYouMightWantToAddAFew}
+    ^{widgetEmpty}
   $else
-    <md-list>
-      $forall Entity sid (WorkingHours _ _ start end) <- slots
-        <md-list-item type=link href=@?{(DataR $ DataWorkingSlotR bid wid day sid,stati)}>
-          <div slot=headline>
+    
+    $forall Entity sid (WorkingHours _ _ start end) <- slots
+      <a.row.padding.wave href=@?{(DataR $ DataWorkingSlotR bid wid day sid,stati)}>
+        <div.max>
+          <div.#{classHeadline}.large-text>
             <time.time-of-day datetime=#{show $ LocalTime day start}>#{show start}
             \ &mdash; #
             <time.time-of-day datetime=#{show $ LocalTime day end}>#{show end}
-          <md-icon slot=end>arrow_forward_ios
-        <md-divider>
+              
+        <i.secondary-text>arrow_forward_ios
 
-  <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-    <a href=@?{(DataR $ DataWorkingSlotNewR bid wid day,stati)}>
-    <md-icon slot=icon>add
+      <hr>
+
+
+  <a.button.circle.extra.fixed.right.bottom.margin.medium-elevate title=_{MsgAdd}
+            href=@?{(DataR $ DataWorkingSlotNewR bid wid day,stati)}>
+    <i>add
 
   ^{widgetSnackbar msgs}

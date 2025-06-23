@@ -1,48 +1,57 @@
 
-<header>
-  <md-icon-button href=@{DataR $ DataWorkingSlotsR bid wid day} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{DataR $ DataWorkingSlotsR bid wid day} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgWorkingHours}
+    <h6.max>
+      _{MsgWorkingHours}
+      
+    <a.button.transparent.circle role=button aria-label=_{MsgDele} data-ui=##{idDialogDelete}>
+      <i.error-text>delete
+      
+    <a.button.transparent.circle href=@{DataR $ DataWorkingSlotEditR bid wid day sid} role=button title=_{MsgEdit}>
+      <i>edit
 
-  <span #headerEnd>
-    <md-icon-button type=button aria-label=_{MsgDele} onclick="document.getElementById('idDialogDelete').show()">
-      <md-icon>delete
-    <md-icon-button href=@{DataR $ DataWorkingSlotEditR bid wid day sid} aria-label=_{MsgEdit}>
-      <md-icon>edit
-
-<md-dialog #idDialogDelete>
-  <div slot=headline>
-    _{MsgConfirmPlease}
-  <div slot=content>
-    _{MsgDeleteAreYouSure}
-  <div slot=actions>
-    <md-text-button type=button onclick="document.getElementById('idDialogDelete').close()">
-      _{MsgCancel}
-    <form slot=content method=post action=@{DataR $ DataWorkingSlotDeleR bid wid day sid} enctype=#{et2}>
-      ^{fw2}
-      <md-filled-button type=submit>
-        _{MsgDele}
-
-<main>
+<main.responsive ##{idMain}>
 
   $maybe Entity _ (WorkingHours _ day start end) <- slot
     <dl>
 
-      <dt.md-typescale-label-large scope=row>_{MsgDay}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgDay}
+      <dd.small-margin>
         $with d <- show day
           <time.day-of-month datetime=#{d}>#{d}
 
-      <dt.md-typescale-label-large scope=row>_{MsgStartTime}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgStartTime}
+      <dd.small-margin>
         <time.time-of-day datetime=#{show $ LocalTime day start}>
           #{show start}
 
-      <dt.md-typescale-label-large scope=row>_{MsgEndTime}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgEndTime}
+      <dd.small-margin>
         <time.time-of-day datetime=#{show $ LocalTime day end}>
           #{show end}
 
   ^{widgetSnackbar msgs}
+
+
+<div.overlay ##{idOverlay} data-ui=##{idDialogDelete}>
+
+<dialog ##{idDialogDelete}>
+  <h6>
+    _{MsgConfirmPlease}
+    
+  <p>
+    _{MsgDeleteAreYouSure}
+    
+  <nav.right-align>
+      
+    <form method=post action=@{DataR $ DataWorkingSlotDeleR bid wid day sid} enctype=#{et0} ##{idFormDelete}>
+      ^{fw0}
+      
+    <button.transparent.link type=button data-ui=##{idDialogDelete}>
+      _{MsgCancel}
+
+    <button.error type=submit form=#{idFormDelete}>
+      _{MsgDele}

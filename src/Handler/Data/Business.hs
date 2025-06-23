@@ -114,7 +114,7 @@ import Foundation
       , BusinessServiceAssignmentEditR, BusinessServiceAssignmentDeleR
       )
     , AppMessage
-      ( MsgBusinesses, MsgThereAreNoDataYet, MsgYouMightWantToAddAFew
+      ( MsgBusinesses
       , MsgAdd, MsgOwner, MsgTheName, MsgSave, MsgCancel, MsgBusiness
       , MsgBack, MsgDele, MsgEdit, MsgDeleteAreYouSure, MsgConfirmPlease
       , MsgRecordDeleted, MsgInvalidFormData, MsgRecordEdited, MsgRecordAdded
@@ -133,14 +133,16 @@ import Foundation
     )
 
 import Material3
-    ( md3selectField, md3mreq, md3textField, md3textareaField, md3timeField
-    , md3mopt, md3htmlField, md3intField, md3switchField, md3datetimeLocalField
+    ( md3mopt, md3htmlField, md3datetimeLocalField
     , md3widget, md3widgetTextarea, md3widgetSwitch, md3widgetSelect
     )
 
 import Model
     ( statusError, statusSuccess
-    , BusinessId, Business(Business, businessOwner, businessName, businessFullName, businessDescr)
+    , BusinessId
+    , Business
+      ( Business, businessOwner, businessName, businessFullName, businessDescr
+      )
     , User (User, userName, userEmail)
     , WorkspaceId
     , Workspace
@@ -171,14 +173,14 @@ import Model
       )
     , StaffId, Staff (Staff, staffName), StaffPhoto
     , EntityField
-      ( UserName, UserId, BusinessId, BusinessOwner, WorkspaceId
+      ( UserName, UserId, BusinessId, BusinessOwner, WorkspaceId, AssignmentRole
       , WorkspaceBusiness, BusinessName, WorkspaceName, WorkingHoursWorkspace
       , WorkingHoursDay, WorkingHoursId, PayOptionWorkspace, PayOptionId, PayOptionType
       , PayOptionName, BusinessLogoBusiness, BusinessLogoAttribution, BusinessLogoPhoto
       , BusinessLogoMime, ServiceWorkspace, ServiceName, SectorName, ServicePhotoService
       , ServiceId, AssignmentService, AssignmentStaff, StaffId, StaffPhotoAttribution
       , StaffPhotoStaff, AssignmentId, ServicePhotoId, ServicePhotoMime, ServicePhotoPhoto
-      , ServicePhotoAttribution, StaffName, AssignmentRole
+      , ServicePhotoAttribution, StaffName
       )
     )
 
@@ -212,7 +214,7 @@ import Yesod.Form
     )
 import Yesod.Form.Fields
     ( optionsPairs, selectField, fileField, textField, intField, textareaField
-    , htmlField, checkBoxField
+    , htmlField, checkBoxField, timeField
     )
 import Yesod.Form.Functions
     ( mreq, mopt, generateFormPost, runFormPost, checkM
@@ -363,6 +365,7 @@ getBusinessServiceAssignmentsR bid sid = do
         return (x,(e,(s,(w,(b, f ?. StaffPhotoAttribution))))) )
 
     msgs <- getMessages
+    
     defaultLayout $ do
         setTitleI MsgServiceAssignments
         idHeader <- newIdent
@@ -848,11 +851,15 @@ postWorkspaceServiceAssignmentR bid wid sid aid = do
           runDB $ P.replace aid r
           addMessageI statusSuccess MsgRecordEdited
           redirect $ DataR $ WorkspaceServiceAssignmentR bid wid sid aid
+          
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgServiceAssignment
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormAssignment <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/business/workspaces/services/assignments/edit")
 
 
@@ -870,7 +877,10 @@ getWorkspaceServiceAssignmentEditR bid wid sid aid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignment
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormAssignment <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/workspaces/services/assignments/edit")
 
 
@@ -887,11 +897,18 @@ getWorkspaceServiceAssignmentR bid wid sid aid = do
         where_ $ x ^. AssignmentId ==. val aid
         return (x,(e,(s,(w,b))))
 
-    (fw2,et2) <- generateFormPost formServiceAssignmentDelete
+    (fw0,et0) <- generateFormPost formServiceAssignmentDelete
 
     msgs <- getMessages
     defaultLayout $ do
-        setTitleI MsgServiceAssignment 
+        setTitleI MsgServiceAssignment
+        idHeader <- newIdent
+        idMain <- newIdent
+        idOverlay <- newIdent
+        idDialogDelete <- newIdent
+        idFormDelete <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "data/business/workspaces/services/assignments/assignment")
   where
       toMinutes interval = truncate @_ @Integer (nominalDiffTimeToSeconds interval / 60)
@@ -908,7 +925,10 @@ getWorkspaceServiceAssignmentNewR bid wid sid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignment
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormAssignment <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/workspaces/services/assignments/new")
 
 
@@ -1008,11 +1028,15 @@ postWorkspaceServiceAssignmentsR bid wid sid = do
           runDB $ insert_ r
           addMessageI statusSuccess MsgRecordAdded
           redirect $ DataR $ WorkspaceServiceAssignmentsR bid wid sid
+          
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgServiceAssignment
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormAssignment <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/business/workspaces/services/assignments/new")
 
 
@@ -1034,9 +1058,16 @@ getWorkspaceServiceAssignmentsR bid wid sid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignments
-        idTabAssignments <- newIdent
-        idPanelAssignments <- newIdent
-        idFabAdd <- newIdent 
+        setTitleI MsgService
+        idHeader <- newIdent
+        idMain <- newIdent
+        classHeadline <- newIdent
+        classSupportingText <- newIdent
+        classAttribution <- newIdent
+        $(widgetFile "common/css/header")   
+        $(widgetFile "common/css/main")
+        $(widgetFile "common/css/rows")
+        $(widgetFile "common/css/attribution")
         $(widgetFile "data/business/workspaces/services/assignments/assignments")
 
 
@@ -1225,9 +1256,12 @@ getWorkspaceServicePhotosR bid wid sid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
-        idTabPhotos <- newIdent
-        idPanelPhotos <- newIdent
-        idFabAdd <- newIdent
+        idHeader <- newIdent
+        idMain <- newIdent
+        classAttribution <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
+        $(widgetFile "common/css/attribution")
         $(widgetFile "data/business/workspaces/services/photos/photos")
 
 
@@ -1258,42 +1292,41 @@ getWorkspaceServiceNewR bid wid = do
         idHeader <- newIdent
         idMain <- newIdent
         idFormService <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/workspaces/services/new")
 
 
 formServiceWorkspace :: WorkspaceId -> Maybe (Entity Service) -> Form Service
 formServiceWorkspace wid service extra = do
 
-    msgr <- getMessageRender
-
-    (nameR,nameV) <- md3mreq (uniqueNameField wid) FieldSettings
+    (nameR,nameV) <- mreq (uniqueNameField wid) FieldSettings
         { fsLabel = SomeMessage MsgTheName
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgTheName)]
+        , fsAttrs = []
         } (serviceName . entityVal <$> service)
 
-    (descrR,descrV) <- md3mopt md3textareaField FieldSettings
+    (descrR,descrV) <- mopt textareaField FieldSettings
         { fsLabel = SomeMessage MsgDescription
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgDescription)]
+        , fsAttrs = []
         } (serviceDescr . entityVal <$> service)
 
-    (priceR,priceV) <- md3mreq md3intField FieldSettings
+    (priceR,priceV) <- mreq intField FieldSettings
         { fsLabel = SomeMessage MsgPrice
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgPrice)]
+        , fsAttrs = []
         } (servicePrice . entityVal <$> service)
 
-    (availableR,availableV) <- md3mreq md3switchField FieldSettings
+    (availableR,availableV) <- mreq checkBoxField FieldSettings
         { fsLabel = SomeMessage MsgAvailable
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgAvailable)]
+        , fsAttrs = []
         } (serviceAvailable . entityVal <$> service)
 
-    (durationR,durationV) <- md3mreq md3intField FieldSettings
+    (durationR,durationV) <- mreq (intField @_ @Integer) FieldSettings
         { fsLabel = SomeMessage MsgDuration
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgDuration),("supporting-text", msgr MsgUnitMinutes)]
+        , fsAttrs = []
         } (truncate . (/ 60) . nominalDiffTimeToSeconds . serviceDuration . entityVal <$> service)
 
     sectors <- liftHandler $ runDB $ select $ do
@@ -1301,10 +1334,10 @@ formServiceWorkspace wid service extra = do
         orderBy [asc (x ^. SectorName)]
         return x
 
-    (typeR, typeV) <- md3mopt (md3selectField (optionsPairs (optionsType <$> sectors))) FieldSettings
+    (typeR, typeV) <- mopt (selectField (optionsPairs (optionsType <$> sectors))) FieldSettings
         { fsLabel = SomeMessage MsgType
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgType)]
+        , fsAttrs = []
         } (serviceType . entityVal <$> service)
 
     let r = Service wid <$> nameR <*> descrR <*> priceR <*> availableR
@@ -1313,17 +1346,24 @@ formServiceWorkspace wid service extra = do
 
     let w = [whamlet|
                     #{extra}
-                    ^{fvInput nameV}
-                    ^{fvInput descrV}
-                    ^{fvInput priceV}
+                    ^{md3widget nameV}
+                    ^{md3widgetTextarea descrV}
+                    ^{md3widget priceV}
 
-                    <div style="display:flex;align-items:center;gap:1rem">
-                      ^{fvInput availableV}
-                      <label.body-large for=#{fvId availableV}>
-                        #{fvLabel availableV}
-
-                    ^{fvInput durationV}
-                    ^{fvInput typeV}
+                    ^{md3widgetSwitch availableV}
+                    
+                    <div.field.label.border.round :isJust (fvErrors durationV):.invalid>
+                      ^{fvInput durationV}
+                      <label for=#{fvId durationV}>
+                          #{fvLabel durationV}
+                          $if fvRequired durationV
+                            <sup>*
+                      $maybe err <- fvErrors durationV
+                        <span.error>#{err}
+                      $nothing
+                        <span.helper>_{MsgUnitMinutes}
+                        
+                    ^{md3widgetSelect typeV}
                     |]
     return (r,w)
 
@@ -1331,7 +1371,7 @@ formServiceWorkspace wid service extra = do
       optionsType e = (sectorName . entityVal $ e, entityKey e)
 
       uniqueNameField :: WorkspaceId -> Field Handler Text
-      uniqueNameField wid' = checkM (uniqueName wid') md3textField
+      uniqueNameField wid' = checkM (uniqueName wid') textField
 
       uniqueName :: WorkspaceId -> Text -> Handler (Either AppMessage Text)
       uniqueName wid' name = do
@@ -1362,7 +1402,10 @@ getWorkspaceServiceEditR bid wid sid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServices
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormService <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/workspaces/services/edit")
 
 
@@ -1385,7 +1428,10 @@ postWorkspaceServiceR bid wid sid = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgServices
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormService <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/business/workspaces/services/edit")
     
 
@@ -1401,13 +1447,18 @@ getWorkspaceServiceR bid wid sid = do
         where_ $ x ^. ServiceWorkspace ==. val wid
         return (x,w)
 
-    (fw2,et2) <- generateFormPost formWorkspaceServiceDelete
+    (fw0,et0) <- generateFormPost formWorkspaceServiceDelete
 
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService 
-        idTabDetails <- newIdent
-        idPanelDetails <- newIdent
+        idHeader <- newIdent
+        idMain <- newIdent
+        idOverlay <- newIdent
+        classCurrency <- newIdent
+        idDialogDelete <- newIdent
+        idFormDelete <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/workspaces/services/service")
 
 
@@ -1495,7 +1546,10 @@ getPayOptionEditR bid wid oid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgPaymentOption
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormPayOption <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/workspaces/pay/edit")
 
 
@@ -1506,60 +1560,61 @@ getPayOptionNewR bid wid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgPaymentOption
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormPayOption <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/workspaces/pay/new")
 
 
 formPayOption :: WorkspaceId -> Maybe (Entity PayOption) -> Form PayOption
 formPayOption wid option extra = do
 
-    msgr <- getMessageRender
-
-    (typeR,typeV) <- md3mreq (md3selectField (optionsPairs types)) FieldSettings
+    (typeR,typeV) <- mreq (selectField (optionsPairs types)) FieldSettings
         { fsLabel = SomeMessage MsgType
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgType)]
+        , fsAttrs = []
         } (payOptionType . entityVal <$> option)
 
-    (nameR,nameV) <- md3mreq (uniqueNameField wid typeR) FieldSettings
+    (nameR,nameV) <- mreq (uniqueNameField wid typeR) FieldSettings
         { fsLabel = SomeMessage MsgTheName
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgTheName)]
+        , fsAttrs = []
         } (payOptionName . entityVal <$> option)
 
     (gateR,gateV) <- case typeR of
-      FormSuccess PayNow -> first (Just <$>) <$> md3mreq (md3selectField (optionsPairs gates)) FieldSettings
+      FormSuccess PayNow -> first (Just <$>) <$> mreq (selectField (optionsPairs gates)) FieldSettings
           { fsLabel = SomeMessage MsgPaymentGateway
           , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-          , fsAttrs = [("label", msgr MsgPaymentGateway)]
+          , fsAttrs = []
           } (payOptionGateway . entityVal =<< option)
 
-      _otherwise -> md3mopt (md3selectField (optionsPairs gates)) FieldSettings
+      _otherwise -> mopt (selectField (optionsPairs gates)) FieldSettings
           { fsLabel = SomeMessage MsgPaymentGateway
           , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-          , fsAttrs = [("label", msgr MsgPaymentGateway)]
+          , fsAttrs = []
           } (payOptionGateway . entityVal <$> option)
 
-    (descrR,descrV) <- md3mopt md3textareaField FieldSettings
+    (descrR,descrV) <- mopt textareaField FieldSettings
         { fsLabel = SomeMessage MsgDescription
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgDescription)]
+        , fsAttrs = []
         } (payOptionDescr . entityVal <$> option)
 
-    (iconR,iconV) <- md3mopt md3textField FieldSettings
+    (iconR,iconV) <- mopt textField FieldSettings
         { fsLabel = SomeMessage MsgIcon
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgIcon)]
+        , fsAttrs = []
         } (payOptionIcon . entityVal <$> option)
 
     let r = PayOption wid <$> typeR <*> nameR <*> gateR <*> descrR <*> iconR
     let w = [whamlet|
                     #{extra}
-                    ^{fvInput typeV}
-                    ^{fvInput nameV}
-                    ^{fvInput gateV}
-                    ^{fvInput descrV}
-                    ^{fvInput iconV}
+                    ^{md3widgetSelect typeV}
+                    ^{md3widget nameV}
+                    ^{md3widgetSelect gateV}
+                    ^{md3widgetTextarea descrV}
+                    ^{md3widget iconV}
                     |]
     return (r,w)
   where
@@ -1568,7 +1623,7 @@ formPayOption wid option extra = do
       gates = [(MsgStripe,PayGatewayStripe),(MsgYooKassa,PayGatewayYookassa)]
 
       uniqueNameField :: WorkspaceId -> FormResult PayMethod -> Field Handler Text
-      uniqueNameField wid' typ = checkM (uniqueName wid' typ) md3textField
+      uniqueNameField wid' typ = checkM (uniqueName wid' typ) textField
 
       uniqueName :: WorkspaceId -> FormResult PayMethod -> Text -> Handler (Either AppMessage Text)
       uniqueName wid' typ name = do
@@ -1602,11 +1657,15 @@ postPayOptionR bid wid oid = do
           runDB $ replace oid r
           addMessageI statusSuccess MsgRecordEdited
           redirect $ DataR $ PayOptionR bid wid oid
+          
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgPaymentOption
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormPayOption <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/business/workspaces/pay/edit")
 
 
@@ -1636,11 +1695,15 @@ postPayOptionsR bid wid = do
           runDB $ insert_ r
           addMessageI statusSuccess MsgRecordAdded
           redirect $ DataR $ PayOptionsR bid wid
+          
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgPaymentOption
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormPayOption <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/business/workspaces/pay/new")
 
 
@@ -1697,11 +1760,15 @@ postDataWorkingSlotR bid wid day sid = do
           runDB $ replace sid r
           addMessageI statusSuccess MsgRecordEdited
           redirect $ DataR $ DataWorkingSlotsR bid wid day
+          
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgWorkingHours
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormWorkSlot <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/business/workspaces/hours/slots/edit")
 
 
@@ -1718,7 +1785,10 @@ getDataWorkingSlotEditR bid wid day sid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkingHours
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormWorkSlot <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/workspaces/hours/slots/edit")
 
 
@@ -1732,11 +1802,15 @@ postDataWorkingSlotsR bid wid day = do
           runDB $ insert_ r
           addMessageI statusSuccess MsgRecordAdded
           redirect $ DataR $ DataWorkingSlotsR bid wid day
+          
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgWorkingHours
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormWorkSlot <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/business/workspaces/hours/slots/new")
 
 
@@ -1748,29 +1822,34 @@ getDataWorkingSlotNewR bid wid day = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkingHours
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormWorkSlot <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/workspaces/hours/slots/new")
 
 
 formWorkSlot :: WorkspaceId -> Day -> Maybe (Entity WorkingHours) -> Form WorkingHours
 formWorkSlot wid day slot extra = do
 
-    msgr <- getMessageRender
-
-    (startR,startV) <- md3mreq md3timeField FieldSettings
+    (startR,startV) <- mreq timeField FieldSettings
         { fsLabel = SomeMessage MsgStartTime
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgStartTime)]
+        , fsAttrs = []
         } (workingHoursStart . entityVal <$> slot)
 
-    (endR,endV) <- md3mreq md3timeField FieldSettings
+    (endR,endV) <- mreq timeField FieldSettings
         { fsLabel = SomeMessage MsgEndTime
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgEndTime)]
+        , fsAttrs = []
         } (workingHoursEnd . entityVal <$> slot)
 
     let r = WorkingHours wid day <$> startR <*> endR
-    let w = [whamlet|#{extra} ^{fvInput startV} ^{fvInput endV}|]
+    let w = [whamlet|
+                    #{extra}
+                    ^{md3widget startV}
+                    ^{md3widget endV}
+                    |]
     return (r,w)
 
 
@@ -1782,11 +1861,17 @@ getDataWorkingSlotR bid wid day sid = do
         where_ $ x ^. WorkingHoursId ==. val sid
         return x
 
-    (fw2,et2) <- generateFormPost formWorkingSlotDelete
+    (fw0,et0) <- generateFormPost formWorkingSlotDelete
 
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkingHours
+        idHeader <- newIdent
+        idMain <- newIdent
+        idOverlay <- newIdent
+        idDialogDelete <- newIdent
+        idFormDelete <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/workspaces/hours/slots/slot")
 
 
@@ -1810,7 +1895,11 @@ getDataWorkingSlotsR bid wid day = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkingHours
-        idFabAdd <- newIdent
+        idHeader <- newIdent
+        idMain <- newIdent
+        classHeadline <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "data/business/workspaces/hours/slots/slots")
 
 
@@ -1885,7 +1974,10 @@ postDataWorkspaceR bid wid = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgWorkspace
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormWorkspace <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/business/workspaces/edit")
 
 
@@ -1902,7 +1994,10 @@ getDataWorkspaceEditR bid wid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkspace
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormWorkspace <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/workspaces/edit")
 
 
@@ -1951,7 +2046,10 @@ postDataWorkspacesR bid = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgWorkspace
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormWorkspace <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/business/workspaces/new")
 
 
@@ -1963,46 +2061,53 @@ getDataWorkspaceNewR bid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkspace
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormWorkspace <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/workspaces/new")
 
 
 formWorkspace :: BusinessId -> Maybe (Entity Workspace) -> Form Workspace
 formWorkspace bid workspace extra = do
 
-    msgr <- getMessageRender
-
-    (nameR, nameV) <- md3mreq uniqueNameField FieldSettings
+    (nameR, nameV) <- mreq uniqueNameField FieldSettings
         { fsLabel = SomeMessage MsgTheName
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgTheName)]
+        , fsAttrs = []
         } (workspaceName . entityVal <$> workspace)
 
-    (addrR, addrV) <- md3mreq md3textareaField FieldSettings
+    (addrR, addrV) <- mreq textareaField FieldSettings
         { fsLabel = SomeMessage MsgAddress
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgAddress)]
+        , fsAttrs = []
         } (workspaceAddress . entityVal <$> workspace)
 
-    (tzoR, tzoV) <- md3mreq md3textField FieldSettings
+    (tzoR, tzoV) <- mreq textField FieldSettings
         { fsLabel = SomeMessage MsgTimeZone
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgTimeZone)]
+        , fsAttrs = []
         } (pack . show . workspaceTzo . entityVal <$> workspace)
 
-    (currencyR, currencyV) <- md3mreq md3textField FieldSettings
+    (currencyR, currencyV) <- mreq textField FieldSettings
         { fsLabel = SomeMessage MsgCurrency
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgCurrency)]
+        , fsAttrs = []
         } (workspaceCurrency . entityVal <$> workspace)
 
     return ( Workspace bid <$> nameR <*> addrR <*> (read . unpack <$> tzoR) <*> currencyR
-           , [whamlet|#{extra} ^{fvInput nameV} ^{fvInput addrV} ^{fvInput tzoV} ^{fvInput currencyV}|]
+           , [whamlet|
+                     #{extra}
+                     ^{md3widget nameV}
+                     ^{md3widgetTextarea addrV}
+                     ^{md3widget tzoV}
+                     ^{md3widget currencyV}
+                     |]
            )
   where
 
       uniqueNameField :: Field Handler Text
-      uniqueNameField = checkM uniqueName md3textField
+      uniqueNameField = checkM uniqueName textField
 
       uniqueName :: Text -> Handler (Either AppMessage Text)
       uniqueName name = do
@@ -2080,6 +2185,7 @@ postDataBusinessR bid = do
               ]
           addMessageI statusSuccess MsgRecordEdited
           redirect $ DataR $ DataBusinessR bid
+          
       FormSuccess (r,Nothing,attrib) -> do
           runDB $ replace bid r
           runDB $ update $ \x -> do
@@ -2087,11 +2193,15 @@ postDataBusinessR bid = do
                 where_ $ x ^. BusinessLogoBusiness ==. val bid
           addMessageI statusSuccess MsgRecordEdited
           redirect $ DataR $ DataBusinessR bid
+          
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgBusiness
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormBusiness <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/business/edit")
 
 
@@ -2108,7 +2218,10 @@ getDataBusinessEditR bid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgBusiness
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormBusiness <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/edit")
 
 
@@ -2167,7 +2280,10 @@ postDataBusinessesR = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgBusiness
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormBusiness <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/business/new")
 
 
@@ -2177,42 +2293,43 @@ getDataBusinessNewR = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgBusiness
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormBusiness <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/new")
 
 
 formBusiness :: Maybe (Entity Business) -> Form (Business,Maybe FileInfo,Maybe Html)
 formBusiness business extra = do
 
-    owners <- liftHandler $ runDB ( select $ do
+    owners <- liftHandler $ runDB $ select $ do
         x <- from $ table @User
         orderBy [asc (x ^. UserName)]
-        return x )
+        return x
 
-    msgr <- getMessageRender
-
-    (ownerR, ownerV) <- md3mreq (md3selectField (optionsPairs (options <$> owners))) FieldSettings
+    (ownerR, ownerV) <- mreq (selectField (optionsPairs (options <$> owners))) FieldSettings
         { fsLabel = SomeMessage MsgOwner
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgOwner)]
+        , fsAttrs = []
         } (businessOwner . entityVal <$> business)
 
-    (nameR, nameV) <- md3mreq uniqueNameField FieldSettings
+    (nameR, nameV) <- mreq uniqueNameField FieldSettings
         { fsLabel = SomeMessage MsgTheName
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgTheName)]
+        , fsAttrs = []
         } (businessName . entityVal <$> business)
 
-    (fullNameR, fullNameV) <- md3mopt md3textField FieldSettings
+    (fullNameR, fullNameV) <- mopt textField FieldSettings
         { fsLabel = SomeMessage MsgBusinessFullName
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgBusinessFullName)]
+        , fsAttrs = []
         } (businessFullName . entityVal <$> business)
 
-    (descrR, descrV) <- md3mopt md3textareaField FieldSettings
+    (descrR, descrV) <- mopt textareaField FieldSettings
         { fsLabel = SomeMessage MsgDescription
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgDescription)]
+        , fsAttrs = []
         } (businessDescr . entityVal <$> business)
 
     (logoR,logoV) <- md3mopt fileField FieldSettings
@@ -2228,10 +2345,10 @@ formBusiness business extra = do
           return $ x ^. BusinessLogoAttribution
       Nothing -> return Nothing
 
-    (attribR,attribV) <- md3mopt md3htmlField FieldSettings
+    (attribR,attribV) <- mopt htmlField FieldSettings
         { fsLabel = SomeMessage MsgAttribution
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgAttribution)]
+        , fsAttrs = []
         } (Just attrib)
 
     idLabelLogo <- newIdent
@@ -2245,7 +2362,7 @@ formBusiness business extra = do
       options e = (fromMaybe (userEmail . entityVal $ e) (userName . entityVal $ e), entityKey e)
 
       uniqueNameField :: Field Handler Text
-      uniqueNameField = checkM uniqueName md3textField
+      uniqueNameField = checkM uniqueName textField
 
       uniqueName :: Text -> Handler (Either AppMessage Text)
       uniqueName name = do

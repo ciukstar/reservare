@@ -31,7 +31,7 @@
       $forall Entity fid (ServicePhoto _ _ _ attrib) <- photos
         <a.row.padding.wave href=@?{(DataR $ BusinessServicePhotoEditR bid sid fid,stati)}>
           <img.circle src=@{DataR $ ServicePhotoR sid fid} loading=lazy alt=_{MsgPhoto}>
-          <div.max>       
+          <div.max>     
           <i.secondary-text>arrow_forward_ios
           
         $maybe attrib <- attrib

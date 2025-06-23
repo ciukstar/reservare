@@ -1,19 +1,21 @@
 
-<header>
-  <md-icon-button href=@{DataR $ DataWorkspaceR bid wid} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{DataR $ DataWorkspaceR bid wid} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgWorkspace}
+    <h6.max>
+      _{MsgWorkspace}
 
-<main>
+<main.responsive ##{idMain}>
 
   <form method=post action=@{DataR $ DataWorkspaceR bid wid} enctype=#{et} novalidate ##{idFormWorkspace}>
     ^{fw}
-    <div.form-actions>
-      <md-text-button type=button href=@{DataR $ DataWorkspaceR bid wid}>
+    <nav.right-align>
+      <a.button.transparent.link href=@{DataR $ DataWorkspaceR bid wid} role=button>
         _{MsgCancel}
-      <md-filled-button type=submit>
+        
+      <button type=submit>
         _{MsgSave}
 
-^{widgetSnackbar msgs}
+  ^{widgetSnackbar msgs}

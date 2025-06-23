@@ -2,30 +2,30 @@
 #{extra}
   
 <label for=#{fvId logoV} ##{idLabelLogo}>
-  <figure ##{idFigureLogo}>
+  <figure.center-align ##{idFigureLogo}>
     $maybe Entity bid _ <- business
-      <img src=@{DataR $ DataBusinessLogoR bid} width=64 height=64 ##{idImgLogo} loading=lazy alt=_{MsgLogotype}>
+      <img.extra.circle src=@{DataR $ DataBusinessLogoR bid} ##{idImgLogo} loading=lazy alt=_{MsgLogotype}>
     $nothing
-      <img src=@{StaticR img_broken_image_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg} width=64 height=64
+      <img.extra.circle src=@{StaticR img_broken_image_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg}
            ##{idImgLogo} loading=lazy alt=_{MsgLogotype}>
-    <figcaption>
+    <figcaption.small-padding>
 
       $maybe errs <- fvErrors logoV
-        <div.body-medium style="color:var(--md-sys-color-error)">
+        <div.error-text>
           #{errs}
    
-      <md-outlined-button type=button onclick="document.getElementById('#{idLabelLogo}').click()">
-        <md-icon slot=icon>upload_file
+      <button.small.transparent.border type=button onclick="document.getElementById('#{idLabelLogo}').click()">
+        <i>upload_file
         _{MsgLogotype}
 
 ^{fvInput logoV}
 
-^{fvInput attribV}
+^{md3widgetTextarea attribV}
 
-^{fvInput ownerV}
+^{md3widgetSelect ownerV}
 
-^{fvInput nameV}
+^{md3widget nameV}
 
-^{fvInput fullNameV}
+^{md3widget fullNameV}
 
-^{fvInput descrV}
+^{md3widgetTextarea descrV}
