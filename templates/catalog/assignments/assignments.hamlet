@@ -1,49 +1,49 @@
 
-<header.background>
-  <md-icon-button href=@?{(CatalogR,stati)} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@?{(CatalogR,stati)} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgService}
+    <h6.max>
+      _{MsgService}
 
-<main>
+<main.responsive.no-padding ##{idMain}>
 
-  <md-tabs>
-  
-    <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails>
+  <nav.scroll>
+    <div.tabs.min>
+
       <a href=@?{(CatalogServiceR sid,stati)}>
-      _{MsgDetails}
-      
-    <md-primary-tab #idTabBusiness aria-cotrols=idPanelBusiness>
+        _{MsgDetails}
+
       <a href=@?{(CatalogServiceBusinessR sid,stati)}>
-      _{MsgBusiness}
+        _{MsgBusiness}
+
+      <a.active href=@?{(CatalogServiceAssignmentsR sid,stati)}>
+        _{MsgServiceAssignments}
       
-    <md-primary-tab ##{idTabAssignments} aria-cotrols=#{idPanelAssignments} active>
-      <a href=@?{(CatalogServiceAssignmentsR sid,stati)}>
-      _{MsgServiceAssignments}
-      
-
-  <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
-
-  <div #idPanelBusiness role=tabpanel aria-labelledby=idTabBusiness hidden>
-
-  <div ##{idPanelAssignments} role=tabpanel aria-labelledby=#{idTabAssignments}>
+  <div.page.active>
 
     $if null assignments
-      <figure style="text-align:center">
-        <span.on-secondary style="font-size:4rem">&varnothing;
-        <figcaption.md-typescale-body-large>
-          _{MsgNoStaffAssignedYet}.
+      <figure.center-align>
+        <span.extra.secondary-text>folder_open
+        <figcaption.large-text.secondary-text>
+          _{MsgNoStaffAssignedYet}
+          
     $else
-      <md-list>
-        $forall (Entity aid (Assignment _ _ role _ _ _),Entity eid (Staff name _ _ _)) <- assignments
-          <md-list-item type=link href=@{CatalogServiceAssignmentR sid aid}>
-            <img slot=start src=@{StaffPhotoR eid} width=auto height=56 loading=lazy alt=_{MsgPhoto}>
-            <div slot=headline>
+      
+      $forall (Entity aid (Assignment _ _ role _ _ _),Entity eid (Staff name _ _ _)) <- assignments
+        <a.row.padding.wave href=@{CatalogServiceAssignmentR sid aid}>
+          <img.circle src=@{StaffPhotoR eid} loading=lazy alt=_{MsgPhoto}>
+          <div.max>
+            <div.#{classHeadline}.large-text>
               #{role}
-            <div slot=supporting-text>
+       
+            <div.#{classSupportingText}.secondary-text>
               #{name}
-            <md-icon slot=end>arrow_forward_ios
-          <md-divider>
 
-    ^{widgetSnackbar msgs}
+          <i.secondary-text>arrow_forward_ios
+
+        <hr>
+
+
+  ^{widgetSnackbar msgs}

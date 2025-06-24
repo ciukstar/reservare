@@ -324,7 +324,7 @@ fillDemoRu appSettings = do
                              , serviceDescr = Just "Мы помогаем клиентам инвестиционного банкинга удовлетворять широкий спектр стратегических, организационных и операционных потребностей."
                              , servicePrice = 2000000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 1.25 * oneHour
                              , serviceType = Just sec3
                              }
 
@@ -356,7 +356,7 @@ fillDemoRu appSettings = do
                              , serviceDescr = Just "Мы консультируем учреждения профессиональных услуг, включая юридические фирмы, бухгалтерские фирмы, корпоративные юридические отделы и другие организации работников умственного труда, по широкому кругу стратегических, организационных и операционных вопросов."
                              , servicePrice = 2500000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 1.5 * oneHour
                              , serviceType = Just sec3
                              }
 
@@ -452,7 +452,7 @@ fillDemoRu appSettings = do
                              , serviceDescr = Just "Целью общественной физиотерапии является оптимизация физических функций, повышение независимости и качества жизни людей, имеющих на это право в рамках сообщества."
                              , servicePrice = 1000000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 1.75 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -484,7 +484,7 @@ fillDemoRu appSettings = do
                              , serviceDescr = Just "Физиотерапия опорно-двигательного аппарата будет направлена на биомеханическую и структурную реабилитацию клиента."
                              , servicePrice = 2000000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 2 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -516,7 +516,7 @@ fillDemoRu appSettings = do
                              , serviceDescr = Just "Обеспечивает оценку, диагностику и лечение пациентов с проблемами нижних конечностей и стоп, в том числе"
                              , servicePrice = 2500000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 2.25 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -597,7 +597,7 @@ fillDemoRu appSettings = do
                              , serviceDescr = Just "Команда по общению в области речи и языка проводит оценку, терапию и консультации для взрослых с трудностями речи, языка, общения и глотания."
                              , servicePrice = 1000000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 2.5 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -622,7 +622,7 @@ fillDemoRu appSettings = do
                              , serviceDescr = Just "Наша служба профилактики падений предоставляет оценку, рекомендации и упражнения для пожилых людей, которые подвержены риску падения."
                              , servicePrice = 2000000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 2.75 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -661,7 +661,7 @@ fillDemoRu appSettings = do
                              , serviceDescr = Just "Команда окажет вам ограниченную по времени поддержку, чтобы вы смогли восстановить свою независимость после госпитализации, и поможет вам спланировать безопасный отъезд домой, когда вы будете «функционально здоровы»."
                              , servicePrice = 2500000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 3 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -750,7 +750,7 @@ fillDemoRu appSettings = do
                              , serviceDescr = Just "Управление активами Oasis осуществляется командой гостиничных экспертов, которые уделяют особое внимание оптимизации доходов от операций гостиничного бизнеса."
                              , servicePrice = 1000000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 3.25 * oneHour
                              , serviceType = Just sec2
                              }
 
@@ -775,7 +775,7 @@ fillDemoRu appSettings = do
                              , serviceDescr = Just "Инвестиционное консультирование Oasis специализируется на покупках и продажах существующих и предлагаемых гостиничных активов."
                              , servicePrice = 2000000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 3.5 * oneHour
                              , serviceType = Just sec2
                              }
 
@@ -800,7 +800,7 @@ fillDemoRu appSettings = do
                              , serviceDescr = Just "Oasis предлагает услуги по планированию и консультированию по реализации проекта, которые обеспечивают стратегическое руководство и лидерство на начальных этапах разработки гостиничного проекта."
                              , servicePrice = 3000000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 3.75 * oneHour
                              , serviceType = Just sec2
                              }
 

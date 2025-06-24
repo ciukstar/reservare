@@ -7,9 +7,7 @@ setTimeout(() => {
   }
 }, 300);
 
-Array.from(
-  document.body.querySelectorAll('.with-scroll-x[href]')
-).forEach((x) => {
+document.body.querySelectorAll('.with-scroll-x[href]').forEach((x) => {
   x.addEventListener('click',function (e) {
     x.href = [new window.URL(x.href)].map(y => {
       y.searchParams.set( x.dataset.withScrollXParam,

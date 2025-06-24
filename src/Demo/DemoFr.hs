@@ -324,7 +324,7 @@ fillDemoFr appSettings = do
                              , serviceDescr = Just "Nous aidons les clients de la banque d'investissement à répondre à un large éventail d'exigences stratégiques, organisationnelles et opérationnelles"
                              , servicePrice = 20000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 1.25 * oneHour
                              , serviceType = Just sec3
                              }
 
@@ -356,7 +356,7 @@ fillDemoFr appSettings = do
                              , serviceDescr = Just "We advise professional services institutions, including law firms, accounting firms, corporate legal departments, and other knowledge worker organizations, on a broad range of strategic, organizational, and operational issues"
                              , servicePrice = 25000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 1.5 * oneHour
                              , serviceType = Just sec3
                              }
 
@@ -452,7 +452,7 @@ fillDemoFr appSettings = do
                              , serviceDescr = Just "La physiothérapie communautaire vise à optimiser la fonction physique et à améliorer l'indépendance et la qualité de vie des personnes éligibles au sein de la communauté."
                              , servicePrice = 10000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 1.75 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -484,7 +484,7 @@ fillDemoFr appSettings = do
                              , serviceDescr = Just "La physiothérapie musculo-squelettique se concentrera sur la rééducation biomécanique et structurelle du client"
                              , servicePrice = 20000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 2 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -516,7 +516,7 @@ fillDemoFr appSettings = do
                              , serviceDescr = Just "Fournit une évaluation, un diagnostic et un traitement à une gamme de patients souffrant de problèmes des membres inférieurs et des pieds, notamment"
                              , servicePrice = 25000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 2.25 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -597,7 +597,7 @@ fillDemoFr appSettings = do
                              , serviceDescr = Just "L'équipe communautaire d'orthophonie fournit une évaluation, une thérapie et des conseils aux adultes ayant des difficultés d'élocution, de langage, de communication et de déglutition."
                              , servicePrice = 10000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 2.5 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -622,7 +622,7 @@ fillDemoFr appSettings = do
                              , serviceDescr = Just "Notre service de prévention des chutes propose une évaluation, des conseils et des exercices pour les personnes âgées qui risquent de tomber."
                              , servicePrice = 20000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 2.75 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -661,7 +661,7 @@ fillDemoFr appSettings = do
                              , serviceDescr = Just "L'équipe vous offrira un soutien limité dans le temps pour vous permettre de retrouver votre indépendance après une hospitalisation et vous aidera à planifier un retour à la maison en toute sécurité lorsque vous serez « fonctionnellement apte »."
                              , servicePrice = 25000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 3 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -750,7 +750,7 @@ fillDemoFr appSettings = do
                              , serviceDescr = Just "La gestion d'actifs d'Oasis est assurée par une équipe d'experts hôteliers qui se concentre sur l'optimisation des rendements de l'exploitation des activités hôtelières"
                              , servicePrice = 10000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 3.25 * oneHour
                              , serviceType = Just sec2
                              }
 
@@ -775,7 +775,7 @@ fillDemoFr appSettings = do
                              , serviceDescr = Just "Le conseil en investissement d'Oasis est spécialisé dans les activités BUY-SIDE et SELL-SIDE pour les actifs hôteliers existants et proposés"
                              , servicePrice = 20000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 3.5 * oneHour
                              , serviceType = Just sec2
                              }
 
@@ -800,7 +800,7 @@ fillDemoFr appSettings = do
                              , serviceDescr = Just "Oasis propose des services de planification et de conseil en exécution de projet qui fournissent des conseils stratégiques et un leadership tout au long des étapes initiales de développement d'un projet hôtelier."
                              , servicePrice = 30000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 3.5 * oneHour
                              , serviceType = Just sec2
                              }
 

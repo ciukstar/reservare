@@ -1,26 +1,9 @@
-
-header
-    position: sticky
-    top: 0
-    z-index: 2
-    height: var(--app-top-appbar-height,64px)
-    padding: 0 0.5rem
-    display: flex
-    justify-content: flex-start
-    align-items: center
-    column-gap: 0.5rem
-
-    #headerEnd
-        margin-left: auto
     
-main
-    display: flex
-    flex-direction: column
 
-    figure
-        text-align: center
-        img
-            clip-path: circle(50%)
+##{idMain}
+
+    nav.scroll
+        display: block
 
     ##{idCalendarPage}
         display: grid
@@ -41,23 +24,25 @@ main
             text-align: center
             
         .cell
+            display: block
             text-align: center
             vertical-align: text-top
             text-decoration: none
             border-radius: 8px
+            
             time.day-of-month
                 font-size: 1.2rem
                 line-height: 1.4rem
+                
             time.time-of-day
-                display: block
                 font-size: 0.7rem
                 line-height: 1
                 text-decoration: none
             
         a.cell
-            border: 1px solid var(--md-sys-color-surface-dim,black)
-            box-shadow: 1px 1px 1px var(--md-sys-color-surface-dim)
+            border: 1px solid var(--surface-dim,black)
+            box-shadow: 1px 1px 1px var(--surface-dim)
             
         div.cell.disabled
-            border: 1px dashed var(--md-sys-color-surface-dim,black)
+            border: 1px dashed var(--surface-dim,black)
             color: rgba(0,0,0,0.6)

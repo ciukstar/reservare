@@ -1,6 +1,5 @@
-Array.from(
-  document.body.querySelectorAll('time[datetime]')
-).forEach(function (x) {
+
+document.body.querySelectorAll('time[datetime]').forEach(function (x) {
   x.textContent = new Date(x.getAttribute('datetime')).toLocaleDateString(
     navigator.language, {
       year: 'numeric',
@@ -10,14 +9,6 @@ Array.from(
       minute: 'numeric'
     }
   );
-});
-
-Array.from(
-  document.body.querySelectorAll('md-tabs md-primary-tab')
-).forEach(tab => {
-  tab.addEventListener('click',(e) => {
-    e.target.querySelector('a[href]').click();
-  });
 });
 
 document.getElementById(#{idButtonMakeAppointment}).addEventListener('click', e => {

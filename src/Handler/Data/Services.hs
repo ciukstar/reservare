@@ -179,6 +179,7 @@ postServiceAssignmentDeleR sid aid = do
           runDB $ P.delete aid
           addMessageI statusSuccess MsgRecordDeleted
           redirect (DataR $ ServiceAssignmentsR sid,stati)
+          
       _otherwise -> do
           addMessageI statusError MsgInvalidFormData
           redirect (DataR $ ServiceAssignmentR sid aid,stati)
@@ -615,9 +616,11 @@ getServiceR sid = do
         idHeader <- newIdent
         idMain <- newIdent
         classCurrency <- newIdent
+        classDuration <- newIdent
         idOverlay <- newIdent
         idDialogDelete <- newIdent
         idFormDelete <- newIdent
+        $(widgetFile "common/js/seconds2duration")
         $(widgetFile "common/css/header")
         $(widgetFile "data/services/service")
 

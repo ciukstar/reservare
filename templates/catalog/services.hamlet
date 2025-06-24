@@ -1,38 +1,45 @@
 
-<header.background>
-  <md-icon-button href=@{HomeR} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{HomeR} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgCatalogue}
+    <h6.max>
+      _{MsgCatalogue}
 
-<main>
+<main.responsive.no-padding ##{idMain}>
 
   ^{widgetFilterChips CatalogR}
 
   $if null services
-    <figure style="text-align:center">
-      <span.on-secondary style="font-size:4rem">&varnothing;
-      <figcaption.md-typescale-body-large>
-        _{MsgNoServicesWereFoundForSearchTerms}.
+    <figure.center-align>
+      <i.extra.secondary-text>folder_open
+      <figcaption.large-text.secondary-text>
+        _{MsgNoServicesWereFoundForSearchTerms}
   $else
-    <md-list>
-      $forall ((Entity sid (Service _ name _ price _ _ _),Entity _ (Workspace _ _ _ _ currency)),sector) <- services
-        <md-list-item type=link href=@?{(CatalogServiceR sid,(<>) [("sid",pack $ show $ fromSqlKey sid)] stati)}
-          :Just (pack $ show $ fromSqlKey sid) == paramSid:active>
-          
-          <img slot=start src=@{CatalogServicePhotoDefaultR sid} width=56 height=auto loading=lazy>
-          <div slot=headline>
+    
+    $forall ((Entity sid (Service _ name _ price _ _ _),Entity _ (Workspace _ _ _ _ currency)),sector) <- services
+      <a.row.padding.wave href=@?{(CatalogServiceR sid,(<>) [("sid",pack $ show $ fromSqlKey sid)] stati)}
+        :Just (pack $ show $ fromSqlKey sid) == paramSid:active>
+
+        <img.circle src=@{CatalogServicePhotoDefaultR sid} loading=lazy alt=_{MsgPhoto}>
+ 
+        <div.max>
+          <div.#{classHeadline}.large-text>
             #{name}  
-          <div slot=supporting-text>
+     
+          <div.#{classSupportingText}.secondary-text>
             $maybe Entity _ (Sector gname descr _) <- sector
               $maybe descr <- descr
                 #{descr}
               $nothing
                 #{gname}
-          <div.currency slot=supporting-text data-value=#{price} data-currency=#{currency}>
+  
+          <div.#{classCurrency}.#{classSupportingText}.secondary-text data-value=#{price} data-currency=#{currency}>
             #{currency}#{price}
-          <md-icon slot=end>arrow_forward_ios
-        <md-divider>
+     
+        <i.secondary-text>arrow_forward_ios
+ 
+      <hr>
 
   ^{widgetSnackbar msgs}

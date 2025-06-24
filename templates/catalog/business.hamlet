@@ -1,74 +1,70 @@
 
-<header.background>
-  <md-icon-button href=@?{(CatalogR,stati)} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@?{(CatalogR,stati)} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgService}
+    <h6.max>
+      _{MsgService}
 
-<main>
+<main.responsive.no-padding ##{idMain}>
 
-  <md-tabs>
-  
-    <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails onclick="this.querySelector('a[href]').click()">
+  <nav.scroll>
+    <div.tabs.min>
+
       <a href=@?{(CatalogServiceR sid,stati)}>
-      _{MsgDetails}
-      
-    <md-primary-tab ##{idTabBusiness} aria-cotrols=#{idPanelBusiness} active onclick="this.querySelector('a[href]').click()">
-      <a href=@?{(CatalogServiceBusinessR sid,stati)}>
-      _{MsgBusiness}
-      
-    <md-primary-tab #idTabAssignments aria-cotrols=idPanelAssignments onclick="this.querySelector('a[href]').click()">
+        _{MsgDetails}
+
+      <a.active href=@?{(CatalogServiceBusinessR sid,stati)}>
+        _{MsgBusiness}
+
       <a href=@?{(CatalogServiceAssignmentsR sid,stati)}>
-      _{MsgServiceAssignments}
+        _{MsgServiceAssignments}
       
-
-  <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
-
-  <div ##{idPanelBusiness} role=tabpanel aria-labelledby=#{idTabBusiness}>
+  <div.page.active.padding>
 
     $maybe ((Entity _ (Workspace _ wname address tzo currency),(business,attrib)),owner) <- workspace
       $with Entity bid _ <- business
-        <figure.logo>
-          <img src=@{CatalogBusinessLogoR bid} width=auto height=64 loading=lazy alt=_{MsgPhoto}>
-          $maybe attribution <- attrib
-            <div.app-attribution.md-typescale-body-small>
-              #{attribution}
+        <figure.center-align>
+          <img.extra src=@{CatalogBusinessLogoR bid} loading=lazy alt=_{MsgPhoto}>
+          <figcaption>
+            $maybe attribution <- attrib
+              <div.small-text.secondary-text>
+                #{attribution}
    
       <dl>
-        <dt.md-typescale-label-large scope=row>_{MsgTheName}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgTheName}
+        <dd.small-margin>
           #{wname}
 
-        <dt.md-typescale-label-large scope=row>_{MsgAddress}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgAddress}
+        <dd.small-margin>
           #{address}
 
-        <dt.md-typescale-label-large scope=row>_{MsgTimeZone}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgTimeZone}
+        <dd.small-margin>
           #{show tzo}
 
-        <dt.md-typescale-label-large scope=row>_{MsgCurrency}
-        <dd.md-typescale-body-medium.currency>
+        <dt.bold>_{MsgCurrency}
+        <dd.{classCurrency}.small-margin>
           #{currency}
 
       <fieldset.shape-medium>
         <legend>_{MsgOwner}
         $with (Entity _ (Business _ bname _ _),Entity _ (User email _ _ _ _ oname _ _)) <- (business,owner) 
           <dl>
-            <dt.md-typescale-label-large scope=row>_{MsgTheName}
-            <dd.md-typescale-body-medium>
+            <dt.bold>_{MsgTheName}
+            <dd.small-margin>
               #{bname}
 
-            <dt.md-typescale-label-large scope=row>_{MsgEmail}
-            <dd.md-typescale-body-medium>
+            <dt.bold>_{MsgEmail}
+            <dd.small-margin>
               #{email}
 
-            <dt.md-typescale-label-large scope=row>_{MsgRegistrant}
-            <dd.md-typescale-body-medium>
+            <dt.bold>_{MsgRegistrant}
+            <dd.small-margin>
               $maybe name <- oname
                 #{name}
 
-    ^{widgetSnackbar msgs}
 
-  <div #idPanelAssignments role=tabpanel aria-labelledby=idTabAssignments hidden>
+  ^{widgetSnackbar msgs}

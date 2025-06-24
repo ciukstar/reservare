@@ -324,7 +324,7 @@ fillDemoRo appSettings = do
                              , serviceDescr = Just "Ajutăm clienții din sectorul bancar de investiții să îndeplinească o gamă largă de cerințe strategice, organizaționale și operaționale"
                              , servicePrice = 20000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 1.25 * oneHour
                              , serviceType = Just sec3
                              }
 
@@ -356,7 +356,7 @@ fillDemoRo appSettings = do
                              , serviceDescr = Just "Consiliem instituții de servicii profesionale, inclusiv firme de avocatură, firme de contabilitate, departamente juridice corporative și alte organizații de lucrători ai cunoștințelor, cu privire la o gamă largă de probleme strategice, organizaționale și operaționale"
                              , servicePrice = 25000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 1.5 * oneHour
                              , serviceType = Just sec3
                              }
 
@@ -452,7 +452,7 @@ fillDemoRo appSettings = do
                              , serviceDescr = Just "Fizioterapia comunitară își propune să optimizeze funcția fizică și să sporească independența și calitatea vieții pentru persoanele eligibile din comunitate"
                              , servicePrice = 10000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 1.75 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -484,7 +484,7 @@ fillDemoRo appSettings = do
                              , serviceDescr = Just "Kinetoterapie musculo-scheletică se va concentra pe reabilitarea biomecanică și structurală a clientului"
                              , servicePrice = 20000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 2 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -516,7 +516,7 @@ fillDemoRo appSettings = do
                              , serviceDescr = Just "Oferă evaluare, diagnostic și tratament unei game de pacienți cu probleme la membrele inferioare și la picioare, inclusiv"
                              , servicePrice = 25000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 2.25 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -597,7 +597,7 @@ fillDemoRo appSettings = do
                              , serviceDescr = Just "Echipa comunitară de vorbire și limbaj oferă evaluare, terapie și consiliere adulților cu dificultăți de vorbire, limbaj, comunicare și înghițire."
                              , servicePrice = 10000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 2.5 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -622,7 +622,7 @@ fillDemoRo appSettings = do
                              , serviceDescr = Just "Our falls prevention service provides assessment, advice and exercise for older people who are at risk of falling"
                              , servicePrice = 20000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 2.75 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -661,7 +661,7 @@ fillDemoRo appSettings = do
                              , serviceDescr = Just "Echipa vă va oferi sprijin limitat în timp pentru a vă recâștiga independența după o internare la spital și vă va ajuta să planificați o plecare în siguranță acasă atunci când sunteți „apt funcțional”."
                              , servicePrice = 25000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 3 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -750,7 +750,7 @@ fillDemoRo appSettings = do
                              , serviceDescr = Just "Managementul activelor Oasis este realizat de o echipă de experți hotelieri care se concentrează pe optimizarea profiturilor din operațiunile de afaceri hoteliere."
                              , servicePrice = 10000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 3.25 * oneHour
                              , serviceType = Just sec2
                              }
 
@@ -775,7 +775,7 @@ fillDemoRo appSettings = do
                              , serviceDescr = Just "Consultanta de investitii Oasis este specializata in activitati BUY-SIDE si SELL-SIDE pentru activele hoteliere existente si propuse"
                              , servicePrice = 20000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 3.5 * oneHour
                              , serviceType = Just sec2
                              }
 
@@ -800,7 +800,7 @@ fillDemoRo appSettings = do
                              , serviceDescr = Just "Oasis oferă servicii de planificare și consiliere în execuție a proiectelor care oferă îndrumare strategică și conducere pe parcursul etapelor inițiale de dezvoltare a unui proiect hotelier."
                              , servicePrice = 30000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 3.75 * oneHour
                              , serviceType = Just sec2
                              }
 

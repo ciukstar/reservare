@@ -1,29 +1,27 @@
 
-<header.background>
-  <md-icon-button href=@?{(CatalogR,stati)} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@?{(CatalogR,stati)} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgService}
+    <h6.max>
+      _{MsgService}
 
-<main>
+<main.responsive.no-padding ##{idMain}>
 
-  <md-tabs>
-  
-    <md-primary-tab ##{idTabDetails} aria-cotrols=#{idPanelDetails} active onclick="this.querySelector('a[href]').click()">
-      <a href=@?{(CatalogServiceR sid,stati)}>
-      _{MsgDetails}
-      
-    <md-primary-tab #idTabBusiness aria-cotrols=idPanelBusiness onclick="this.querySelector('a[href]').click()">
+  <nav.scroll>
+    <div.tabs.min>
+
+      <a.active href=@?{(CatalogServiceR sid,stati)}>
+        _{MsgDetails}
+
       <a href=@?{(CatalogServiceBusinessR sid,stati)}>
-      _{MsgBusiness}
-      
-    <md-primary-tab #idTabAssignments aria-cotrols=idPanelAssignments onclick="this.querySelector('a[href]').click()">
-      <a href=@?{(CatalogServiceAssignmentsR sid,stati)}>
-      _{MsgServiceAssignments}
-      
+        _{MsgBusiness}
 
-  <div ##{idPanelDetails} role=tabpanel aria-labelledby=#{idTabDetails}>
+      <a href=@?{(CatalogServiceAssignmentsR sid,stati)}>
+        _{MsgServiceAssignments}
+      
+  <div.page.active.padding>
 
     $with (service,photos) <- service
       <div.app-carousel>
@@ -31,35 +29,34 @@
           <figure>
             <img src=@{CatalogServicePhotoR sid fid} width=auto height=128 loading=lazy alt=_{MsgPhoto}>
             $maybe attribution <- attrib
-              <div.app-attribution.md-typescale-body-small>
+              <div.small-text.secondary-text>
                 #{attribution}
                 
       <div.main>
-        $maybe (Entity sid (Service _ name descr price _ duration _),Entity _ (Workspace _ _ _ _ currency)) <- service
+      
+        <nav.center-align.margin>
+          <a.button.fill type=button href=@?{(BookStaffR,[("sid",pack $ show $ fromSqlKey sid)])}
+                         onclick="sessionStorage.setItem('#{keyBacklink}','@?{(CatalogServiceR sid,stati)}')">
+            _{MsgBookNow}
+     
+        $maybe (Entity _ (Service _ name descr price _ duration _),Entity _ (Workspace _ _ _ _ currency)) <- service
           <dl>
-            <dt.md-typescale-label-large scope=row>_{MsgTheName}
-            <dd.md-typescale-body-medium>
+            <dt.bold>_{MsgTheName}
+            <dd.small-margin>
               #{name}
 
-            <dt.md-typescale-label-large scope=row>_{MsgDescription}
-            <dd.md-typescale-body-medium>
+            <dt.bold>_{MsgDescription}
+            <dd.small-margin>
               $maybe descr <- descr
                 #{descr}
 
-            <dt.md-typescale-label-large scope=row>_{MsgPrice}
-            <dd.md-typescale-body-medium.currency data-value=#{price} data-currency=#{currency}>
+            <dt.bold>_{MsgPrice}
+            <dd.#{classCurrency}.small-margin data-value=#{price} data-currency=#{currency}>
               #{currency}#{price}
 
-            <dt.md-typescale-label-large>_{MsgDuration}
-            <dd.md-typescale-body-medium>
+            <dt.bold>_{MsgDuration}
+            <dd.#{classDuration}.small-margin data-seconds=#{show $ nominalDiffTimeToSeconds duration}>
               #{show duration}
 
-          <md-filled-button type=link href=@?{(BookStaffR,[("sid",pack $ show $ fromSqlKey sid)])}
-            onclick="sessionStorage.setItem('#{keyBacklink}','@?{(CatalogServiceR sid,stati)}')">
-            _{MsgBookNow}
 
-    ^{widgetSnackbar msgs}
-
-  <div #idPanelBusiness role=tabpanel aria-labelledby=idTabBusiness hidden>
-
-  <div #idPanelAssignments role=tabpanel aria-labelledby=idTabAssignments hidden>
+  ^{widgetSnackbar msgs}

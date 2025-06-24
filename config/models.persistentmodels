@@ -1,5 +1,6 @@
 
 Payment
+    book BookId OnDeleteCascade
     option PayOptionId OnDeleteCascade
     time UTCTime
     amount Int

@@ -1,6 +1,6 @@
 
-Array.from(
-  document.querySelectorAll('.currency[data-value][data-currency]')
+document.querySelectorAll(
+  '.#{rawJS classCurrency}[data-value][data-currency]'
 ).forEach(function (x) {
   x.textContent = Intl.NumberFormat(navigator.language, {
     style: 'currency',
@@ -9,4 +9,13 @@ Array.from(
     maximumFractionDigits: 2,
     useGrouping: true
   }).format(x.dataset.value / 100);
+});
+
+
+document.querySelectorAll(
+  '.#{rawJS classDuration}[data-seconds]'
+).forEach(function (x) {
+  x.textContent = new Intl.DurationFormat(navigator.language, { style: 'long' }).format(
+    secondsToDuration(Number(x.dataset.seconds))
+  );
 });

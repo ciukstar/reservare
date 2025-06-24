@@ -1,101 +1,94 @@
 
-<header.background>
-  <md-icon-button href=@{CatalogServiceAssignmentsR sid} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{CatalogServiceAssignmentsR sid} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgServiceAssignment}
+    <h6.max>
+      _{MsgServiceAssignment}
 
-<main>
+<main.responsive.no-padding ##{idMain}>
 
   $maybe (Entity _ (Assignment eid _ _ _ _ _),attribution) <- assignment
-    <figure>
-      <img slot=start src=@{StaffPhotoR eid} width=auto height=64 loading=lazy alt=_{MsgPhoto}>
-      <figcaption>
-        $maybe attrib <- attribution
-          <div.app-attribution>
-            <div.app-attribution-wrapper.md-typescale-body-small>
-              ^{attrib}
+    
+    <figure.center-align>
+      <img.extra.circle src=@{StaffPhotoR eid} loading=lazy alt=_{MsgPhoto}>
+      $maybe attrib <- attribution
+        <figcaption.small-text.secondary-text>
+          ^{attrib}
 
-    <md-tabs>
-
-      <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails
-        onclick="this.querySelector('a[href]').click()">
+    <nav.scroll>
+      <div.tabs>
 
         <a href=@{CatalogServiceAssignmentR sid aid}>
-        _{MsgDetails}
+          _{MsgDetails}
 
-      <md-primary-tab ##{idTabWorkingHours} aria-cotrols=#{idPanelWorkingHours} active
-        onclick="this.querySelector('a[href]').click()">
+        <a.active href=@{CatalogStaffScheduleR sid aid month}>
+          _{MsgWorkSchedule}
 
-        <a href=@{CatalogStaffScheduleR sid aid month}>
-        _{MsgWorkSchedule}
+    <div.page.active.bottom-margin>
+
+        <div.calendar ##{idCalendarPage}>
+          <div.header>
+            <a.button.transparent.circle href=@{CatalogStaffScheduleR sid aid prev} rel=nofollow>
+              <i>arrow_back_ios_new
+            $with m <- show month
+              <time.month-of-year datetime=#{m}>
+                #{m}
+            <a.button.transparent.circle href=@{CatalogStaffScheduleR sid aid next} rel=nofollow>
+              <i>arrow_forward_ios
+
+          $forall wd <- [MsgMon,MsgTue,MsgWed,MsgThu,MsgFri,MsgSat,MsgSun]
+            <div.col-header>
+              _{wd}
+          $forall i <- [0,1,2,3,4,5]
+            $forall day <- take 7 (drop (i * 7) page)
+              $with (y,m,d) <- toGregorian day
+                $if (<) day today
+                  <div.cell.disabled>
+
+                    <time.day-of-month datetime=#{show day}>
+                      <small>#{d}
+                    $maybe diff <- M.lookup day workdays
+                      $with r <- rest diff
+                        $if r == 0
+                          $with h <- msgr MsgSymbolHour
+                            $with fmt <- printf "%%H%s" h
+                              <div>
+                                <small>
+                                  <small>#{formatTime defaultTimeLocale fmt diff}
+                        $else
+                          $with (h,m) <- (msgr MsgSymbolHour,msgr MsgSymbolMinute)
+                            $with fmt <- printf "%%H%s %%M%s" h m
+                              <div>
+                                <small>
+                                  <small style="display:inline-block;line-height:1">
+                                    #{formatTime defaultTimeLocale fmt diff}
+
+                $elseif (==) month (YearMonth y m)
+                  <a.cell href=@{CatalogStaffScheduleSlotsR sid eid aid day}
+                    :M.member day workdays:.primary 
+                    :M.notMember day workdays:.primary-text>
+
+                    <time.day-of-month datetime=#{show day}>
+                      <small>#{d}
+                    $maybe diff <- M.lookup day workdays
+                      $with r <- rest diff
+                        $if r == 0
+                          $with h <- msgr MsgSymbolHour
+                            $with fmt <- printf "%%H%s" h
+                              <div>
+                                <small>
+                                  <small>#{formatTime defaultTimeLocale fmt diff}
+                        $else
+                          $with (h,m) <- (msgr MsgSymbolHour,msgr MsgSymbolMinute)
+                            $with fmt <- printf "%%H%s %%M%s" h m
+                              <div>
+                                <small>
+                                  <small style="display:inline-block;line-height:1">
+                                    #{formatTime defaultTimeLocale fmt diff}
+                $else
+                  <div>
 
 
-    <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
-
-    <div ##{idPanelWorkingHours} role=tabpanel aria-labelledby=#{idTabWorkingHours}>
-
-      <div.calendar ##{idCalendarPage}>
-        <div.header>
-          <md-icon-button type=link href=@{CatalogStaffScheduleR sid aid prev} rel=nofollow>
-            <md-icon>arrow_back_ios
-          $with m <- show month
-            <time.month-of-year datetime=#{m}>
-              #{m}
-          <md-icon-button type=link href=@{CatalogStaffScheduleR sid aid next} rel=nofollow>
-            <md-icon>arrow_forward_ios
-
-        $forall wd <- [MsgMon,MsgTue,MsgWed,MsgThu,MsgFri,MsgSat,MsgSun]
-          <div.col-header>
-            _{wd}
-        $forall i <- [0,1,2,3,4,5]
-          $forall day <- take 7 (drop (i * 7) page)
-            $with (y,m,d) <- toGregorian day
-              $if (<) day today
-                <div.cell.disabled>
-
-                  <time.day-of-month datetime=#{show day}>
-                    <small>#{d}
-                  $maybe diff <- M.lookup day workdays
-                    $with r <- rest diff
-                      $if r == 0
-                        $with h <- msgr MsgSymbolHour
-                          $with fmt <- printf "%%H%s" h
-                            <div>
-                              <small>
-                                <small>#{formatTime defaultTimeLocale fmt diff}
-                      $else
-                        $with (h,m) <- (msgr MsgSymbolHour,msgr MsgSymbolMinute)
-                          $with fmt <- printf "%%H%s %%M%s" h m
-                            <div>
-                              <small>
-                                <small style="display:inline-block;line-height:1">
-                                  #{formatTime defaultTimeLocale fmt diff}
-                                  
-              $elseif (==) month (YearMonth y m)
-                <a.cell href=@{CatalogStaffScheduleSlotsR sid eid aid day} 
-                  :M.member day workdays:.primary 
-                  :M.notMember day workdays:.primary-negative>
-
-                  <time.day-of-month datetime=#{show day}>
-                    <small>#{d}
-                  $maybe diff <- M.lookup day workdays
-                    $with r <- rest diff
-                      $if r == 0
-                        $with h <- msgr MsgSymbolHour
-                          $with fmt <- printf "%%H%s" h
-                            <div>
-                              <small>
-                                <small>#{formatTime defaultTimeLocale fmt diff}
-                      $else
-                        $with (h,m) <- (msgr MsgSymbolHour,msgr MsgSymbolMinute)
-                          $with fmt <- printf "%%H%s %%M%s" h m
-                            <div>
-                              <small>
-                                <small style="display:inline-block;line-height:1">
-                                  #{formatTime defaultTimeLocale fmt diff}
-              $else
-                <div>
-
-    ^{widgetSnackbar msgs}
+  ^{widgetSnackbar msgs}

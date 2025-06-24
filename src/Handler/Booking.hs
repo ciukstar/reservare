@@ -1111,7 +1111,8 @@ widgetFilterChips route = do
     idChipSetSectors <- newIdent
     idChipSetBusinesses <- newIdent
     idChipSetWorkspaces <- newIdent
-
+    classSummaryLabel <- newIdent
+    classSummaryEndIcon <- newIdent
     $(widgetFile "book/widgets/chips")
 
 

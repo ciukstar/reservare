@@ -323,7 +323,7 @@ fillDemoEn appSettings = do
                              , serviceDescr = Just "We help investment banking clients meet a wide range of strategic, organizational, and operational demands"
                              , servicePrice = 20000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 1.25 * oneHour
                              , serviceType = Just sec3
                              }
 
@@ -355,7 +355,7 @@ fillDemoEn appSettings = do
                              , serviceDescr = Just "We advise professional services institutions, including law firms, accounting firms, corporate legal departments, and other knowledge worker organizations, on a broad range of strategic, organizational, and operational issues"
                              , servicePrice = 25000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 1.5 * oneHour
                              , serviceType = Just sec3
                              }
 
@@ -451,7 +451,7 @@ fillDemoEn appSettings = do
                              , serviceDescr = Just "Community Physiotherapy aims to optimise physical function and enhance independence and quality of life for eligible people within the community"
                              , servicePrice = 10000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 1.75 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -483,7 +483,7 @@ fillDemoEn appSettings = do
                              , serviceDescr = Just "Musculoskeletal physiotherapy will focus on the biomechanical and structural rehabilitation of the client"
                              , servicePrice = 20000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 2 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -516,7 +516,7 @@ fillDemoEn appSettings = do
                              , serviceDescr = Just "Provides assessment, diagnosis and treatment to a range of patients with lower limb and foot problems, including"
                              , servicePrice = 25000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 2.25 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -597,7 +597,7 @@ fillDemoEn appSettings = do
                              , serviceDescr = Just "The Community Speech and Language team provides assessment, therapy and advice to adults with speech, language, communication and swallowing difficulties"
                              , servicePrice = 10000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 2.5 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -629,7 +629,7 @@ fillDemoEn appSettings = do
                              , serviceDescr = Just "Our falls prevention service provides assessment, advice and exercise for older people who are at risk of falling"
                              , servicePrice = 20000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 2.75 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -668,7 +668,7 @@ fillDemoEn appSettings = do
                              , serviceDescr = Just "The team will offer you time limited support you to regain your independence after a hospital admission and help you plan a safe departure home when you are ‘functionally fit’"
                              , servicePrice = 25000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 3 * oneHour
                              , serviceType = Just sec4
                              }
 
@@ -757,7 +757,7 @@ fillDemoEn appSettings = do
                              , serviceDescr = Just "Oasis Asset Management is a team of hotel experts that is focused on optimizing the returns from operating hotel business"
                              , servicePrice = 10000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 3.25 * oneHour
                              , serviceType = Just sec2
                              }
 
@@ -782,7 +782,7 @@ fillDemoEn appSettings = do
                              , serviceDescr = Just "Oasis Investment Advisory specializes in BUY-SIDE and SELL-SIDE activities for existing and proposed hotel assets"
                              , servicePrice = 20000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 3.5 * oneHour
                              , serviceType = Just sec2
                              }
 
@@ -807,7 +807,7 @@ fillDemoEn appSettings = do
                              , serviceDescr = Just "Oasis offers Project Execution Planning & Advisory (PEPA) services that provide strategic guidance and leadership throughout the initial development stages of a hotel project"
                              , servicePrice = 30000
                              , serviceAvailable = True
-                             , serviceDuration = oneHour
+                             , serviceDuration = 3.75 * oneHour
                              , serviceType = Just sec2
                              }
 

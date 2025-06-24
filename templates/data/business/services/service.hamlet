@@ -50,7 +50,7 @@
           #{show available}
 
         <dt.bold>_{MsgDuration}
-        <dd.small-margin>
+        <dd.#{classDuration}.small-margin data-seconds=#{show $ nominalDiffTimeToSeconds duration}>
           #{show duration}
 
   ^{widgetSnackbar msgs}

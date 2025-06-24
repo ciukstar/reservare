@@ -668,9 +668,11 @@ getSectorServiceR gid sid ps = do
         idHeader <- newIdent
         idMain <- newIdent
         classCurrency <- newIdent
+        classDuration <- newIdent
         idOverlay <- newIdent
         idDialogDelete <- newIdent
         idFormDelete <- newIdent
+        $(widgetFile "common/js/seconds2duration")
         $(widgetFile "common/css/header")
         $(widgetFile "common/css/main")
         $(widgetFile "data/sectors/services/service")

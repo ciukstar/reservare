@@ -1,5 +1,5 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
 
@@ -30,8 +30,7 @@ import Data.Time.Calendar
     )
 import Data.Time.Calendar.Month (pattern YearMonth, Month, addMonths)
 import Data.Time.Clock
-    ( NominalDiffTime, UTCTime(utctDay), nominalDiffTimeToSeconds
-    , getCurrentTime
+    ( UTCTime(utctDay), nominalDiffTimeToSeconds, getCurrentTime
     )
 import Data.Text.Encoding (encodeUtf8)
 import Data.Time.LocalTime (diffLocalTime, LocalTime (LocalTime))
@@ -68,7 +67,8 @@ import Foundation
     )
 
 import Handler.Booking
-    ( widgetFilterChips, paramSector, paramBusiness, paramWorkspace, paramScrollY )
+    ( widgetFilterChips, paramSector, paramBusiness, paramWorkspace, paramScrollY
+    )
 
 import Model
     ( keyBacklink
@@ -110,6 +110,7 @@ import Yesod.Core
     , MonadIO (liftIO), getMessageRender
     )
 import Yesod.Persist (YesodPersist(runDB))
+import Text.Julius (RawJS(rawJS))
 
 
 getCatalogStaffScheduleSlotsR :: ServiceId -> StaffId -> AssignmentId -> Day -> Handler Html
@@ -137,19 +138,19 @@ getCatalogStaffScheduleR sid aid month = do
 
     today <- liftIO $ utctDay <$> getCurrentTime
     
-    assignment <- (second (join . unValue) <$>) <$> runDB ( selectOne $ do
+    assignment <- ((second (join . unValue) <$>) <$>) $ runDB $ selectOne $ do
         x :& f <- from $ table @Assignment
             `leftJoin` table @StaffPhoto `on` (\(x :& f) -> just (x ^. AssignmentStaff) ==. f ?. StaffPhotoStaff)
         where_ $ x ^. AssignmentId ==. val aid
-        return (x, f ?. StaffPhotoAttribution) )
+        return (x, f ?. StaffPhotoAttribution) 
     
     let mapper (Entity _ (Schedule _ day start end)) = (day,diffLocalTime (LocalTime day end) (LocalTime day start))
     
-    workdays <- groupByKey mapper <$> runDB ( select $ do
+    workdays <- (groupByKey mapper <$>) $ runDB $ select $ do
         x <- from $ table @Schedule
         where_ $ x ^. ScheduleAssignment ==. val aid
         where_ $ x ^. ScheduleDay `between` (val $ periodFirstDay month, val $ periodLastDay month)
-        return x ) :: Handler (M.Map Day NominalDiffTime)
+        return x
 
     let start = weekFirstDay Monday (periodFirstDay month)
     let end = addDays 41 start
@@ -161,9 +162,10 @@ getCatalogStaffScheduleR sid aid month = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkSchedule
-        idTabWorkingHours <- newIdent
-        idPanelWorkingHours <- newIdent
+        idHeader <- newIdent
+        idMain <- newIdent
         idCalendarPage <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "catalog/assignments/schedule/hours")
   where
       
@@ -193,9 +195,10 @@ getCatalogServiceAssignmentR sid aid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignment 
-        idTabDetails <- newIdent
-        idPanelDetails <- newIdent
+        idHeader <- newIdent
+        idMain <- newIdent
         idButtonMakeAppointment <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "catalog/assignments/assignment")
 
 
@@ -212,8 +215,13 @@ getCatalogServiceAssignmentsR sid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
-        idTabAssignments <- newIdent
-        idPanelAssignments <- newIdent
+        idHeader <- newIdent
+        idMain <- newIdent
+        classHeadline <- newIdent
+        classSupportingText <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
+        $(widgetFile "common/css/rows")
         $(widgetFile "catalog/assignments/assignments")
 
 
@@ -233,8 +241,9 @@ getCatalogServiceBusinessR sid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
-        idTabBusiness <- newIdent
-        idPanelBusiness <- newIdent
+        idHeader <- newIdent
+        idMain <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "catalog/business")
 
 
@@ -252,17 +261,23 @@ getCatalogServiceR sid = do
             where_ $ x ^. ServiceAvailable ==. val True
             orderBy [desc (x ^. ServiceId)]
             return (x,w)
+            
         photos <- runDB $ select $ do
             x <- from $ table @ServicePhoto
             where_ $ x ^. ServicePhotoService ==. val sid
             return x
+            
         return (service,photos)
 
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
-        idTabDetails <- newIdent
-        idPanelDetails <- newIdent
+        idHeader <- newIdent
+        idMain <- newIdent
+        classCurrency <- newIdent
+        classDuration <- newIdent        
+        $(widgetFile "common/js/seconds2duration")
+        $(widgetFile "common/css/header")
         $(widgetFile "catalog/service")
 
 
@@ -290,6 +305,14 @@ getCatalogR = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceCatalog
+        idHeader <- newIdent
+        idMain <- newIdent
+        classHeadline <- newIdent
+        classSupportingText <- newIdent
+        classCurrency <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
+        $(widgetFile "common/css/rows")
         $(widgetFile "catalog/services")
 
 

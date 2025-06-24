@@ -10,3 +10,12 @@ document.querySelectorAll(
     useGrouping: true
   }).format(x.dataset.value / 100);
 });
+
+
+document.querySelectorAll(
+  '.#{rawJS classDuration}[data-seconds]'
+).forEach(function (x) {
+  x.textContent = new Intl.DurationFormat(navigator.language, { style: 'long' }).format(
+    secondsToDuration(Number(x.dataset.seconds))
+  );
+});

@@ -784,9 +784,11 @@ getBusinessServiceR bid sid = do
         idHeader <- newIdent
         idMain <- newIdent
         classCurrency <- newIdent
+        classDuration <- newIdent
         idOverlay <- newIdent
         idDialogDelete <- newIdent
         idFormDelete <- newIdent
+        $(widgetFile "common/js/seconds2duration")
         $(widgetFile "common/css/header")
         $(widgetFile "common/css/main")
         $(widgetFile "data/business/services/service")
@@ -1477,8 +1479,10 @@ getWorkspaceServiceR bid wid sid = do
         idMain <- newIdent
         idOverlay <- newIdent
         classCurrency <- newIdent
+        classDuration <- newIdent
         idDialogDelete <- newIdent
         idFormDelete <- newIdent
+        $(widgetFile "common/js/seconds2duration")
         $(widgetFile "common/css/header")
         $(widgetFile "data/business/workspaces/services/service")
 
