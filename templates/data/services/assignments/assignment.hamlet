@@ -1,71 +1,82 @@
 
-<header>
-  <md-icon-button href=@?{(DataR $ ServiceAssignmentsR sid,stati)} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@?{(DataR $ ServiceAssignmentsR sid,stati)} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgServiceAssignment}
+    <h6.max>
+      _{MsgServiceAssignment}
+      
+    <a.button.transparent.circle role=button title=_{MsgDele} data-ui=##{idDialogDelete}>
+      <i.error-text>delete
+      
+    <a.button.transparent.circle role=button title=_{MsgEdit}
+              href=@?{(DataR $ ServiceAssignmentEditR sid aid,stati)}>
+      <i>edit
 
-  <span #headerEnd>
-    <md-icon-button type=button aria-label=_{MsgDele} onclick="document.getElementById('idDialogDelete').show()">
-      <md-icon>delete
-    <md-icon-button href=@?{(DataR $ ServiceAssignmentEditR sid aid,stati)} aria-label=_{MsgEdit}>
-      <md-icon>edit
-
-<md-dialog #idDialogDelete>
-  <div slot=headline>
-    _{MsgConfirmPlease}
-  <div slot=content>
-    _{MsgDeleteAreYouSure}
-  <div slot=actions>
-    <md-text-button type=button onclick="document.getElementById('idDialogDelete').close()">
-      _{MsgCancel}
-    <form slot=content method=post action=@?{(DataR $ ServiceAssignmentDeleR sid aid,stati)} enctype=#{et2}>
-      ^{fw2}
-      <md-filled-button type=submit>
-        _{MsgDele}
-
-<main>
+<main.responsive ##{idMain}>
 
   $maybe (Entity _ (Assignment _ _ role start interval priority),(employee,(service,(workspace,buisiness)))) <- assignment
     <dl>
 
-      <dt.md-typescale-label-large>_{MsgEmployee}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgEmployee}
+      <dd.small-margin>
         $with Entity _ (Staff name _ _ _) <- employee
           #{name}
 
-      <dt.md-typescale-label-large>_{MsgRole}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgRole}
+      <dd.small-margin>
         #{role}
           
-      <dt.md-typescale-label-large>_{MsgTheStart}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgTheStart}
+      <dd.small-margin>
         $with dt <- iso8601Show start
           <time datetime=#{dt}>#{dt}
 
-      <dt.md-typescale-label-large>_{MsgSchedulingInterval}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgSchedulingInterval}
+      <dd.small-margin>
         #{show $ toMinutes interval} _{MsgUnitMinutes}
 
-      <dt.md-typescale-label-large>_{MsgPriority}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgPriority}
+      <dd.small-margin>
         #{show $ priority}
 
-      <dt.md-typescale-label-large>_{MsgService}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgService}
+      <dd.small-margin>
         $with Entity _ (Service _ name _ _ _ _ _) <- service
           #{name}
 
-      <dt.md-typescale-label-large>_{MsgWorkspace}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgWorkspace}
+      <dd.small-margin>
         $with Entity _ (Workspace _ name _ _ _) <- workspace
           #{name}
 
-      <dt.md-typescale-label-large>_{MsgBusiness}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgBusiness}
+      <dd.small-margin>
         $with Entity _ (Business _ name _ _) <- buisiness
           #{name}
           
 
   ^{widgetSnackbar msgs}
+
+
+
+<div.overlay ##{idOverlay} data-ui=##{idDialogDelete}>
+
+<dialog ##{idDialogDelete}>
+  <h6>
+    _{MsgConfirmPlease}
+    
+  <p>
+    _{MsgDeleteAreYouSure}
+    
+  <nav.right-align>
+      
+    <form method=post action=@?{(DataR $ ServiceAssignmentDeleR sid aid,stati)} enctype=#{et0} ##{idFormDelete}>
+      ^{fw0}
+      
+    <button.transparent.link type=button data-ui=##{idDialogDelete}>
+      _{MsgCancel}
+
+    <button.error type=submit form=#{idFormDelete}>
+      _{MsgDele}

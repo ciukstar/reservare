@@ -1,7 +1,0 @@
-
-##{idLabelPhoto}
-    text-align: center
-    align-self: center
-  
-##{idImgPhoto}
-    clip-path: circle(50%)
