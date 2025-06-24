@@ -73,8 +73,8 @@ import Data.Time
     , secondsToNominalDiffTime, utcToLocalTime, utc, localTimeToUTC
     )
 import Data.Time.Calendar
-    ( DayOfWeek (Monday), DayPeriod (periodFirstDay)
-    , weekFirstDay, addDays, toGregorian, Day
+    ( Day, DayOfWeek (Monday), DayPeriod (periodFirstDay)
+    , weekFirstDay, addDays, toGregorian
     )
 import Data.Time.Calendar.Month (Month, addMonths, pattern YearMonth)
 import Data.Time.Format.ISO8601 (iso8601Show)
@@ -133,7 +133,7 @@ import Foundation
     )
 
 import Material3
-    ( md3mopt, md3htmlField, md3datetimeLocalField
+    ( md3datetimeLocalField
     , md3widget, md3widgetTextarea, md3widgetSwitch, md3widgetSelect
     )
 
@@ -504,6 +504,7 @@ postBusinessServicePhotosR bid sid = do
                                        }
           addMessageI statusSuccess MsgRecordAdded
           redirect $ DataR $ BusinessServicePhotosR bid sid
+          
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
@@ -1079,6 +1080,7 @@ postWorkspaceServicePhotoDeleR bid wid sid fid = do
           void $ runDB $ P.delete fid
           addMessageI statusSuccess MsgRecordDeleted
           redirect $ DataR $ WorkspaceServicePhotosR bid wid sid
+          
       _otherwise -> do
           addMessageI statusError MsgInvalidFormData
           redirect $ DataR $ WorkspaceServicePhotoEditR bid wid sid fid
@@ -1103,20 +1105,30 @@ postWorkspaceServicePhotoR bid wid sid fid = do
                     , ServicePhotoAttribution =. val attribution
                     ]
               where_ $ x ^. ServicePhotoId ==. val fid
+              
+          addMessageI statusSuccess MsgRecordEdited
           redirect $ DataR $ WorkspaceServicePhotosR bid wid sid
           
       FormSuccess (Nothing,attribution) -> do
           runDB $ update $ \x -> do
               set x [ ServicePhotoAttribution =. val attribution ]
               where_ $ x ^. ServicePhotoId ==. val fid
+              
+          addMessageI statusSuccess MsgRecordEdited
           redirect $ DataR $ WorkspaceServicePhotosR bid wid sid
               
       _otherwise -> do
-          (fw2,et2) <- generateFormPost formWorkspaceServicePhotoDelete
+          (fw0,et0) <- generateFormPost formWorkspaceServicePhotoDelete
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgService
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormEdit <- newIdent
+              idOverlay <- newIdent
+              idDialogDelete <- newIdent
+              idFormDelete <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/business/workspaces/services/photos/edit")
 
 
@@ -1140,21 +1152,25 @@ getWorkspaceServicePhotoEditR bid wid sid fid = do
         where_ $ x ^. ServicePhotoId ==. val fid
         return x
         
-    (fw2,et2) <- generateFormPost formWorkspaceServicePhotoDelete
+    (fw0,et0) <- generateFormPost formWorkspaceServicePhotoDelete
     
     (fw,et) <- generateFormPost $ formWorkspaceServicePhoto sid photo
     
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormEdit <- newIdent
+        idOverlay <- newIdent
+        idDialogDelete <- newIdent
+        idFormDelete <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/workspaces/services/photos/edit")
     
 
 formWorkspaceServicePhoto :: ServiceId -> Maybe (Entity ServicePhoto) -> Form (Maybe FileInfo,Maybe Html)
 formWorkspaceServicePhoto sid photo extra = do
-
-    msgr <- getMessageRender
     
     (photoR,photoV) <- mopt fileField FieldSettings
         { fsLabel = SomeMessage MsgPhoto
@@ -1162,10 +1178,10 @@ formWorkspaceServicePhoto sid photo extra = do
         , fsAttrs = [("style","display:none")]
         } Nothing
     
-    (attribR,attribV) <- md3mopt md3htmlField FieldSettings
+    (attribR,attribV) <- mopt htmlField FieldSettings
         { fsLabel = SomeMessage MsgAttribution
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgAttribution)]
+        , fsAttrs = []
         } (servicePhotoAttribution . entityVal <$> photo)
 
     let r = (,) <$> photoR <*> attribR
@@ -1190,14 +1206,15 @@ getWorkspaceServicePhotoNewR bid wid sid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormNew <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/workspaces/services/photos/new")
 
 
 formWorkspaceServicePhotoNew :: ServiceId -> Maybe (Entity ServicePhoto) -> Form (FileInfo,Maybe Html)
 formWorkspaceServicePhotoNew sid photo extra = do
-
-    msgr <- getMessageRender
     
     (photoR,photoV) <- mreq fileField FieldSettings
         { fsLabel = SomeMessage MsgPhoto
@@ -1205,10 +1222,10 @@ formWorkspaceServicePhotoNew sid photo extra = do
         , fsAttrs = [("style","display:none")]
         } Nothing
     
-    (attribR,attribV) <- md3mopt md3htmlField FieldSettings
+    (attribR,attribV) <- mopt htmlField FieldSettings
         { fsLabel = SomeMessage MsgAttribution
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgAttribution)]
+        , fsAttrs = []
         } (servicePhotoAttribution . entityVal <$> photo)
 
     let r = (,) <$> photoR <*> attribR
@@ -1235,11 +1252,15 @@ postWorkspaceServicePhotosR bid wid sid = do
                                        , servicePhotoAttribution = attribution
                                        }
           redirect $ DataR $ WorkspaceServicePhotosR bid wid sid
+          
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgService
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormNew <- newIdent
+              $(widgetFile "common/css/header")
               $(widgetFile "data/business/workspaces/services/photos/new")
 
 
@@ -1679,11 +1700,17 @@ getPayOptionR bid wid oid = do
         where_ $ x ^. PayOptionId ==. val oid
         return (x,w,b)
 
-    (fw2,et2) <- generateFormPost formPayOptionDelete
+    (fw0,et0) <- generateFormPost formPayOptionDelete
 
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgPaymentOption
+        idHeader <- newIdent
+        idMain <- newIdent
+        idOverlay <- newIdent
+        idDialogDelete <- newIdent
+        idFormDelete <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/business/workspaces/pay/option")
 
 
@@ -2332,7 +2359,7 @@ formBusiness business extra = do
         , fsAttrs = []
         } (businessDescr . entityVal <$> business)
 
-    (logoR,logoV) <- md3mopt fileField FieldSettings
+    (logoR,logoV) <- mopt fileField FieldSettings
         { fsLabel = SomeMessage MsgLogo
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
         , fsAttrs = [("style","display:none")]

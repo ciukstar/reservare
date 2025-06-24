@@ -1,54 +1,42 @@
 
-<header>
-  <md-icon-button href=@{DataR $ PayOptionsR bid wid} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{DataR $ PayOptionsR bid wid} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgPayOption}
+    <h6.max>
+      _{MsgPayOption}
+      
+    <a.button.transparent.circle role=button aria-label=_{MsgDele} data-ui=##{idDialogDelete}>
+      <i.error-text>delete
+      
+    <a.button.transparent.circle href=@{DataR $ PayOptionEditR bid wid oid} role=button title=_{MsgEdit}>
+      <i>edit
 
-  <span #headerEnd>
-    <md-icon-button type=button aria-label=_{MsgDele} onclick="document.getElementById('idDialogDelete').show()">
-      <md-icon>delete
-    <md-icon-button href=@{DataR $ PayOptionEditR bid wid oid} aria-label=_{MsgEdit}>
-      <md-icon>edit
-
-<md-dialog #idDialogDelete>
-  <div slot=headline>
-    _{MsgConfirmPlease}
-  <div slot=content>
-    _{MsgDeleteAreYouSure}
-  <div slot=actions>
-    <md-text-button type=button onclick="document.getElementById('idDialogDelete').close()">
-      _{MsgCancel}
-    <form slot=content method=post action=@{DataR $ PayOptionDeleR bid wid oid} enctype=#{et2}>
-      ^{fw2}
-      <md-filled-button type=submit>
-        _{MsgDele}
-
-<main>
+<main.responsive ##{idMain}>
 
   $maybe (Entity _ (PayOption _ typ name gate descr icon),workspace,business) <- option
     <dl>
       $maybe icon <- icon
-        <dt.md-typescale-label-large scope=row>_{MsgIcon}
-        <dd.md-typescale-body-medium>
-          <md-icon>#{icon}
+        <dt.bold>_{MsgIcon}
+        <dd.small-margin>
+          <i>#{icon}
  
-      <dt.md-typescale-label-large scope=row>_{MsgType}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgType}
+      <dd.small-margin>
         $case typ
           $of PayAtVenue
             _{MsgPayAtVenue}
           $of PayNow
             _{MsgPayNow}
 
-      <dt.md-typescale-label-large scope=row>_{MsgTheName}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgTheName}
+      <dd.small-margin>
         #{name}
 
       $maybe gate <- gate
-        <dt.md-typescale-label-large scope=row>_{MsgPaymentGateway}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgPaymentGateway}
+        <dd.small-margin>
           $case gate
             $of PayGatewayStripe
               _{MsgStripe}
@@ -56,18 +44,39 @@
               _{MsgYooKassa}
 
       $maybe Textarea descr <- descr
-        <dt.md-typescale-label-large scope=row>_{MsgDescription}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgDescription}
+        <dd.small-margin>
           #{descr}
 
-      <dt.md-typescale-label-large scope=row>_{MsgWorkspace}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgWorkspace}
+      <dd.small-margin>
         $with Entity _ (Workspace _ name _ _ _) <- workspace
           #{name}
 
-      <dt.md-typescale-label-large scope=row>_{MsgBusiness}
-      <dd.md-typescale-body-medium>
+      <dt.bold>_{MsgBusiness}
+      <dd.small-margin>
         $with Entity _ (Business _ name _ _) <- business
           #{name}
 
   ^{widgetSnackbar msgs}
+
+
+<div.overlay ##{idOverlay} data-ui=##{idDialogDelete}>
+
+<dialog ##{idDialogDelete}>
+  <h6>
+    _{MsgConfirmPlease}
+    
+  <p>
+    _{MsgDeleteAreYouSure}
+    
+  <nav.right-align>
+      
+    <form method=post action=@{DataR $ PayOptionDeleR bid wid oid} enctype=#{et0} ##{idFormDelete}>
+      ^{fw0}
+      
+    <button.transparent.link type=button data-ui=##{idDialogDelete}>
+      _{MsgCancel}
+
+    <button.error type=submit form=#{idFormDelete}>
+      _{MsgDele}

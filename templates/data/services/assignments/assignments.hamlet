@@ -1,68 +1,64 @@
 
-<header>
-  <md-icon-button href=@?{(DataR ServicesR,stati)} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@?{(DataR ServicesR,stati)} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgService}
+    <h6.max>
+      _{MsgService}
 
-<main>
+<main.responsive.no-padding ##{idMain}>
 
-  <md-tabs>
-  
-    <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails onclick="this.querySelector('a[href]').click()">
+  <nav.scroll>
+    <div.tabs.min>
+
       <a href=@?{(DataR $ ServiceR sid,stati)}>
-      _{MsgDetails}
-      
-    <md-primary-tab #idTabPhotos aria-cotrols=idPanelPhotos onclick="this.querySelector('a[href]').click()">
+        _{MsgDetails}
+
       <a href=@?{(DataR $ ServicePhotosR sid,stati)}>
-      _{MsgPhotos}
-      
-    <md-primary-tab ##{idTabAssignments} aria-cotrols=#{idPanelAssignments} active 
-      onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ ServiceAssignmentsR sid}>
-      _{MsgServiceAssignments}
+        _{MsgPhotos}
+
+      <a.active href=@?{(DataR $ ServiceAssignmentsR sid,stati)}>
+        _{MsgServiceAssignments}
       
 
-  <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
-  
-  <div #idPanelPhotos role=tabpanel aria-labelledby=idTabPhotos hidden>
-
-  <div ##{idPanelAssignments} role=tabpanel aria-labelledby=#{idTabAssignments}>
+  <div.page.active>
 
     $if null assignments
-      <figure style="text-align:center">
-        <span.on-secondary style="font-size:4rem">&varnothing;
-        <figcaption.md-typescale-body-large>
-          _{MsgThereAreNoDataYet}
-          <div.md-typescale-body-small>
-            _{MsgYouMightWantToAddAFew}
+      ^{widgetEmpty}
     $else
-      <md-list>
-        $forall (Entity aid (Assignment _ _ _ time _ _),(employee,(service,(workspace,(buisiness,attrib))))) <- assignments
-          <md-list-item type=link href=@?{(DataR $ ServiceAssignmentR sid aid,stati)}>
-            $with Entity eid (Staff name _ _ _) <- employee
-              <img slot=start src=@{DataR $ EmployeePhotoR eid} width=56 height=56 loading=lazy>
-              <div slot=headline>
-                #{name}
-            <div slot=supporting-text>
-              $with Entity _ (Service _ name _ _ _ _ _) <- service
-                _{MsgService}: #{name}
-            <div slot=supporting-text>
-              $with (Entity _ (Workspace _ wname _ _ _), Entity _ (Business _ bname _ _)) <- (workspace,buisiness)
-                _{MsgWorkspace} : #{bname} (#{wname})
-            $with dt <- iso8601Show time
-              <time slot=supporting-text datetime=#{dt}>
-                #{dt}
-            <md-icon slot=end>arrow_forward_ios
-          $maybe attrib <- attrib
-            <div.app-attribution>
-              <div.app-attribution-wrapper.md-typescale-body-small>
-                #{attrib}
-          <md-divider>
- 
-    <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-      <a href=@{DataR $ ServiceAssignmentNewR sid}>
-      <md-icon slot=icon>add
+      
+      $forall (Entity aid (Assignment _ _ _ time _ _),(employee,(service,(workspace,(buisiness,attrib))))) <- assignments
+        <a.row.padding.wave href=@?{(DataR $ ServiceAssignmentR sid aid,stati)}>
+          $with Entity eid (Staff name _ _ _) <- employee
+            <img.circle src=@{DataR $ EmployeePhotoR eid} loading=lazy alt=_{MsgPhoto}>
+            <div.max>
+                <div.#{classHeadline}.large-text>
+                  #{name}
+    
+              <div.#{classSupportingText}.secondary-text>
+                $with Entity _ (Service _ name _ _ _ _ _) <- service
+                  _{MsgService}: #{name}
+    
+              <div.#{classSupportingText}.secondary-text>
+                $with (Entity _ (Workspace _ wname _ _ _), Entity _ (Business _ bname _ _)) <- (workspace,buisiness)
+                  _{MsgWorkspace} : #{bname} (#{wname})
+    
+                $with dt <- iso8601Show time
+                  <time slot=supporting-text datetime=#{dt}>
+                    #{dt}
+    
+          <i.secondary-text>arrow_forward_ios
+   
+        $maybe attrib <- attrib
+          <div.#{classAttribution}>
+            #{attrib}
+       
+        <hr>
 
-    ^{widgetSnackbar msgs}
+
+  <a.button.circle.extra.fixed.right.bottom.margin.medium-elevate title=_{MsgAdd}
+           href=@{DataR $ ServiceAssignmentNewR sid}>
+    <i>add
+
+  ^{widgetSnackbar msgs}

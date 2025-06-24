@@ -96,7 +96,7 @@
     /assignments/dele/#SectorId/services/#ServiceId/#AssignmentId/+Sectors   SectorServiceAssignmentDeleR POST
     /assignments/edit/#SectorId/services/#ServiceId/#AssignmentId/+Sectors   SectorServiceAssignmentEditR GET
     /assignments/new/#SectorId/services/#ServiceId/+Sectors                  SectorServiceAssignmentNewR  GET
-    /assignment/sectors/#SectorId/services/#ServiceId/#AssignmentId/+Sectors SectorServiceAssignmentR     GET
+    /assignment/sectors/#SectorId/services/#ServiceId/#AssignmentId/+Sectors SectorServiceAssignmentR     GET POST
     /assignments/sectors/#SectorId/services/#ServiceId/+Sectors              SectorServiceAssignmentsR    GET
 
     

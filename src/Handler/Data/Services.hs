@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -51,7 +51,7 @@ import qualified Database.Persist as P (delete, PersistStoreWrite (replace))
 import Database.Persist.Sql (fromSqlKey, toSqlKey)
 
 import Foundation
-    ( Handler, Form, Widget, widgetMainMenu, widgetAccount, widgetSnackbar
+    ( Handler, Form, Widget, widgetMainMenu, widgetAccount, widgetSnackbar, widgetEmpty
     , Route (DataR, StaticR)
     , DataR
       ( ServicesR, ServiceR, ServiceNewR, ServiceEditR, ServiceDeleR
@@ -61,7 +61,7 @@ import Foundation
       , ServicePhotoNewR, ServicePhotoDeleR, ServicePhotoDefaultR, EmployeePhotoR
       )
     , AppMessage
-      ( MsgServices, MsgAdd, MsgYouMightWantToAddAFew, MsgThereAreNoDataYet
+      ( MsgServices, MsgAdd, MsgNoServicesWereFoundForSearchTerms
       , MsgService, MsgSave, MsgCancel, MsgBack, MsgTheName, MsgWorkspace
       , MsgDescription, MsgRecordAdded, MsgServiceAssignments, MsgDetails
       , MsgDeleteAreYouSure, MsgConfirmPlease, MsgEdit, MsgRecordEdited
@@ -118,6 +118,7 @@ import Settings.StaticFiles
     )
 
 import Text.Hamlet (Html)
+import Text.Julius (rawJS)
 import Text.Read (readMaybe)
 
 import Yesod.Core
@@ -345,9 +346,15 @@ getServiceAssignmentsR sid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServiceAssignments
-        idTabAssignments <- newIdent
-        idPanelAssignments <- newIdent
-        idFabAdd <- newIdent
+        idHeader <- newIdent
+        idMain <- newIdent
+        classHeadline <- newIdent
+        classSupportingText <- newIdent
+        classAttribution <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
+        $(widgetFile "common/css/rows")
+        $(widgetFile "common/css/attribution")
         $(widgetFile "data/services/assignments/assignments")
 
 
@@ -551,13 +558,18 @@ getServiceR sid = do
         where_ $ x ^. ServiceId ==. val sid
         return (x,w)
 
-    (fw2,et2) <- generateFormPost formServiceDelete
+    (fw0,et0) <- generateFormPost formServiceDelete
 
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
-        idTabDetails <- newIdent
-        idPanelDetails <- newIdent
+        idHeader <- newIdent
+        idMain <- newIdent
+        classCurrency <- newIdent
+        idOverlay <- newIdent
+        idDialogDelete <- newIdent
+        idFormDelete <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "data/services/service")
 
 
@@ -587,8 +599,15 @@ getServicesR = do
     defaultLayout $ do
         setTitleI MsgServices
         idOverlay <- newIdent
+        idHeader <- newIdent
+        idMain <- newIdent
         idDialogMainMenu <- newIdent
-        idFabAdd <- newIdent
+        classHeadline <- newIdent
+        classSupportingText <- newIdent
+        classCurrency <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
+        $(widgetFile "common/css/rows")
         $(widgetFile "data/services/services")
 
 
@@ -766,9 +785,12 @@ getServicePhotosR sid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgService
-        idTabPhotos <- newIdent
-        idPanelPhotos <- newIdent
-        idFabAdd <- newIdent
+        idHeader <- newIdent
+        idMain <- newIdent
+        classAttribution <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
+        $(widgetFile "common/css/attribution")
         $(widgetFile "data/services/photos/photos")
 
 
@@ -847,7 +869,6 @@ widgetChips = do
 
     let paramsWokspaces bid = (\x -> (paramWorkspace,pack $ show $ fromSqlKey x))
             <$> filter (\x -> x `notElem` M.findWithDefault [] bid businessWorkspaces) selectedWorkspaces
-
     
     scrollX1 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX1)
     scrollX2 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX2)
@@ -855,6 +876,8 @@ widgetChips = do
     
     idFilterChips <- newIdent
     idDetailsSectors <- newIdent
+    classSummaryLabel <- newIdent
+    classSummaryEndIcon <- newIdent
     idChipSetSectors <- newIdent
     idChipSetBusinesses <- newIdent
     idChipSetWorkspaces <- newIdent

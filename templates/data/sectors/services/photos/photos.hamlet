@@ -29,7 +29,7 @@
     $else
       
       $forall Entity fid (ServicePhoto _ _ _ attrib) <- photos
-        <a.row.padding.wave type=link href=@?{(DataR $ SectorServicePhotoEditR gid sid fid ps,stati)}>
+        <a.row.padding.wave href=@?{(DataR $ SectorServicePhotoEditR gid sid fid ps,stati)}>
  
           <img.circle src=@{DataR $ ServicePhotoR sid fid} loading=lazy alt=_{MsgPhoto}>
           <div.max>

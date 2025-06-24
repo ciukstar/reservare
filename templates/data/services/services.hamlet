@@ -1,7 +1,7 @@
 
 ^{widgetMainMenu idOverlay idDialogMainMenu}
 
-<header.fixed.primary>
+<header.fixed.primary ##{idHeader}>
   <nav.responsive.max>
     <button.circle.transparent data-ui=##{idDialogMainMenu}>
       <i>menu
@@ -11,31 +11,37 @@
 
     ^{widgetAccount}
 
-<main.responsive>
+<main.responsive.no-padding ##{idMain}>
 
   ^{widgetChips}
 
   $if null services
-    <figure style="text-align:center">
-      <span.on-secondary style="font-size:4rem">&varnothing;
-      <figcaption.md-typescale-body-large>
-        _{MsgThereAreNoDataYet}
-        <div.md-typescale-body-small>
-          _{MsgYouMightWantToAddAFew}
+    
+    $if all id [null selectedSectors,null selectedBusinesses,null selectedWorkspaces]
+      ^{widgetEmpty}
+    $else
+      <figure.center-align>
+        <i.extra>manage_search
+        <figcaption.padding>
+          _{MsgNoServicesWereFoundForSearchTerms}
+          
   $else
-    <md-list>
-      $forall (Entity sid (Service _ name _ price _ _ _),Entity _ (Workspace _ _ _ _ currency)) <- services
-        <md-list-item type=link href=@?{(DataR $ ServiceR sid,stati)}>
-          <img slot=start src=@{DataR $ ServicePhotoDefaultR sid} width=auto height=56 loading=lazy>
-          <div slot=headline>
+    
+    $forall (Entity sid (Service _ name _ price _ _ _),Entity _ (Workspace _ _ _ _ currency)) <- services
+      <a.row.padding.wave href=@?{(DataR $ ServiceR sid,stati)}>
+        <img.circle src=@{DataR $ ServicePhotoDefaultR sid} loading=lazy alt=_{MsgPhoto}>
+        <div.max>
+          <div.#{classHeadline}.large-text>
             #{name}
-          <div.currency slot=supporting-text data-value=#{price} data-currency=#{currency}>
+          <div.#{classCurrency}.#{classSupportingText}.secondary-text data-value=#{price} data-currency=#{currency}>
             #{currency}#{price}
-          <md-icon slot=end>arrow_forward_ios
-        <md-divider>
 
-  <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-    <a href=@{DataR ServiceNewR}>
-    <md-icon slot=icon>add
+        <i.secondary-text>arrow_forward_ios
+
+      <hr>
+
+
+  <a.button.circle.extra.fixed.right.bottom.margin.medium-elevate href=@{DataR ServiceNewR} title=_{MsgAdd}>
+    <i>add
 
 ^{widgetSnackbar msgs}
