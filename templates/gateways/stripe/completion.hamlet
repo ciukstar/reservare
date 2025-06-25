@@ -1,34 +1,30 @@
 
-<header>
-  <md-icon-button href=@{homeR} aria-label=_{MsgBack}>
-    <md-icon>close
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{homeR} role=button title=_{MsgClose}>
+      <i>close
 
-  <span.md-typescale-title-large>
-    _{MsgFinish}
+    <h6.max>
+      _{MsgFinish}
 
+<main.responsive ##{idMain}>
 
-<main>
-
-  $forall (_,msg) <- filter ((==) statusError . fst) msgs
-    <div.app-banner.error.body-medium>
-      #{msg}
-
-  <figure>
-    <md-icon>task_alt
-    <figcaption.md-typescale-title-medium>
+  <figure.margin.center-align>
+    <i.extra.green-text>task_alt
+    <figcaption.padding.large-text>
       _{MsgYourBookingHasBeenCreatedSuccessfully}
 
-  <md-filled-tonal-button type=link href=@{bookDetailsR}>
-    _{MsgViewBookingDetails}
+  <nav.vertical.center-align>
+    <a.button.fill href=@{bookDetailsR} role=button>
+      _{MsgViewBookingDetails}
 
-  <md-text-button type=link href=@{homeR}>
-    _{MsgReturnToHomePage}
+    <a.button.transparent.link href=@{homeR}>
+      _{MsgReturnToHomePage}
 
 
-  $forall (status,msg) <- filter ((/=) statusError . fst) msgs
-    <aside.app-snackbar.shape-small.elevation-1
-      :status == statusSuccess:.primary-container :status /= statusSuccess:.error-container>
-      <md-elevation>
-      <span.body-medium>#{msg}
-      <md-icon-button type=button>
-        <md-icon>close
+  $forall (s,msg) <- msgs
+    <div.snackbar.active :s == statusError:.error>
+      <div.max>
+        #{msg}
+      <button.close.transparent.circle.small>
+        <i>close

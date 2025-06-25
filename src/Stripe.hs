@@ -1,8 +1,8 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeApplications #-}
@@ -76,6 +76,7 @@ import Stripe.Data
       , MsgInvalidPaymentAmount, MsgYourBookingHasBeenCreatedSuccessfully
       , MsgUnhandledError, MsgPaymentStatus, MsgSomethingWentWrong, MsgFinish
       , MsgViewBookingDetails, MsgReturnToHomePage, MsgPaymentIntentCancelled
+      , MsgClose
       )
     )
     
@@ -129,6 +130,10 @@ getCompletionR bid oid = do
             msgs <- getMessages
             liftHandler $ defaultLayout $ do
                 setTitleI MsgCheckout
+                idHeader <- newIdent
+                idMain <- newIdent
+                $(widgetFile "common/css/header")
+                $(widgetFile "common/css/main")
                 $(widgetFile "gateways/stripe/error")
 
         _otherwise -> do
@@ -136,6 +141,10 @@ getCompletionR bid oid = do
             msgs <- getMessages
             liftHandler $ defaultLayout $ do
                 setTitleI MsgCheckout
+                idHeader <- newIdent
+                idMain <- newIdent
+                $(widgetFile "common/css/header")
+                $(widgetFile "common/css/main")
                 $(widgetFile "gateways/stripe/error")
             
       Right r -> case r ^? responseBody . key "status" . _String of
@@ -151,7 +160,12 @@ getCompletionR bid oid = do
                 msgs <- getMessages
                 liftHandler $ defaultLayout $ do
                     setTitleI MsgStripe
+                    idHeader <- newIdent
+                    idMain <- newIdent
+                    $(widgetFile "common/css/header")
+                    $(widgetFile "common/css/main")
                     $(widgetFile "gateways/stripe/error")
+                    
               Just amount -> do
                 now <- liftIO getCurrentTime
 
@@ -169,6 +183,10 @@ getCompletionR bid oid = do
                 msgs <- getMessages
                 liftHandler $ defaultLayout $ do
                     setTitleI MsgPaymentStatus
+                    idHeader <- newIdent
+                    idMain <- newIdent
+                    $(widgetFile "common/css/header")
+                    $(widgetFile "common/css/main")
                     $(widgetFile "gateways/stripe/completion")
 
         Just s -> do
@@ -177,6 +195,10 @@ getCompletionR bid oid = do
             msgs <- getMessages
             liftHandler $ defaultLayout $ do
                 setTitleI MsgStripe
+                idHeader <- newIdent
+                idMain <- newIdent
+                $(widgetFile "common/css/header")
+                $(widgetFile "common/css/main")
                 $(widgetFile "gateways/stripe/error")
                 
         Nothing -> do                
@@ -184,6 +206,10 @@ getCompletionR bid oid = do
             msgs <- getMessages
             liftHandler $ defaultLayout $ do
                 setTitleI MsgStripe
+                idHeader <- newIdent
+                idMain <- newIdent
+                $(widgetFile "common/css/header")
+                $(widgetFile "common/css/main")
                 $(widgetFile "gateways/stripe/error")
 
 
@@ -251,14 +277,19 @@ getCheckoutR bid oid = do
     msgs <- getMessages
     liftHandler $ defaultLayout $ do
         setTitleI MsgCheckout
+        idHeader <- newIdent
         idButtonBack <- newIdent
+        idMain <- newIdent
         idBannerStripe <- newIdent
         idSectionPriceTag <- newIdent
+        classCurrency <- newIdent
         idFormPayment <- newIdent
         idElementPayment <- newIdent
         idButtonSubmitPayment <- newIdent
         idButtonCancelPayment <- newIdent
         addScriptRemote scriptRemoteStripe
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "gateways/stripe/checkout")
 
 

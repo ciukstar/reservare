@@ -1,8 +1,6 @@
 
 
-Array.from(
-  document.querySelectorAll('time.full-datetime[datetime]')
-).forEach(function (x) {
+document.querySelectorAll('time.full-datetime[datetime]').forEach(function (x) {
   x.textContent = new Date(x.getAttribute('datetime')).toLocaleDateString(
     navigator.language,
     { year: 'numeric',
@@ -15,9 +13,7 @@ Array.from(
   );
 });
 
-Array.from(
-  document.querySelectorAll('.currency[data-value][data-currency]')
-).forEach(function (x) {
+document.querySelectorAll('.currency[data-value][data-currency]').forEach(function (x) {
   x.textContent = Intl.NumberFormat(navigator.language, {
     style: 'currency',
     currency: x.dataset.currency,

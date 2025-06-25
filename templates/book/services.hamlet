@@ -1,22 +1,24 @@
 
-<header.background>
-  <md-icon-button href=@{HomeR} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{HomeR} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgServices}
-    <div.microcopy.md-typescale-body-small>
-      _{MsgSelectServiceToBookPlease}
+    <h6.max>
+      _{MsgServices}
+      <div.small-text.secondary-text>
+        _{MsgSelectServiceToBookPlease}
 
-
-<main>
+<main.responsive.no-padding ##{idMain}>
 
   ^{widgetFilterChips BookServicesR}
     
   <form method=post action=@?{(BookServicesR,stati)} enctype=#{et} ##{idFormService}>
     ^{fw}
 
-  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext}>
-    <md-icon slot=icon>arrow_forward
 
-^{widgetSnackbar msgs}
+  <button.circle.extend.fixed.right.bottom.margin.medium-elevate type=button ##{idFabNext} title=_{MsgNext}>
+    <i>arrow_forward
+    <span>_{MsgNext}
+
+  ^{widgetSnackbar msgs}

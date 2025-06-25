@@ -1,7 +1,8 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE PatternSynonyms   #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Handler.Catalog
   ( getCatalogR
@@ -21,7 +22,8 @@ import Control.Monad (unless, join)
 
 import Data.Bifunctor (Bifunctor(second, first))
 import qualified Data.Map as M
-    ( Map, fromListWith, member, notMember, lookup ) 
+    ( Map, fromListWith, member, notMember, lookup
+    ) 
 import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Text (unpack, pack)
 import Data.Time.Calendar
@@ -100,6 +102,7 @@ import Settings.StaticFiles
     )
 
 import Text.Hamlet (Html)
+import Text.Julius (RawJS(rawJS), julius)
 import Text.Read (readMaybe)
 import Text.Printf (printf)
 
@@ -109,8 +112,8 @@ import Yesod.Core
     , newIdent, lookupGetParam, YesodRequest (reqGetParams), getRequest
     , MonadIO (liftIO), getMessageRender
     )
+import Yesod.Core.Widget (toWidget)
 import Yesod.Persist (YesodPersist(runDB))
-import Text.Julius (RawJS(rawJS))
 
 
 getCatalogStaffScheduleSlotsR :: ServiceId -> StaffId -> AssignmentId -> Day -> Handler Html
@@ -129,8 +132,17 @@ getCatalogStaffScheduleSlotsR sid eid aid day = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgWorkingHours 
+        idHeader <- newIdent
+        idMain <- newIdent
+        classHeadline <- newIdent
         idButtonMakeAnAppointment <- newIdent
+        $(widgetFile "common/css/header")
         $(widgetFile "catalog/assignments/schedule/slots/slots")
+        unless (null slots) $ toWidget [julius|
+                document.getElementById(#{idButtonMakeAnAppointment}).addEventListener('click', e => {
+                  sessionStorage.setItem(#{keyBacklink},'@?{(CatalogStaffScheduleSlotsR sid eid aid day,stati)}')
+                });
+            |]
 
 
 getCatalogStaffScheduleR :: ServiceId -> AssignmentId -> Month -> Handler Html

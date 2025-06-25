@@ -57,7 +57,7 @@ import Foundation
       )
     , AppMessage
       ( MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
-      , MsgServices, MsgNext, MsgServices, MsgThereAreNoDataYet
+      , MsgServices, MsgNext, MsgServices, MsgThereAreNoDataYet, MsgClose
       , MsgBack, MsgStaff, MsgAppointmentTime, MsgPaymentOption, MsgCancel
       , MsgPaymentStatus, MsgReturnToHomePage, MsgService, MsgEmployee
       , MsgSelect, MsgSelectTime, MsgAppointmentSetFor, MsgPrevious
@@ -69,7 +69,7 @@ import Foundation
       , MsgPaymentGatewayNotSpecified, MsgNoPaymentsHaveBeenMadeYet
       , MsgPayments, MsgTotalCharge, MsgError, MsgNoPaymentOptionSpecified
       , MsgWorkspaceWithoutPaymentOptions, MsgBusinesses, MsgWorkspaces
-      , MsgSectors, MsgSelectServiceToBookPlease
+      , MsgSectors, MsgSelectServiceToBookPlease, MsgPhoto
       )
     )
 
@@ -111,6 +111,7 @@ import Settings ( widgetFile )
 import qualified Stripe.Data as S (Route(CheckoutR))
 
 import Text.Cassius (cassius)
+import Text.Julius (julius, RawJS (rawJS))
 import Text.Hamlet (Html)
 import Text.Read (readMaybe)
 
@@ -165,6 +166,10 @@ getBookDetailsR bid = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgPaymentStatus
+        idHeader <- newIdent
+        idMain <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "book/details/details")
 
 
@@ -256,8 +261,12 @@ postBookPaymentR = do
                 msgs <- getMessages
                 defaultLayout $ do
                     setTitleI MsgPaymentOption
+                    idHeader <- newIdent
+                    idMain <- newIdent
                     idFormPayment <- newIdent
                     idFabNext <- newIdent
+                    $(widgetFile "common/css/header")
+                    $(widgetFile "common/css/main")
                     $(widgetFile "book/payment/payment")
 
             _otherwise -> do
@@ -265,8 +274,12 @@ postBookPaymentR = do
                 msgs <- getMessages
                 defaultLayout $ do
                     setTitleI MsgPaymentOption
+                    idHeader <- newIdent
+                    idMain <- newIdent
                     idFormPayment <- newIdent
                     idFabNext <- newIdent
+                    $(widgetFile "common/css/header")
+                    $(widgetFile "common/css/main")
                     $(widgetFile "book/payment/payment")
 
       (FormFailure errs, _) -> do
@@ -274,8 +287,12 @@ postBookPaymentR = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgPaymentOption
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormPayment <- newIdent
               idFabNext <- newIdent
+              $(widgetFile "common/css/header")
+              $(widgetFile "common/css/main")
               $(widgetFile "book/payment/payment")
 
       (FormMissing, _) -> do
@@ -283,8 +300,12 @@ postBookPaymentR = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgPaymentOption
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormPayment <- newIdent
               idFabNext <- newIdent
+              $(widgetFile "common/css/header")
+              $(widgetFile "common/css/main")
               $(widgetFile "book/payment/payment")
 
 
@@ -329,6 +350,10 @@ getBookPaymentR = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgError
+              idHeader <- newIdent
+              idMain <- newIdent
+              $(widgetFile "common/css/header")
+              $(widgetFile "common/css/main")
               $(widgetFile "book/payment/error")
 
       ([Entity oid' (PayOption _ PayNow _ (Just PayGatewayStripe) _ _)],Just (charge,currency),Just (Entity uid _)) -> do
@@ -368,6 +393,10 @@ getBookPaymentR = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgError
+              idHeader <- newIdent
+              idMain <- newIdent
+              $(widgetFile "common/css/header")
+              $(widgetFile "common/css/main")
               $(widgetFile "book/payment/error")
 
       ([Entity oid' (PayOption _ PayAtVenue _ _ _ _)],Just (charge,currency),Just (Entity uid _)) -> do
@@ -387,8 +416,12 @@ getBookPaymentR = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgPaymentOption
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormPayment <- newIdent
               idFabNext <- newIdent
+              $(widgetFile "common/css/header")
+              $(widgetFile "common/css/main")
               $(widgetFile "book/payment/payment")
 
 
@@ -396,24 +429,22 @@ formPayment :: Maybe ServiceId -> Maybe StaffId -> Maybe UTCTime -> Maybe PayOpt
             -> Form (ServiceId,StaffId,UTCTime,PayOptionId)
 formPayment sid eid time option extra = do
 
-    msgr <- getMessageRender
-
     (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
         { fsLabel = SomeMessage MsgService
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgService),("hidden","hidden")]
+        , fsAttrs = [("hidden","hidden")]
         } (fromIntegral . fromSqlKey <$> sid)
 
     (staffR,staffV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
         { fsLabel = SomeMessage MsgEmployee
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgEmployee),("hidden","hidden")]
+        , fsAttrs = [("hidden","hidden")]
         } (fromIntegral . fromSqlKey <$> eid)
 
     (timeR,timeV) <- mreq datetimeLocalField FieldSettings
         { fsLabel = SomeMessage MsgAppointmentTime
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgAppointmentTime),("hidden","hidden")]
+        , fsAttrs = [("hidden","hidden")]
         } (utcToLocalTime utc <$> time)
 
     options <- liftHandler $ runDB $ select $ do
@@ -448,24 +479,41 @@ formPayment sid eid time option extra = do
 
                 let findOption opt = find (\(Entity oid _) -> oid == optionInternalValue opt)
 
+                classHeadline <- newIdent
+                classSupportingText <- newIdent
+     
+                toWidget [cassius|
+                                 ol.list li
+
+                                      div.max
+                                          min-width: 0
+
+                                          .#{classHeadline}, .#{classSupportingText}
+                                              white-space: nowrap
+                                              overflow: hidden
+                                              text-overflow: ellipsis
+                                 |]
                 [whamlet|
-<md-list ##{theId} *{attrs}>
-  $forall (i,opt) <- opts
-    $maybe Entity _ (PayOption _ _ oname _ descr icon) <- findOption opt options
-      <md-list-item type=button onclick="this.querySelector('md-radio').click()">
-        $maybe icon <- icon
-          <md-icon slot=start>
-            #{icon}
-        <div slot=headline>
-          #{oname}
-        $maybe descr <- descr
-          <div slot=supporting-text>
-            #{descr}
-        <div slot=end>
-          <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
-            :sel x opt:checked touch-target=wrapper>
-    <md-divider>
-|]
+                    <ol.list.border ##{theId} *{attrs}>
+                      $forall (i,opt) <- opts
+                        $maybe Entity _ (PayOption _ _ oname _ descr icon) <- findOption opt options
+                          <li.wave onclick="this.querySelector('label.radio').click()">
+                          
+                            $maybe icon <- icon
+                              <i.extra>#{icon}
+                              
+                            <div.max>
+                              <div.#{classHeadline}.large-text>
+                                #{oname}
+                              $maybe descr <- descr
+                                <div.#{classSupportingText}.secondary-text>
+                                  #{descr}
+                                  
+                            <label.radio>
+                              <input type=radio ##{theId}-#{i} name=#{name}  value=#{optionExternalValue opt}
+                                     :isReq:required=true :sel x opt:checked aria-label=#{oname}>
+                              <span>
+                |]
               }
 
 
@@ -496,16 +544,25 @@ postBookTimeSlotsR day = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgAppointmentTime
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormSlots <- newIdent
               idFabSelect <- newIdent
+              $(widgetFile "common/css/header")
+              $(widgetFile "common/css/main")
               $(widgetFile "book/timing/slots/slots")
+              
       FormMissing -> do
           addMessageI statusError MsgInvalidFormData
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgAppointmentTime
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormSlots <- newIdent
               idFabSelect <- newIdent
+              $(widgetFile "common/css/header")
+              $(widgetFile "common/css/main")
               $(widgetFile "book/timing/slots/slots")
 
 
@@ -527,8 +584,12 @@ getBookTimeSlotsR day = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgAppointmentTime
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormSlots <- newIdent
         idFabSelect <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "book/timing/slots/slots")
 
 
@@ -568,18 +629,16 @@ formTimeSlot :: [LocalTime] -> Maybe ServiceId -> Maybe StaffId -> Maybe LocalTi
              -> Form (ServiceId,StaffId,LocalTime)
 formTimeSlot slots sid eid tid extra = do
 
-    msgr <- getMessageRender
-
     (serviceR,serviceV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
         { fsLabel = SomeMessage MsgService
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgService),("hidden","hidden")]
+        , fsAttrs = [("hidden","hidden")]
         } (fromIntegral . fromSqlKey <$> sid)
 
     (staffR,staffV) <- first (toSqlKey . fromIntegral @Integer <$>) <$> mreq intField FieldSettings
         { fsLabel = SomeMessage MsgEmployee
         , fsTooltip = Nothing, fsId = Nothing, fsName = Nothing
-        , fsAttrs = [("label", msgr MsgEmployee),("hidden","hidden")]
+        , fsAttrs = [("hidden","hidden")]
         } (fromIntegral . fromSqlKey <$> eid)
 
 
@@ -603,17 +662,19 @@ formTimeSlot slots sid eid tid extra = do
                     sel (Right y) opt = optionInternalValue opt == y
 
                 [whamlet|
-<md-list ##{theId} *{attrs}>
-  $forall (i,opt) <- opts
-    <md-list-item type=button onclick="this.querySelector('md-radio').click()">
-      $with dt <- optionDisplay opt
-        <time.time-slot slot=headline datetime=#{dt}>
-          #{optionDisplay opt}
-      <div slot=end>
-        <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
-          :sel x opt:checked touch-target=wrapper>
-    <md-divider>
-|]
+                    <ol.list.border ##{theId} *{attrs}>
+                      $forall (i,opt) <- opts
+                        <li.wave onclick="this.querySelector('label.radio').click()">
+                          $with dt <- optionDisplay opt
+                            <time.time-slot.large-text.max datetime=#{dt}>
+                              #{optionDisplay opt}
+                              
+                          <label.radio>
+                            <input type=radio ##{theId}-#{i} name=#{name} value=#{optionExternalValue opt}
+                                   :isReq:required=true :sel x opt:checked aria-label=#{optionDisplay opt}>
+                            <span>
+                        
+                |]
               }
 
 
@@ -645,7 +706,7 @@ postBookTimingR month = do
 
           today <- utctDay <$> liftIO getCurrentTime
 
-          slots <- groupByKey (\(Entity _ (Schedule _ day _ _)) -> day) <$> runDB ( select $ do
+          slots <- (groupByKey (\(Entity _ (Schedule _ day _ _)) -> day) <$>) $ runDB $ select $ do
               x :& a <- from $ table @Schedule
                   `innerJoin` table @Assignment `on` (\(x :& a) -> x ^. ScheduleAssignment ==. a ^. AssignmentId)
               case sid of
@@ -655,15 +716,19 @@ postBookTimingR month = do
                 Just employee -> where_ $ a ^. AssignmentStaff ==. val employee
                 Nothing -> where_ $ val False
               where_ $ x ^. ScheduleDay `between` (val today, val $ periodLastDay month)
-              return x )
+              return x
 
           forM_ errs $ \err -> addMessageI statusError err
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgAppointmentTime
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormTiming <- newIdent
               idCalendarPage <- newIdent
               idFabNext <- newIdent
+              $(widgetFile "common/css/header")
+              $(widgetFile "common/css/main")
               $(widgetFile "book/timing/timing")
 
       FormMissing -> do
@@ -676,7 +741,7 @@ postBookTimingR month = do
 
           today <- utctDay <$> liftIO getCurrentTime
 
-          slots <- groupByKey (\(Entity _ (Schedule _ day _ _)) -> day) <$> runDB ( select $ do
+          slots <- (groupByKey (\(Entity _ (Schedule _ day _ _)) -> day) <$>) $ runDB $ select $ do
               x :& a <- from $ table @Schedule
                   `innerJoin` table @Assignment `on` (\(x :& a) -> x ^. ScheduleAssignment ==. a ^. AssignmentId)
               case sid of
@@ -686,15 +751,19 @@ postBookTimingR month = do
                 Just employee -> where_ $ a ^. AssignmentStaff ==. val employee
                 Nothing -> where_ $ val False
               where_ $ x ^. ScheduleDay `between` (val today, val $ periodLastDay month)
-              return x )
+              return x
 
           addMessageI statusError MsgInvalidFormData
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgAppointmentTime
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormTiming <- newIdent
               idCalendarPage <- newIdent
               idFabNext <- newIdent
+              $(widgetFile "common/css/header")
+              $(widgetFile "common/css/main")
               $(widgetFile "book/timing/timing")
 
 
@@ -717,7 +786,7 @@ getBookTimingR month = do
 
     today <- utctDay <$> liftIO getCurrentTime
 
-    slots <- groupByKey (\(Entity _ (Schedule _ day _ _)) -> day) <$> runDB ( select $ do
+    slots <- (groupByKey (\(Entity _ (Schedule _ day _ _)) -> day) <$>) $ runDB $ select $ do
         x :& a <- from $ table @Schedule
             `innerJoin` table @Assignment `on` (\(x :& a) -> x ^. ScheduleAssignment ==. a ^. AssignmentId)
         case sid of
@@ -727,14 +796,18 @@ getBookTimingR month = do
           Just employee -> where_ $ a ^. AssignmentStaff ==. val employee
           Nothing -> where_ $ val False
         where_ $ x ^. ScheduleDay `between` (val today, val $ periodLastDay month)
-        return x )
+        return x 
 
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgAppointmentTime
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormTiming <- newIdent
         idCalendarPage <- newIdent
         idFabNext <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "book/timing/timing")
 
 
@@ -794,16 +867,25 @@ postBookStaffR = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgStaff
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormStaff <- newIdent
               idFabNext <- newIdent
+              $(widgetFile "common/css/header")
+              $(widgetFile "common/css/main")
               $(widgetFile "book/staff/staff")
+              
       FormMissing -> do
           addMessageI statusError MsgInvalidFormData
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgStaff
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormStaff <- newIdent
               idFabNext <- newIdent
+              $(widgetFile "common/css/header")
+              $(widgetFile "common/css/main")
               $(widgetFile "book/staff/staff")
 
 
@@ -820,8 +902,12 @@ getBookStaffR = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgStaff
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormStaff <- newIdent
         idFabNext <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "book/staff/staff")
 
 
@@ -868,48 +954,58 @@ formStaff sid eid extra = do
                     sel (Right y) opt = optionInternalValue opt == y
 
                 let findStaff opt = find (\((_,Entity eid' _),_) -> eid' == optionInternalValue opt)
+
+                classAttribution <- newIdent
+                classHeadline <- newIdent
+                classSupportingText <- newIdent
+                
                 toWidget [cassius|
-                                 img[slot=start]
-                                     clip-path: circle(50%)
+                                 ol.list li
 
-                                 div[slot=headline], div[slot=supporting-text]
-                                     white-space: nowrap
+                                     div.max
+                                         min-width: 0
 
-                                 .app-attribution
-                                     position: relative
-                                     margin: 0
-                                     padding: 0
-                                     line-height: 0
-                                     .app-attribution-wrapper
-                                         position: absolute
-                                         bottom: 0
-                                         left: 0.4rem
-                                         font-size: 0.5rem
+                                         .#{classHeadline}, .#{classSupportingText}
+                                             white-space: nowrap
+                                             overflow: hidden
+                                             text-overflow: ellipsis
+
+                                 .#{classAttribution}
+                                     position: absolute
+                                     bottom: 0
+                                     left: 0.4rem
+                                     line-height: 1
+                                     font-size: 0.5rem
                                  |]
                 [whamlet|
 $if null opts
-    <figure style="text-align:center">
-      <span.on-secondary style="font-size:4rem">&varnothing;
-      <figcaption.md-typescale-body-large>
-        _{MsgNoEmployeesAvailableNow}.
+    <figure.center-align>
+      <i.extra.secondary-text>folder-open
+      <figcaption.large-text>
+        _{MsgNoEmployeesAvailableNow}
+        
 $else
-  <md-list ##{theId} *{attrs}>
+  <ol.list.border ##{theId} *{attrs}>
     $forall (i,opt) <- opts
       $maybe ((Entity _ (Assignment _ _ role _ _ _),Entity eid (Staff ename _ _ _)),attrib) <- findStaff opt staff
-        <md-list-item type=text onclick="this.querySelector('md-radio').click()">
-          <img slot=start src=@{StaffPhotoR eid} width=56 height=56 loading=lazy>
-          <div slot=headline>
-            #{ename}
-          <div slot=supporting-text>
-            #{role}
-          <div slot=end>
-            <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
-              :sel x opt:checked touch-target=wrapper>
+        <li.wave onclick="this.querySelector('label.radio').click()">
+          <img.circle src=@{StaffPhotoR eid} loading=lazy alt=_{MsgPhoto}>
+          
+          <div.max>
+            <div.#{classHeadline}.large-text>
+              #{ename}
+            <div.#{classSupportingText}.secondary-text>
+              #{role}
+              
+          <label.radio>
+            <input type=radio ##{theId}-#{i} name=#{name} value=#{optionExternalValue opt}
+                   :isReq:required=true :sel x opt:checked aria-label=#{ename}>
+            <span>
+              
         $maybe attrib <- attrib
-          <div.app-attribution>
-            <div.app-attribution-wrapper.md-typescale-body-small>
-              #{attrib}
-      <md-divider>
+          <div.#{classAttribution}>
+            #{attrib}
+      
 |]
               }
 
@@ -946,16 +1042,25 @@ postBookServicesR = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgServices
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormService <- newIdent
               idFabNext <- newIdent
+              $(widgetFile "common/css/header")
+              $(widgetFile "common/css/main")
               $(widgetFile "book/services")
+              
       FormMissing -> do
           addMessageI statusError MsgInvalidFormData
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgServices
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormService <- newIdent
               idFabNext <- newIdent
+              $(widgetFile "common/css/header")
+              $(widgetFile "common/css/main")
               $(widgetFile "book/services")
 
 
@@ -983,8 +1088,12 @@ getBookServicesR = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgServices
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormService <- newIdent
         idFabNext <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "book/services")
 
 
@@ -1023,36 +1132,59 @@ formService tids bids wids sid extra = do
                     sel (Right y) opt = optionInternalValue opt == y
 
                 let findService opt = find (\(Entity sid' _,_) -> sid' == optionInternalValue opt)
-                toWidget [cassius|
-                                 img[slot=start]
-                                     clip-path: circle(50%)
 
-                                 div[slot=headline], div[slot=supporting-text]
-                                     white-space: nowrap
+                classHeadline <- newIdent
+                classSupportingText <- newIdent
+                classCurrency <- newIdent
+     
+                toWidget [cassius|
+                                 ol.list li
+
+                                      div.max
+                                          min-width: 0
+
+                                          .#{classHeadline}, .#{classSupportingText}
+                                              white-space: nowrap
+                                              overflow: hidden
+                                              text-overflow: ellipsis
                                  |]
+                toWidget [julius|
+                    document.querySelectorAll('.#{rawJS classCurrency}[data-value][data-currency]').forEach(function (x) {
+                      x.textContent = Intl.NumberFormat(navigator.language, {
+                        style: 'currency',
+                        currency: x.dataset.currency,
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 2,
+                        useGrouping: true
+                      }).format(x.dataset.value / 100);
+                    });
+                |]
                 [whamlet|
 $if null opts
-  <figure style="text-align:center">
-    <span.on-secondary style="font-size:4rem">&varnothing;
-    <figcaption.md-typescale-body-large>
-      _{MsgNoServicesWereFoundForSearchTerms}.
+  <figure.center-align>
+    <i.extra.secondary-text>folder_open
+    <figcaption.large-text>
+      _{MsgNoServicesWereFoundForSearchTerms}
 $else
-  <md-list ##{theId} *{attrs}>
+  <ol.list.border ##{theId} *{attrs}>
     $forall (i,opt) <- opts
       $maybe (Entity sid (Service _ sname _ price _ _ _),(workspace,business)) <- findService opt services
-        <md-list-item type=button onclick="this.querySelector('md-radio').click()">
-          <img slot=start src=@{CatalogServicePhotoDefaultR sid} width=56 height=56 loading=lazy>
-          <div slot=headline>
-            #{sname}
-          $with (Entity _ (Workspace _ wname _ _ currency),Entity _ (Business _ bname _ _)) <- (workspace,business)
-            <div slot=supporting-text>
-              #{wname} (#{bname})
-            <div.currency slot=supporting-text data-value=#{price} data-currency=#{currency}>
-              #{currency}#{price}
-          <div slot=end>
-            <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
-              :sel x opt:checked touch-target=wrapper>
-      <md-divider>
+        <li.wave onclick="this.querySelector('label.radio').click()">
+          <img.circle src=@{CatalogServicePhotoDefaultR sid} loading=lazy alt=_{MsgPhoto}>
+          <div.max>
+            <div.#{classHeadline}.large-text>
+              #{sname}
+              
+            $with (Entity _ (Workspace _ wname _ _ currency),Entity _ (Business _ bname _ _)) <- (workspace,business)
+              <div.#{classSupportingText}.secondary-text>
+                #{wname} (#{bname})
+              <div.#{classCurrency}.#{classSupportingText}.secondary-text data-value=#{price} data-currency=#{currency}>
+                #{currency}#{price}
+                
+          <label.radio>
+            <input type=radio ##{theId}-#{i} name=#{name} value=#{optionExternalValue opt}
+                   :isReq:required=true :sel x opt:checked>
+            <span>
 |]
               }
 

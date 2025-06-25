@@ -1,6 +1,6 @@
 
-Array.from(
-  document.querySelectorAll('.currency[data-value][data-currency]')
+document.querySelectorAll(
+  '.#{rawJS classCurrency}[data-value][data-currency]'
 ).forEach(function (x) {
   x.textContent = Intl.NumberFormat(navigator.language, {
     style: 'currency',
@@ -11,8 +11,9 @@ Array.from(
   }).format(x.dataset.value / 100);
 });
 
-Array.from(
-  document.querySelectorAll('.currency[data-value]:not([data-currency])')
+
+document.querySelectorAll(
+  '.#{rawJS classCurrency}[data-value]:not([data-currency])'
 ).forEach(function (x) {
   x.textContent = Intl.NumberFormat(navigator.language, {
     minimumFractionDigits: 0,
@@ -20,6 +21,7 @@ Array.from(
     useGrouping: true
   }).format(x.dataset.value);
 });
+
 
 Array.from(document.querySelectorAll('.app-snackbar')).forEach(x => {
   x.querySelector('md-icon-button').onclick = (e) => { x.style.display = 'none'; };

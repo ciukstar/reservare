@@ -1,4 +1,3 @@
-
 TakePhoto: Сфотографироваться
 UploadPhoto: Загрузить фото
 Close: Закрыть

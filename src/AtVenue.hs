@@ -15,7 +15,7 @@ import AtVenue.Data
     , Route (CheckoutR)
     , AtVenueMessage
       ( MsgPaymentStatus, MsgViewBookingDetails, MsgReturnToHomePage
-      , MsgFinish, MsgBack, MsgYourBookingHasBeenCreatedSuccessfully
+      , MsgFinish, MsgClose, MsgYourBookingHasBeenCreatedSuccessfully
       )
     )
 import Database.Persist.Sql (SqlBackend)
@@ -31,6 +31,7 @@ import Yesod.Core
     ( YesodSubDispatch (yesodSubDispatch), Application
     , mkYesodSubDispatch, Html, Yesod (defaultLayout), SubHandlerFor
     , MonadHandler (liftHandler), setTitleI, getMessages, addMessageI
+    , newIdent
     )
 import Yesod.Core.Types (YesodSubRunnerEnv)
 import Yesod.Persist.Core (YesodPersist(YesodPersistBackend))
@@ -39,7 +40,7 @@ import Yesod.Persist.Core (YesodPersist(YesodPersistBackend))
 
 getCheckoutR :: (YesodAtVenue m, YesodPersist m, YesodPersistBackend m ~ SqlBackend)
              => BookId -> PayOptionId -> SubHandlerFor AtVenue m Html
-getCheckoutR bid oid = do
+getCheckoutR bid _oid = do
 
     homeR <- liftHandler getHomeR
     bookDetailsR <- liftHandler $ getBookDetailsR bid
@@ -47,7 +48,11 @@ getCheckoutR bid oid = do
     addMessageI statusSuccess MsgYourBookingHasBeenCreatedSuccessfully
     msgs <- getMessages
     liftHandler $ defaultLayout $ do
-        setTitleI MsgPaymentStatus 
+        setTitleI MsgPaymentStatus
+        idHeader <- newIdent
+        idMain <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "gateways/atvenue/completion")
 
 

@@ -1,35 +1,35 @@
 
-<header.background>
-  <md-icon-button href=@?{(BookTimingR month,stati)} aria-label=_{MsgBack}>
-    <md-icon>close
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@?{(BookTimingR month,stati)} role=button title=_{MsgBack} rel=prev>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgSelectTime}
+    <h6.max>
+      _{MsgSelectTime}
 
-<main>
+<main.responsive.no-padding ##{idMain}>
   
-  <p #idDayLabel>
+  <p.margin.large-text.secondary-text>
     $with d <- show day
-      <time.day.md-typescale-label-large datetime=#{d}>
+      <time.day datetime=#{d}>
         #{d}
 
   $if null slots
-    <figure style="text-align:center">
-      <span.on-secondary style="font-size:4rem">&varnothing;
-      <figcaption.md-typescale-body-large>
+    <figure.center-align>
+      <i.extra.secondary-text>folder_open
+      <figcaption.large-text>
         _{MsgThereAreNoDataYet}
-        <p.md-typescale-body-small>
+        <p.small-text.secondary-text>
           _{MsgEmployeeScheduleNotGeneratedYet}
         
   $else
     <form method=post action=@?{(BookTimeSlotsR day,stati)} enctype=#{et} novalidate ##{idFormSlots}>
-      <div.list-frame>
-        ^{fw}
+      ^{fw}
 
-      <div.actions>
-        <md-text-button type=button href=@?{(BookTimingR month,stati)}>
+      <nav.right-align.padding>
+        <a.button.transparent.link href=@?{(BookTimingR month,stati)} role=button>
           _{MsgCancel}
-        <md-filled-button type=button ##{idFabSelect}>
+        <button type=button ##{idFabSelect}>
           _{MsgSelect}
 
   ^{widgetSnackbar msgs}

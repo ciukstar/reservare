@@ -1,40 +1,39 @@
 
-<header.background>
-  <md-icon-button type=link href=#{ult} aria-label=_{MsgBack} ##{idButtonBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=#{ult} ##{idButtonBack} role=button title=_{MsgBack} rel=prev>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgCheckout}
+    <h6.max>
+      _{MsgCheckout}
 
-<main>
+<main.responsive ##{idMain}>
 
-  <div.error role=banner ##{idBannerStripe}>
+  <div.error.no-round role=banner ##{idBannerStripe}>
 
-  $forall (_,msg) <- filter ((==) statusError . fst) msgs
-    <div.app-banner.error.body-medium>
-      #{msg}
-
-  <section ##{idSectionPriceTag}>
-    <h4.hint>_{MsgPaymentAmount}
-    <div.currency data-value=#{cents} data-currency=#{currency}>
+  <section.center-align ##{idSectionPriceTag}>
+    <h6.secondary-text>_{MsgPaymentAmount}
+    <p.#{classCurrency}.bold.large-text data-value=#{cents} data-currency=#{currency}>
       #{currency}#{cents}
 
   <form ##{idFormPayment}>
   
-    <div ##{idElementPayment}>
-      <md-circular-progress indeterminate>
-          
-    <md-filled-button ##{idButtonSubmitPayment} disabled type=submit>
-      <div.spinner.hidden #spinner>
-      <span #button-text>_{MsgPay}
+    <div.no-round.center-align ##{idElementPayment}>
+      <progress.circle>
 
-  <md-text-button ##{idButtonCancelPayment} type=button>
-    _{MsgCancel}
+    <nav.vertical.center-align>
 
-  $forall (status,msg) <- filter ((/=) statusError . fst) msgs
-    <aside.app-snackbar.shape-small.elevation-1
-      :status == statusSuccess:.primary-container :status /= statusSuccess:.error-container>
-      <md-elevation>
-      <span.body-medium>#{msg}
-      <md-icon-button type=button>
-        <md-icon>close
+      <button.responsive ##{idButtonSubmitPayment} disabled type=submit>
+        <div.spinner.hidden #spinner>
+        <span #button-text>_{MsgPay}
+      
+      <button.transparent.link ##{idButtonCancelPayment} type=button>
+        _{MsgCancel}
+
+
+  $forall (s,msg) <- msgs
+    <div.snackbar.active :s == statusError:.error>
+      <div.max>
+        #{msg}
+      <button.close.transparent.circle.small>
+        <i>close

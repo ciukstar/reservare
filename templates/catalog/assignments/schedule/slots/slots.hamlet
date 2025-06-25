@@ -1,40 +1,44 @@
 
-<header.background>
-  <md-icon-button href=@{CatalogStaffScheduleR sid aid month} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{CatalogStaffScheduleR sid aid month} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgWorkingHours}
+    <h6.max>
+      _{MsgWorkingHours}
 
-<main>
+<main.responsive.no-padding ##{idMain}>
   
-  <p.day-label>
+  <p.margin.large-text.secondary-text>
     $with d <- show day
-      <time.day.md-typescale-label-large datetime=#{d}>
+      <time.day datetime=#{d}>
         #{d}
 
   $if null slots
-    <figure style="text-align:center">
-      <md-icon style="--md-icon-size:64px;color:var(--md-sys-color-error-container,red)">
-        event_busy
-      <figcaption.md-typescale-body-large>
+    <figure.center-align>
+      <i.extra.error-text>event_busy
+      <figcaption>
         _{MsgNoWorkScheduledForToday}
+        
   $else
-    <md-list>
-      $forall Entity _ (Schedule _ _ start end) <- slots
-        <md-list-item type=text>
-          <div slot=headline>
-            <time.time-of-day datetime=#{show $ LocalTime day start}>#{show start}
-            \ &mdash; #
-            <time.time-of-day datetime=#{show $ LocalTime day end}>#{show end}
-            
-            
-        <md-divider>
+    
+    $forall Entity _ (Schedule _ _ start end) <- slots
+      <ol.list.border>
+        <li>
+          <div.max>
+            <div.#{classHeadline}.large-text>
+              <time.time-of-day datetime=#{show $ LocalTime day start}>#{show start}
+              \ &mdash; #
+              <time.time-of-day datetime=#{show $ LocalTime day end}>#{show end}
+
+
+      <hr>
 
     $with (aid,eid,sid) <- (pack $ show $ fromSqlKey aid,pack $ show $ fromSqlKey eid,pack $ show $ fromSqlKey sid)
       $with params <- [("aid",aid),("eid",eid),("sid",sid)]
-        <md-filled-button type=link href=@?{(AppointmentTimeSlotsR day,params)} ##{idButtonMakeAnAppointment}>
-          _{MsgMakeAnAppointment}
+        <nav.margin.center-align>
+          <a.button.fill role=button href=@?{(AppointmentTimeSlotsR day,params)} ##{idButtonMakeAnAppointment}>
+            _{MsgMakeAnAppointment}
 
 
   ^{widgetSnackbar msgs}

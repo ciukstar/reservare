@@ -45,6 +45,7 @@ data AtVenueMessage = MsgBack
                    | MsgReturnToHomePage
                    | MsgFinish
                    | MsgPaymentIntentCancelled
+                   | MsgClose
 
 englishAtVenueMessage :: AtVenueMessage -> Text
 englishAtVenueMessage MsgBack = "Back"
@@ -62,6 +63,7 @@ englishAtVenueMessage MsgViewBookingDetails = "View booking details"
 englishAtVenueMessage MsgReturnToHomePage = "Return to Home Page"
 englishAtVenueMessage MsgFinish = "Finish"
 englishAtVenueMessage MsgPaymentIntentCancelled = "Payment intent was cancelled"
+englishAtVenueMessage MsgClose = "Close"
 
 
 frenchAtVenueMessage :: AtVenueMessage -> Text
@@ -80,6 +82,7 @@ frenchAtVenueMessage MsgViewBookingDetails = "Afficher les détails de la réser
 frenchAtVenueMessage MsgReturnToHomePage = "Retour à la page d'accueil"
 frenchAtVenueMessage MsgFinish = "Finir"
 frenchAtVenueMessage MsgPaymentIntentCancelled = "L'intention de paiement a été annulée"
+frenchAtVenueMessage MsgClose = "Fermer"
 
 romanianAtVenueMessage :: AtVenueMessage -> Text
 romanianAtVenueMessage MsgBack = "Înapoi"
@@ -97,6 +100,7 @@ romanianAtVenueMessage MsgViewBookingDetails = "Vizualizați detaliile rezervăr
 romanianAtVenueMessage MsgReturnToHomePage = "Înapoi la pagina de start"
 romanianAtVenueMessage MsgFinish = "Finalizare"
 romanianAtVenueMessage MsgPaymentIntentCancelled = "Intenția de plată a fost anulată"
+romanianAtVenueMessage MsgClose = "Închide"
 
 russianAtVenueMessage :: AtVenueMessage -> Text
 russianAtVenueMessage MsgBack = "Вернуться"
@@ -114,6 +118,7 @@ russianAtVenueMessage MsgViewBookingDetails = "Посмотреть детали
 russianAtVenueMessage MsgReturnToHomePage = "Вернуться на главную страницу"
 russianAtVenueMessage MsgFinish = "Завершить"
 russianAtVenueMessage MsgPaymentIntentCancelled = "Намерение платежа было отменено"
+russianAtVenueMessage MsgClose = "Закрыть"
 
 defaultAtVenueMessage :: AtVenueMessage -> Text
 defaultAtVenueMessage = englishAtVenueMessage

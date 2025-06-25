@@ -1,12 +1,12 @@
 
-<header.background>
-  <md-icon-button href=@?{(BookTimingR month,stati)} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@?{(BookTimingR month,stati)} role=button title=_{MsgBack} rel=prev>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgError}
+    <h6.max>
+      _{MsgError}
 
-
-<main>
+<main.responsive ##{idMain}>
 
   ^{widgetSnackbar msgs}

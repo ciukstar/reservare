@@ -1,23 +1,25 @@
 
-<header.background>
-  <md-icon-button href=@?{(BookStaffR,stati)} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@?{(BookStaffR,stati)} role=button title=_{MsgBack} rel=prev>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgAppointmentTime}
+    <h6.max>
+      _{MsgAppointmentTime}
 
-
-<main>
+<main.responsive.no-padding ##{idMain}>
   
   <div.calendar ##{idCalendarPage}>
     <div.header>
-      <md-icon-button type=link href=@?{(BookTimingR prev,stati)} rel=nofollow aria-label=_{MsgPrevious}>
-        <md-icon>arrow_back_ios
+      <a.button.transparent.circle href=@?{(BookTimingR prev,stati)} role=button rel=nofollow aria-label=_{MsgPrevious}>
+        <i>arrow_back_ios_new
+        
       $with m <- show month
         <time.month-of-year datetime=#{m}>
           #{m}
-      <md-icon-button type=link href=@?{(BookTimingR next,stati)} rel=nofollow aria-label=_{MsgNext}>
-        <md-icon>arrow_forward_ios
+          
+      <a.button.transparent.circle href=@?{(BookTimingR next,stati)} role=button rel=nofollow aria-label=_{MsgNext}>
+        <i>arrow_forward_ios
 
     $forall wd <- [MsgMon,MsgTue,MsgWed,MsgThu,MsgFri,MsgSat,MsgSun]
       <div.col-header>
@@ -28,7 +30,7 @@
           $if (&&) ((==) month (YearMonth y m)) (M.member day slots)
             <a.cell href=@?{(BookTimeSlotsR day,stati)} rel=nofollow
               :(Just day) == (localDay <$> tid):.primary
-              :(Just day) /= (localDay <$> tid):.primary-negative>
+              :(Just day) /= (localDay <$> tid):.primary-text>
               <time.day-of-month datetime=#{show day}>
                 <small>#{d}
               $maybe slot <- tid
@@ -48,21 +50,23 @@
           $else
             <div>
 
-  <section.prompt>
+  <section.margin.center-align>
     $if null slots
-      <p.md-typescale-body-medium>_{MsgEmployeeWorkScheduleForThisMonthNotSetYet}.
+      <p>_{MsgEmployeeWorkScheduleForThisMonthNotSetYet}.
     $else
       $maybe slot <- tid
         $with dt <- show slot
-          <div.md-typescale-label-large>_{MsgAppointmentSetFor}
-          <time.full-datetime.md-typescale-body-large datetime=#{dt}>#{dt}
+          <div.large-text>_{MsgAppointmentSetFor}
+          <time.full-datetime.large-text datetime=#{dt}>#{dt}
       $nothing
-        <p.md-typescale-body-medium>_{MsgSelectAvailableDayAndTimePlease}.
+        <p>_{MsgSelectAvailableDayAndTimePlease}.
 
   <form method=post action=@?{(BookTimingR month,stati)} enctype=#{et} ##{idFormTiming}>
     ^{fw}
 
-  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext}>
-    <md-icon slot=icon>arrow_forward
+
+  <button.circle.extend.fixed.right.bottom.margin.medium-elevate type=button ##{idFabNext} title=_{MsgNext}>
+    <i>arrow_forward
+    <span>_{MsgNext}
 
 ^{widgetSnackbar msgs}

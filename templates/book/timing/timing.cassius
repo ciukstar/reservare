@@ -1,16 +1,6 @@
 
-header
-    position: sticky
-    top: 0
-    z-index: 2
-    height: var(--app-top-appbar-height,64px)
-    padding: 0 0.5rem
-    display: flex
-    justify-content: flex-start
-    align-items: center
-    column-gap: 0.5rem
+##{idMain}
 
-main
     display: flex
     flex-direction: column
 
@@ -26,15 +16,19 @@ main
         grid-template-columns: repeat(7,1fr)
         grid-template-rows: repeat(8,1fr)
         grid-template-areas: "head head head head head head head"
+        
         div.header
             grid-area: head
             display: flex
             flex-direction: row
             justify-content: space-around
             align-items: center
+            
         div.col-header
             text-align: center
+            
         .cell
+            display: inline-block
             text-align: center
             vertical-align: text-top
             text-decoration: none
@@ -48,18 +42,13 @@ main
                 line-height: 1
                 text-decoration: none
         a.cell
-            border: 2px solid var(--md-sys-color-primary-container,black)
-            box-shadow: 1px 1px 1px var(--md-sys-color-surface-dim)
+            border: 2px solid var(--primary,black)
+            box-shadow: 1px 1px 1px var(--surface-dim)
             
         div.cell.disabled
-            border: 1px dashed var(--md-sys-color-surface-dim,black)
+            border: 1px dashed var(--surface-dim,black)
             color: rgba(0,0,0,0.6)
 
     section.prompt
         margin: 1rem
         text-align: center
-
-    ##{idFabNext}
-        position: fixed
-        right: 1rem
-        bottom: 1rem

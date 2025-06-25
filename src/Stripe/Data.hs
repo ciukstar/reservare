@@ -53,6 +53,7 @@ data StripeMessage = MsgBack
                    | MsgReturnToHomePage
                    | MsgFinish
                    | MsgPaymentIntentCancelled
+                   | MsgClose
 
 englishStripeMessage :: StripeMessage -> Text
 englishStripeMessage MsgBack = "Back"
@@ -70,6 +71,7 @@ englishStripeMessage MsgViewBookingDetails = "View booking details"
 englishStripeMessage MsgReturnToHomePage = "Return to Home Page"
 englishStripeMessage MsgFinish = "Finish"
 englishStripeMessage MsgPaymentIntentCancelled = "Payment intent was cancelled"
+englishStripeMessage MsgClose = "Close"
 
 
 frenchStripeMessage :: StripeMessage -> Text
@@ -88,6 +90,8 @@ frenchStripeMessage MsgViewBookingDetails = "Afficher les détails de la réserv
 frenchStripeMessage MsgReturnToHomePage = "Retour à la page d'accueil"
 frenchStripeMessage MsgFinish = "Finir"
 frenchStripeMessage MsgPaymentIntentCancelled = "L'intention de paiement a été annulée"
+frenchStripeMessage MsgClose = "Fermer"
+
 
 romanianStripeMessage :: StripeMessage -> Text
 romanianStripeMessage MsgBack = "Înapoi"
@@ -105,6 +109,8 @@ romanianStripeMessage MsgViewBookingDetails = "Vizualizați detaliile rezervări
 romanianStripeMessage MsgReturnToHomePage = "Înapoi la pagina de start"
 romanianStripeMessage MsgFinish = "Finalizare"
 romanianStripeMessage MsgPaymentIntentCancelled = "Intenția de plată a fost anulată"
+romanianStripeMessage MsgClose = "Închide"
+
 
 russianStripeMessage :: StripeMessage -> Text
 russianStripeMessage MsgBack = "Вернуться"
@@ -122,6 +128,8 @@ russianStripeMessage MsgViewBookingDetails = "Посмотреть детали 
 russianStripeMessage MsgReturnToHomePage = "Вернуться на главную страницу"
 russianStripeMessage MsgFinish = "Завершить"
 russianStripeMessage MsgPaymentIntentCancelled = "Намерение платежа было отменено"
+russianStripeMessage MsgClose = "Закрыть"
+
 
 defaultStripeMessage :: StripeMessage -> Text
 defaultStripeMessage = englishStripeMessage

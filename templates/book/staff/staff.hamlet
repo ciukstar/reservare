@@ -1,18 +1,20 @@
 
-<header.background>
-  <md-icon-button href=@?{(BookServicesR,stati)} aria-label=_{MsgBack} rel=prev>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@?{(BookServicesR,stati)} role=button title=_{MsgBack} rel=prev>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgStaff}
+    <h6.max>
+      _{MsgStaff}
 
-
-<main>
+<main.responsive.no-padding ##{idMain}>
   
   <form method=post action=@?{(BookStaffR,stati)} enctype=#{et} ##{idFormStaff}>
     ^{fw}
 
-  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext}>
-    <md-icon slot=icon>arrow_forward
+
+  <button.circle.extend.fixed.right.bottom.margin.medium-elevate type=button ##{idFabNext} title=_{MsgNext}>
+    <i>arrow_forward
+    <span>_{MsgNext}
 
   ^{widgetSnackbar msgs}

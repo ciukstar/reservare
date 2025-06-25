@@ -1,70 +1,70 @@
 
-<header.background>
-  <md-icon-button href=@{HomeR} aria-label=_{MsgBack}>
-    <md-icon>close
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{HomeR} role=button title=_{MsgClose}>
+      <i>close
 
-  <span.md-typescale-title-large>
-    _{MsgBookingDetails}
+    <h6.max>
+      _{MsgBookingDetails}
 
-
-<main>
+<main.responsive ##{idMain}>
 
   $maybe (Entity _ (Book _ _ _ time charge currency),(service,(workspace,employee))) <- book
     <fieldset>
       <legend>_{MsgTheAppointment}
       <dl>
-        <dt.md-typescale-label-large>_{MsgAppointmentTime}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgAppointmentTime}
+        <dd>
           $with dt <- show time
             <time.full-datetime datetime=#{dt}>#{dt}
 
         $with Entity _ (Workspace _ name address _ _) <- workspace
-          <dt.md-typescale-label-large>_{MsgLocation}
-          <dd.md-typescale-body-medium>
+          <dt.bold>_{MsgLocation}
+          <dd>
             #{name}
 
-          <dt.md-typescale-label-large>_{MsgAddress}
-          <dd.md-typescale-body-medium>
+          <dt.bold>_{MsgAddress}
+          <dd>
             #{address}
 
     <fieldset>
       <legend>_{MsgEmployee}
       <dl>
         $with Entity _ (Staff name _ mobile phone) <- employee
-          <dt.md-typescale-label-large>_{MsgFullName}
-          <dd.md-typescale-body-medium>
+          <dt.bold>_{MsgFullName}
+          <dd>
             #{name}
 
           $maybe mobile <- mobile
-            <dt.md-typescale-label-large>_{MsgMobile}
-            <dd.md-typescale-body-medium>
+            <dt.bold>_{MsgMobile}
+            <dd>
               <a href="tel:#{mobile}">#{mobile}
 
           $maybe phone <- phone
-            <dt.md-typescale-label-large>_{MsgPhone}
-            <dd.md-typescale-body-medium>
+            <dt.bold>_{MsgPhone}
+            <dd>
               <a href="tel:#{phone}">#{phone}
 
     <fieldset>
       <legend>_{MsgService}
       <dl>
         $with Entity _ (Service _ name _ price _ duration _) <- service
-          <dt.md-typescale-label-large>_{MsgTheName}
-          <dd.md-typescale-body-medium>
+          <dt.bold>_{MsgTheName}
+          <dd>
             #{name}
 
-          <dt.md-typescale-label-large>_{MsgPrice}
+          <dt.bold>_{MsgPrice}
           $with (Entity _ (Workspace _ _ _ _ currency),price) <- (workspace,show price)
-            <dd.md-typescale-body-medium.currency data-value=#{price} data-currency=#{currency}>
+            <dd.currency data-value=#{price} data-currency=#{currency}>
               #{price} #{currency}
 
-          <dt.md-typescale-label-large>_{MsgDuration}
-          <dd.md-typescale-body-medium>
+          <dt.bold>_{MsgDuration}
+          <dd>
             #{show duration}
 
     <fieldset>
       <legend>_{MsgTotalCharge}
-      <span.md-typescale-body-large.currency data-value=#{charge} data-currency=#{currency}>
+      <span.large-text.currency data-value=#{charge} data-currency=#{currency}>
         #{charge} #{currency}
 
     
@@ -75,17 +75,17 @@
       $else
         $forall (Entity _ (Payment _ _ time amount currency _ status err),Entity _ (PayOption _ typ _ gate _ _)) <- payments
           <dl>
-            <dt.md-typescale-label-large>
+            <dt.bold>
               $with dt <- show time
                 <time.full-datetime datetime=#{dt}>#{dt}
                 
-            <dd.md-typescale-body-medium>              
+            <dd>              
               <span.currency data-value=#{amount} data-currency=#{currency}>
                 #{amount} #{currency}
               <span>
                 (#{status})
 
-              <md-divider>
+              <hr>
               <div>
                 #{show typ}
                 $maybe gateway <- gate
@@ -94,12 +94,13 @@
                   (#{msg})
 
   $nothing
-    <figure>
-      <span.img>&varnothing;
-      <figcaption.md-typescale-body-medium>
-        _{MsgThereAreNoDataYet}.
+    <figure.center-align>
+      <i.extra>folder_open
+      <figcaption>
+        _{MsgThereAreNoDataYet}
 
-  <md-text-button type=link href=@{HomeR}>
-    _{MsgReturnToHomePage}
+  <nav.center-align>
+    <a.button.transparent.link href=@{HomeR}>
+      _{MsgReturnToHomePage}
 
   ^{widgetSnackbar msgs}
