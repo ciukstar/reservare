@@ -51,6 +51,7 @@ data YookassaMessage = MsgBack
                    | MsgFinish
                    | MsgInvalidArguments
                    | MsgPaymentDeclined
+                   | MsgClose
 
 englishYookassaMessage :: YookassaMessage -> Text
 englishYookassaMessage MsgBack = "Back"
@@ -69,7 +70,7 @@ englishYookassaMessage MsgReturnToHomePage = "Return to Home Page"
 englishYookassaMessage MsgFinish = "Finish"
 englishYookassaMessage MsgInvalidArguments = "Invalid arguments"
 englishYookassaMessage MsgPaymentDeclined = "Payment declined"
-
+englishYookassaMessage MsgClose = "Close"
 
 
 frenchYookassaMessage :: YookassaMessage -> Text
@@ -89,6 +90,7 @@ frenchYookassaMessage MsgReturnToHomePage = "Retour à la page d'accueil"
 frenchYookassaMessage MsgFinish = "Finir"
 frenchYookassaMessage MsgInvalidArguments = "Arguments invalides"
 frenchYookassaMessage MsgPaymentDeclined = "Paiement refusé"
+frenchYookassaMessage MsgClose = "Fermer"
 
 
 romanianYookassaMessage :: YookassaMessage -> Text
@@ -108,6 +110,7 @@ romanianYookassaMessage MsgReturnToHomePage = "Înapoi la pagina de start"
 romanianYookassaMessage MsgFinish = "Finalizare"
 romanianYookassaMessage MsgInvalidArguments = "Argumente nevalide"
 romanianYookassaMessage MsgPaymentDeclined = "Plata a fost refuzată"
+romanianYookassaMessage MsgClose = "Închide"
 
 
 russianYookassaMessage :: YookassaMessage -> Text
@@ -127,6 +130,7 @@ russianYookassaMessage MsgReturnToHomePage = "Вернуться на главн
 russianYookassaMessage MsgFinish = "Завершить"
 russianYookassaMessage MsgInvalidArguments = "Неверные аргументы"
 russianYookassaMessage MsgPaymentDeclined = "Платеж отклонен"
+russianYookassaMessage MsgClose = "Закрыть"
 
 
 defaultYookassaMessage :: YookassaMessage -> Text

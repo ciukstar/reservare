@@ -1,65 +1,65 @@
 
-<header>
-  <md-icon-button href=@{homeR} aria-label=_{MsgBack}>
-    <md-icon>close
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{homeR} role=button title=_{MsgClose}>
+      <i>close
 
-  <span.md-typescale-title-large>
-    _{MsgFinish}
+    <h6.max>
+      _{MsgFinish}
 
-
-<main>
+<main.responsive ##{idMain}>
 
   $forall (_,msg) <- filter ((==) statusError . fst) msgs
-    <div.app-banner.error.body-medium>
+    <div.no-round.padding.error>
       #{msg}
 
   $if     "pending"             == status
-    <figure>
-      <md-icon.pending>pending
-      <figcaption>
-        <div.md-typescale-title-medium>
+    <figure.center-align>
+      <i.extra.secondary-text>pending
+      <figcaption.padding>
+        <div>
           _{MsgYourBookingHasBeenCreatedSuccessfully}
-        <div.md-typescale-body-small>
+        <div.small-text.secondary-text>
          <code>#{status} 
  
   $elseif "waiting_for_capture" == status
-    <figure>
-      <md-icon.capture>capture
-      <figcaption>
-        <div.md-typescale-title-medium>
+    <figure.center-align>
+      <i.extra.tertiary-text>capture
+      <figcaption.pdding>
+        <div>
           _{MsgYourBookingHasBeenCreatedSuccessfully}
-        <div.md-typescale-body-small>
+        <div.small-text.secondary-text>
          <code>#{status}
          
   $elseif "succeeded"           == status
-    <figure>
-      <md-icon.succeeded>task_alt
-      <figcaption.md-typescale-title-medium>
+    <figure.center-align>
+      <i.extra.green-text>task_alt
+      <figcaption.padding>
         _{MsgYourBookingHasBeenCreatedSuccessfully}
  
   $elseif "canceled"            == status
     <figure>
-      <md-icon.canceled>cancel
-      <figcaption.md-typescale-title-medium>
+      <i.extra.error-text>cancel
+      <figcaption>
         _{MsgPaymentDeclined}
         
   $else
-    <figure>
-      <md-icon.warning>warning
-      <figcaption.md-typescale-title-medium>
+    <figure.center-align>
+      <i.extra.error-text>warning
+      <figcaption.padding>
         _{MsgSomethingWentWrong}
 
-  <md-filled-tonal-button type=link href=@{bookDetailsR}>
-    _{MsgViewBookingDetails}
+  <nav.vertical.center-align>
+    <a.button.fill href=@{bookDetailsR} role=button>
+      _{MsgViewBookingDetails}
 
-  <md-text-button type=link href=@{homeR}>
-    _{MsgReturnToHomePage}
+    <a.button.transparent.link href=@{homeR}>
+      _{MsgReturnToHomePage}
 
 
-  $forall (status,msg) <- filter ((/=) statusError . fst) msgs
-    <aside.app-snackbar.shape-small.elevation-1
-      :status == statusSuccess:.primary-container :status /= statusSuccess:.error-container>
-      <md-elevation>
-      <span.body-medium>#{msg}
-      <md-icon-button type=button>
-        <md-icon>close
+  $forall (s,msg) <- msgs
+    <div.snackbar.active :s == statusError:.error>
+      <div.max>
+        #{msg}
+      <button.close.transparent.circle.small>
+        <i>close

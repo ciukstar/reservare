@@ -46,7 +46,7 @@ import Foundation
       ( MsgTokens, MsgInitialize, MsgUserSession, MsgDatabase
       , MsgStoreType, MsgInvalidStoreType, MsgRecordEdited, MsgClearSettings
       , MsgRecordDeleted, MsgInvalidFormData, MsgCleared, MsgEmailAddress
-      , MsgGmailAccount, MsgGoogleSecretManager
+      , MsgGoogleSecretManager
       )
     )
 
@@ -55,7 +55,8 @@ import Material3 (md3radioField, md3widget)
 import Model
     ( gmailAccessToken, gmailRefreshToken, apiInfoGoogle
     , StoreType
-      ( StoreTypeDatabase, StoreTypeSession, StoreTypeGoogleSecretManager )
+      ( StoreTypeDatabase, StoreTypeSession, StoreTypeGoogleSecretManager
+      )
     , Store (Store), Token (Token, tokenStore)
     , EntityField (StoreVal, TokenApi, TokenStore)
     , gmailSender, statusSuccess, statusError, gmailAccessTokenExpiresIn

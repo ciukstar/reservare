@@ -474,7 +474,9 @@ instance Yesod App where
         provideRep $ defaultLayout $ do
             setTitleI MsgPageNotFound
             idHeader <- newIdent
-            idHeaderStart <- newIdent
+            idMain <- newIdent
+            $(widgetFile "common/css/header")
+            $(widgetFile "common/css/main")
             $(widgetFile "error/not-found")
         provideRep $ return $ object ["message" .= ("Page not found." :: Text)]
         provideRep $ return ("Page not found." :: Text)
@@ -490,6 +492,9 @@ instance Yesod App where
         provideRep $ defaultLayout $ do
             setTitleI MsgInvalidArguments
             idHeader <- newIdent
+            idMain <- newIdent
+            $(widgetFile "common/css/header")
+            $(widgetFile "common/css/main")
             $(widgetFile "error/invalid-args")
         provideRep $ return $ object ["message" .= msgs]
         provideRep $ return $ T.intercalate ", " msgs

@@ -10,7 +10,7 @@
 <main.responsive ##{idMain}>
 
   $forall (_,msg) <- filter ((==) statusError . fst) msgs
-    <p.no-round.error>
+    <p.no-round.padding.error>
       #{msg}
 
 

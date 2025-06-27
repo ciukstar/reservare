@@ -1,13 +1,11 @@
 
 
 function secondsToDuration (seconds) {
-
-  const x = seconds;
   
-  return ({ seconds:            (((x % 604800) % 86400) % 3600) % 60,
-            minutes: Math.floor((((x % 604800) % 86400) % 3600) / 60),
-            hours:   Math.floor(((x % 604800) % 86400) / 3600),
-            days:    Math.floor((x % 604800) / 86400),
-            weeks:   Math.floor(x / 604800)
+  return ({ seconds:            (((seconds % 604800) % 86400) % 3600) % 60,
+            minutes: Math.floor((((seconds % 604800) % 86400) % 3600) / 60),
+            hours:   Math.floor (((seconds % 604800) % 86400) / 3600),
+            days:    Math.floor  ((seconds % 604800) / 86400),
+            weeks:   Math.floor   (seconds / 604800)
           });
 }

@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE ViewPatterns      #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE InstanceSigs #-}
@@ -11,7 +11,8 @@
 module Yookassa where
 
 import Control.Exception.Safe
-    (tryAny, SomeException (SomeException), Exception (fromException))
+    ( tryAny, SomeException (SomeException), Exception (fromException)
+    )
 import Control.Lens ((?~), (.~))
 import qualified Control.Lens as L ((^.))
     
@@ -60,6 +61,7 @@ import Network.Wreq
     
 import Settings (widgetFile)
 
+import Text.Julius (RawJS(rawJS))
 import Text.Read (readMaybe)
 
 import Yesod.Core
@@ -85,7 +87,7 @@ import Yookassa.Data
       , MsgYooKassa, MsgUnhandledError, MsgInvalidPaymentAmount
       , MsgYourBookingHasBeenCreatedSuccessfully, MsgPaymentStatus
       , MsgViewBookingDetails, MsgReturnToHomePage, MsgFinish
-      , MsgPaymentDeclined, MsgSomethingWentWrong
+      , MsgPaymentDeclined, MsgSomethingWentWrong, MsgClose
       )
     )
 
@@ -114,6 +116,10 @@ getCompletionR bid pid paymentId = do
     msgs <- getMessages
     liftHandler $ defaultLayout $ do
         setTitleI MsgPaymentStatus
+        idHeader <- newIdent
+        idMain <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "gateways/yookassa/completion")
 
 
@@ -161,7 +167,11 @@ getCheckoutR bid oid = do
                   addMessage statusError (toHtml $ bs L.^. key "description" . _String)
                   msgs <- getMessages
                   liftHandler $ defaultLayout $ do
-                      setTitleI MsgCheckout 
+                      setTitleI MsgCheckout
+                      idHeader <- newIdent
+                      idMain <- newIdent
+                      $(widgetFile "common/css/header")
+                      $(widgetFile "common/css/main") 
                       $(widgetFile "gateways/yookassa/error")
 
               _otherwise -> do
@@ -169,6 +179,10 @@ getCheckoutR bid oid = do
                   msgs <- getMessages
                   liftHandler $ defaultLayout $ do
                       setTitleI MsgCheckout
+                      idHeader <- newIdent
+                      idMain <- newIdent
+                      $(widgetFile "common/css/header")
+                      $(widgetFile "common/css/main")
                       $(widgetFile "gateways/yookassa/error")
 
             Right r -> do
@@ -200,10 +214,15 @@ getCheckoutR bid oid = do
                     
                     liftHandler $ defaultLayout $ do
                         setTitleI MsgCheckout
+                        idHeader <- newIdent
+                        idMain <- newIdent
+                        classCurrency <- newIdent
                         idBannerYookassa <- newIdent
                         idSectionPriceTag <- newIdent
                         idPaymentForm <- newIdent
                         addScriptRemote "https://yookassa.ru/checkout-widget/v1/checkout-widget.js"
+                        $(widgetFile "common/css/header")
+                        $(widgetFile "common/css/main")
                         $(widgetFile "gateways/yookassa/checkout")
 
 

@@ -16,8 +16,7 @@
   <form method=post action=@?{(BookServicesR,stati)} enctype=#{et} ##{idFormService}>
     ^{fw}
 
-
-  <button.circle.extend.fixed.right.bottom.margin.medium-elevate type=button ##{idFabNext} title=_{MsgNext}>
+  <button.circle.extend.fixed.right.bottom.margin.medium-elevate type=submit form=#{idFormService} title=_{MsgNext}>
     <i>arrow_forward
     <span>_{MsgNext}
 

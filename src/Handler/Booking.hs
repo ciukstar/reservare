@@ -22,7 +22,6 @@ import qualified AtVenue.Data as V (Route(CheckoutR))
 
 import Control.Monad (unless, forM_, when, join)
 
-import qualified Data.Aeson as A (toJSON)
 import Data.Bifunctor (Bifunctor(first,bimap, second))
 import Data.Foldable (find)
 import qualified Data.Map as M
@@ -979,10 +978,10 @@ formStaff sid eid extra = do
                                  |]
                 [whamlet|
 $if null opts
-    <figure.center-align>
-      <i.extra.secondary-text>folder-open
-      <figcaption.large-text>
-        _{MsgNoEmployeesAvailableNow}
+  <figure.center-align>
+    <i.extra.secondary-text>folder_open
+    <figcaption.large-text>
+      _{MsgNoEmployeesAvailableNow}
         
 $else
   <ol.list.border ##{theId} *{attrs}>
@@ -1018,7 +1017,6 @@ listUpsert ((k,a):ks) xs = listUpsert ks (M.toList (M.insert k a (M.fromList xs)
 postBookServicesR :: Handler Html
 postBookServicesR = do
     stati <- reqGetParams <$> getRequest
-    scrollY <- lookupGetParam paramScrollY
 
     let inputSectors = filter (\(x,_) -> x == paramSector) stati
         selectedSectors = mapMaybe ((toSqlKey <$>) . readMaybe . unpack . snd) inputSectors
@@ -1036,7 +1034,9 @@ postBookServicesR = do
         Nothing
 
     case fr of
-      FormSuccess sid -> redirect (BookStaffR, listUpsert [("sid",pack $ show $ fromSqlKey sid)] stati)
+      FormSuccess sid -> redirect ( BookStaffR
+                                  , ("sid",pack $ show $ fromSqlKey sid) : filter ((/= "sid") . fst) stati
+                                  )
       FormFailure errs -> do
           forM_ errs $ \err -> addMessageI statusError err
           msgs <- getMessages
@@ -1045,9 +1045,9 @@ postBookServicesR = do
               idHeader <- newIdent
               idMain <- newIdent
               idFormService <- newIdent
-              idFabNext <- newIdent
               $(widgetFile "common/css/header")
               $(widgetFile "common/css/main")
+              $(widgetFile "common/js/scrolltop")
               $(widgetFile "book/services")
               
       FormMissing -> do
@@ -1058,16 +1058,15 @@ postBookServicesR = do
               idHeader <- newIdent
               idMain <- newIdent
               idFormService <- newIdent
-              idFabNext <- newIdent
               $(widgetFile "common/css/header")
               $(widgetFile "common/css/main")
+              $(widgetFile "common/js/scrolltop")
               $(widgetFile "book/services")
 
 
 getBookServicesR :: Handler Html
 getBookServicesR = do
     stati <- reqGetParams <$> getRequest
-    scrollY <- lookupGetParam paramScrollY
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
 
     let inputSectors = filter (\(x,_) -> x == paramSector) stati
@@ -1091,11 +1090,10 @@ getBookServicesR = do
         idHeader <- newIdent
         idMain <- newIdent
         idFormService <- newIdent
-        idFabNext <- newIdent
         $(widgetFile "common/css/header")
         $(widgetFile "common/css/main")
+        $(widgetFile "common/js/scrolltop")
         $(widgetFile "book/services")
-
 
 
 formService :: [SectorId] -> [BusinessId] -> [WorkspaceId] -> Maybe ServiceId -> Form ServiceId
@@ -1234,10 +1232,6 @@ widgetFilterChips route = do
     let paramsWokspaces bid = (\x -> (paramWorkspace,pack $ show $ fromSqlKey x))
             <$> filter (\x -> x `notElem` M.findWithDefault [] bid businessWorkspaces) selectedWorkspaces
 
-    scrollX1 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX1)
-    scrollX2 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX2)
-    scrollX3 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX3)
-
     idFilterChips <- newIdent
     idDetailsSectors <- newIdent
     idChipSetSectors <- newIdent
@@ -1272,12 +1266,3 @@ paramScrollY2 = "y2"
 
 paramScrollY :: Text
 paramScrollY = "y"
-
-paramX3 :: Text
-paramX3 = "x3"
-
-paramX2 :: Text
-paramX2 = "x2"
-
-paramX1 :: Text
-paramX1 = "x1"

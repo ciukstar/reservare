@@ -60,7 +60,7 @@ import Foundation
       , MsgPrevious, MsgInvalidFormData, MsgServiceAssignment
       , MsgNoPaymentOptionSpecified, MsgWorkspaceWithoutPaymentOptions
       , MsgError, MsgEmployeeWorkScheduleForThisMonthNotSetYet, MsgWorkspaces
-      , MsgSectors, MsgBusinesses, MsgRoles, MsgSelectAppointeePlease
+      , MsgSectors, MsgBusinesses, MsgRoles, MsgSelectAppointeePlease, MsgPhoto
       )
     )
 
@@ -100,6 +100,7 @@ import qualified Stripe.Data as S (Route(CheckoutR))
 
 import Text.Cassius (cassius)
 import Text.Hamlet (Html)
+import Text.Julius (rawJS, julius)
 import Text.Read (readMaybe)
 
 import Yesod.Auth (maybeAuth, Route (LoginR))
@@ -787,16 +788,25 @@ postAppointmentStaffR = do
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgServices
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormAssignment <- newIdent
               idFabNext <- newIdent
+              $(widgetFile "common/css/header")
+              $(widgetFile "common/css/main")
               $(widgetFile "appointments/assignments")
+              
       FormMissing -> do
           addMessageI statusError MsgInvalidFormData
           msgs <- getMessages
           defaultLayout $ do
               setTitleI MsgServices
+              idHeader <- newIdent
+              idMain <- newIdent
               idFormAssignment <- newIdent
               idFabNext <- newIdent
+              $(widgetFile "common/css/header")
+              $(widgetFile "common/css/main")
               $(widgetFile "appointments/assignments")
 
 
@@ -830,8 +840,12 @@ getAppointmentStaffR = do
     msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgStaff
+        idHeader <- newIdent
+        idMain <- newIdent
         idFormAssignment <- newIdent
         idFabNext <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "appointments/assignments")
 
 
@@ -889,61 +903,91 @@ formAssignments tids bids wids sids roles aid extra = do
                     sel (Right y) opt = optionInternalValue opt == y
 
                 let findAssigment opt = find (\((Entity aid' _,(_,_)),_) -> aid' == fst (optionInternalValue opt))
+
+                classHeadline <- newIdent
+                classSupportingText <- newIdent
+                classCurrency <- newIdent
+                classAttribution <- newIdent
+
+                toWidget [julius|
+                                document.querySelectorAll(
+                                  '.#{rawJS classCurrency}[data-value][data-currency]'
+                                ).forEach(function (x) {
+                                  x.textContent = Intl.NumberFormat(navigator.language, {
+                                    style: 'currency',
+                                    currency: x.dataset.currency,
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 2,
+                                    useGrouping: true
+                                  }).format(x.dataset.value / 100);
+                                });
+                |]
                 toWidget [cassius|
-                                 img[slot=start]
-                                     clip-path: circle(50%)
+                                 ol.list
+                                     li
 
-                                 div[slot=headline], div[slot=supporting-text]
-                                     white-space: nowrap
+                                         div.max
+                                             min-width: 0
 
-                                 .app-attribution
-                                     position: relative
-                                     margin: 0
-                                     padding: 0
-                                     line-height: 0
-                                     .app-attribution-wrapper
-                                         position: absolute
-                                         bottom: 0
-                                         left: 0.4rem
-                                         font-size: 0.5rem
+                                             .#{classHeadline}, .#{classSupportingText}
+                                                 white-space: nowrap
+                                                 overflow: hidden
+                                                 text-overflow: ellipsis
+                                     li.none
+                                         min-block-size: 0
+                                         
+                                         .#{classAttribution}
+                                             position: absolute
+                                             bottom: 0
+                                             left: 0.4rem
+                                             line-height: 1
+                                             font-size: 0.5rem
                                  |]
 
                 [whamlet|
 $if null opts
-    <figure style="text-align:center">
-      <span.on-secondary style="font-size:4rem">&varnothing;
-      <figcaption.md-typescale-body-large>
-        _{MsgNoEmployeesAvailableNow}.
+  <figure.center-align>
+    <i.extra.secondary-text>folder_open
+    <figcaption.large-text>
+      _{MsgNoEmployeesAvailableNow}
+      
 $else
-  <md-list ##{theId} *{attrs}>
+  <ol.list.border ##{theId} *{attrs}>
     $forall (i,opt) <- opts
-      $maybe ((assignment,(Entity eid (Staff ename _ _ _),(service,(workspace,business)))),attrib) <- findAssigment opt assignments
-        <md-list-item type=text onclick="this.querySelector('md-radio').click()">
-          <img slot=start src=@{StaffPhotoR eid} width=56 height=56 loading=lazy>
-          <div slot=headline>
-            #{ename}
-          <div slot=supporting-text>
-            $with Entity _ (Assignment _ _ role _ _ _) <- assignment
-              #{role}
-            $with (Entity _ (Business _ bname _ _),Entity _ (Workspace _ wname _ _ _)) <- (business,workspace)
-              \ (#{bname} - #{wname})
-          $with (Entity _ (Workspace _ _ _ _ currency),Entity _ (Service _ name _ price _ _ _)) <- (workspace,service)
-            <div slot=supporting-text>
-              #{name}
-            <div slot=supporting-text>
-              <span.currency data-value=#{price} data-currency=#{currency}>
-                #{show price} #{currency}
-          <div slot=end>
-            <md-radio ##{theId}-#{i} name=#{name} :isReq:required=true value=#{optionExternalValue opt}
-              :sel x opt:checked touch-target=wrapper>
+      $maybe ((assignment,(Entity eid (Staff ename _ _ _),(srv,(workspace,business)))),attrib) <- findAssigment opt assignments
+        <li.wave onclick="this.querySelector('label.radio').click()">
+          <img.circle src=@{StaffPhotoR eid} loading=lazy alt=_{MsgPhoto}>
+
+          <div.max>
+            <div.#{classHeadline}.large-text>
+              #{ename}
+              
+            <div.#{classSupportingText}.secondary-text>
+              $with Entity _ (Assignment _ _ role _ _ _) <- assignment
+                #{role}
+              $with (Entity _ (Business _ bname _ _),Entity _ (Workspace _ wname _ _ _)) <- (business,workspace)
+                \ (#{bname} - #{wname})
+                
+            $with (Entity _ (Workspace _ _ _ _ currency),Entity _ (Service _ name _ price _ _ _)) <- (workspace,srv)
+              <div.#{classSupportingText}.secondary-text>
+                #{name}
+                
+              <div.#{classSupportingText}.secondary-text>
+                <span.#{classCurrency} data-value=#{price} data-currency=#{currency}>
+                  #{show price} #{currency}
+                  
+          <label.radio>
+            <input type=radio ##{theId}-#{i} name=#{name} value=#{optionExternalValue opt}
+                   :sel x opt:checked :isReq:required=true aria-label=#{ename}>
+              <span>
+              
         $maybe attrib <- attrib
-          <div.app-attribution>
-            <div.app-attribution-wrapper.md-typescale-body-small>
+          <li.none>
+            <div.#{classAttribution}>
               #{attrib}
-      <md-divider>
+      
 |]
               }
-
 
 
 widgetFilterChips :: Route App -> Widget
@@ -1012,15 +1056,10 @@ widgetFilterChips route = do
     let inputRoles = filter (\(x,_) -> x == paramRole) stati
         selectedRoles = snd <$> inputRoles
 
-    
-    scrollX1 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX1)
-    scrollX2 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX2)
-    scrollX3 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX3)
-    scrollX4 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX4)
-    scrollX5 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX5)
-
     idFilterChips <- newIdent
     idDetailsSectors <- newIdent
+    classSummaryLabel <- newIdent
+    classSummaryEndIcon <- newIdent
     idChipSetSectors <- newIdent
     idChipSetBusinesses <- newIdent
     idChipSetWorkspaces <- newIdent
@@ -1044,19 +1083,3 @@ paramBusiness = "b"
 
 paramWorkspace :: Text
 paramWorkspace = "w"
-
-
-paramX5 :: Text
-paramX5 = "x5"
-
-paramX4 :: Text
-paramX4 = "x4"
-
-paramX3 :: Text
-paramX3 = "x3"
-
-paramX2 :: Text
-paramX2 = "x2"
-
-paramX1 :: Text
-paramX1 = "x1"

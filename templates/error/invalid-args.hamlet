@@ -1,15 +1,22 @@
 
-<header ##{idHeader}>
-  <md-icon-button href=@{HomeR} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{HomeR} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgInvalidArguments}
+    <h6.max>
+      _{MsgInvalidArguments}
 
-<main>
-  <p.md-typescale-headline-large>400
-  <p.md-typescale-headline-medium>_{MsgInvalidArguments}
-  <p.md-typescale-body-medium>#{T.intercalate ", " msgs}.
-  <md-filled-button type=button href=@{HomeR} has-icon=true>
-    <md-icon slot=icon>home
-    _{MsgBackToHomepage}
+<main.responsive.center-align ##{idMain}>
+
+  <p.bold.large-text>400
+
+  <p>_{MsgInvalidArguments}
+
+  <blockquote.left-align>    
+    <code>#{T.intercalate ", " msgs}
+  
+  <nav.center-align>
+    <a.button.fill href=@{HomeR} role=button>
+      <i>home
+      _{MsgBackToHomepage}

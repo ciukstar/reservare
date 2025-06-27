@@ -1,16 +1,21 @@
 
-<header ##{idHeader}>
-  <div ##{idHeaderStart}>
-    <md-icon-button href=@{HomeR} aria-label=_{MsgBack}>
-      <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{HomeR} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-    <span.md-typescale-title-large>
+    <h6.max>
       _{MsgPageNotFound}
 
-<main>
-  <p.md-typescale-headline-large>404
-  <p.md-typescale-headline-medium>_{MsgPageNotFound}
-  <p.md-typescale-body-medium>_{MsgInvalidUrlOrRemoved}.
-  <md-filled-button type=button href=@{HomeR} has-icon=true>
-    <md-icon slot=icon>home
-    _{MsgBackToHomepage}
+<main.responsive.center-align ##{idMain}>
+
+  <p.bold.large-text>404
+  
+  <p>_{MsgPageNotFound}
+
+  <p>_{MsgInvalidUrlOrRemoved}
+  
+  <nav.center-align>
+    <a.button.fill href=@{HomeR} role=button>
+      <i>home
+      _{MsgBackToHomepage}

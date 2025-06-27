@@ -1,22 +1,26 @@
 
-<header.background>
-  <md-icon-button href=@{HomeR} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{HomeR} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgStaff}
-    <div.microcopy.md-typescale-body-small>
-      _{MsgSelectAppointeePlease}
+    <h6.max>
+      _{MsgStaff}
+      <div.small-text.secondary-text>
+        _{MsgSelectAppointeePlease}
 
-<main>
+<main.responsive.no-padding ##{idMain}>
 
   ^{widgetFilterChips AppointmentStaffR}
   
   <form method=post action=@{AppointmentStaffR} enctype=#{et} ##{idFormAssignment}>
     ^{fw}
 
-  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext} 
-    onclick="document.getElementById('#{idFormAssignment}').submit()">
-    <md-icon slot=icon>arrow_forward
+
+  <button.circle.extend.fixed.right.bottom.margin.medium-elevate type=submit form=#{idFormAssignment} 
+                     ##{idFabNext} title=_{MsgNext}>          
+    <i>arrow_forward
+    <span>_{MsgNext}
+
 
   ^{widgetSnackbar msgs}

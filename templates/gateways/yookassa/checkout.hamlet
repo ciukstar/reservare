@@ -1,33 +1,31 @@
 
-<header.background>
-  <md-icon-button type=link href=#{ult} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=#{ult} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgCheckout}
+    <h6.max>
+      _{MsgCheckout}
 
-<main>
+<main.responsive ##{idMain}>
 
-  $forall (_,msg) <- filter ((==) statusError . fst) msgs
-    <div.app-banner.error.body-medium>
-      #{msg}
+  <div.error.no-round role=banner ##{idBannerYookassa}>
 
-  <div.error role=banner ##{idBannerYookassa}>
-
-  <section ##{idSectionPriceTag}>
-    <h4.hint>_{MsgPaymentAmount}
-    <div.currency data-value=#{cents} data-currency=#{currency}>
+  <section.center-align ##{idSectionPriceTag}>
+    <h6.secondary-text>_{MsgPaymentAmount}
+    <p.#{classCurrency}.bold.large-text data-value=#{cents} data-currency=#{currency}>
       #{currency}#{cents}
       
   <div ##{idPaymentForm}>
 
-  <md-text-button type=link href=#{ult}>
-    _{MsgCancel}
+  <nav.center-align>
+    <a.button.transparent.link href=#{ult} role=button>
+      _{MsgCancel}
 
-  $forall (status,msg) <- filter ((/=) statusError . fst) msgs
-    <aside.app-snackbar.shape-small.elevation-1
-      :status == statusSuccess:.primary-container :status /= statusSuccess:.error-container>
-      <md-elevation>
-      <span.body-medium>#{msg}
-      <md-icon-button type=button>
-        <md-icon>close
+
+  $forall (s,msg) <- msgs
+    <div.snackbar.active :s == statusError:.error>
+      <div.max>
+        #{msg}
+      <button.close.transparent.circle.small>
+        <i>close
