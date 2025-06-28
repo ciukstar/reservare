@@ -14,41 +14,25 @@ module Material3
   ) where
 
 
-import Data.Foldable (find)
 import Data.Maybe (isJust)
-import qualified Data.List.Safe as LS (head, tail)
-import Data.Text (Text, pack, splitOn)
-import Data.Text.Lazy (toStrict)
-import Data.Time.Calendar (Day)
-import Data.Time (TimeOfDay, LocalTime)
+import Data.Text (pack)
+import Data.Time (LocalTime)
 
-import qualified Text.Blaze.Html.Renderer.String as S (renderHtml)
-import qualified Text.Blaze.Html.Renderer.Text as T (renderHtml)
-import Text.Hamlet (Html)
 import Text.Julius (julius)
 import Text.Shakespeare.I18N (RenderMessage)
 
-import Yesod.Core (MonadHandler(HandlerSite), newIdent, WidgetFor, ToWidget (toWidget))
+import Yesod.Core (newIdent, WidgetFor, ToWidget (toWidget))
 import Yesod.Core.Handler (HandlerFor)
 import Yesod.Core.Widget (whamlet, handlerToWidget)
 import Yesod.Form.Fields
-    ( emailField, passwordField, textField, OptionList (olOptions)
+    ( FormMessage, OptionList (olOptions)
     , Option (optionExternalValue, optionDisplay, optionInternalValue)
-    , textareaField, Textarea (Textarea), selectField, checkBoxField, htmlField
-    , FormMessage, doubleField, dayField, timeField, datetimeLocalField
-    , optionsPairs, multiSelectField, intField, radioField'
+    , datetimeLocalField, radioField'
     )
-import Yesod.Form.Functions (mopt, mreq)
 import Yesod.Form.Types
-    ( Field (fieldView), MForm, FormResult
-    , FieldSettings (fsId, fsName, fsAttrs)
+    ( Field (fieldView)
     , FieldView (fvErrors, fvInput, fvId, fvLabel, fvRequired)
     )
-import Data.Time.Format.ISO8601 (iso8601Show)
-
-
-
-
 
 
 md3widgetSelect :: RenderMessage m FormMessage => FieldView m -> WidgetFor m ()

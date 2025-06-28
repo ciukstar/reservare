@@ -24,8 +24,8 @@ import Data.Bifunctor (Bifunctor(second, first))
 import qualified Data.Map as M
     ( Map, fromListWith, member, notMember, lookup
     ) 
-import Data.Maybe (mapMaybe, fromMaybe)
-import Data.Text (unpack, pack)
+import Data.Maybe (mapMaybe)
+import Data.Text (unpack, pack, Text)
 import Data.Time.Calendar
     ( Day, toGregorian, DayPeriod (periodFirstDay, periodLastDay)
     , weekFirstDay, DayOfWeek (Monday), addDays
@@ -69,7 +69,7 @@ import Foundation
     )
 
 import Handler.Booking
-    ( widgetFilterChips, paramSector, paramBusiness, paramWorkspace, paramScrollY
+    ( widgetFilterChips, paramSector, paramBusiness, paramWorkspace
     )
 
 import Model
@@ -296,7 +296,6 @@ getCatalogServiceR sid = do
 getCatalogR :: Handler Html
 getCatalogR = do
     stati <- reqGetParams <$> getRequest
-    scrollY <- lookupGetParam paramScrollY
     paramSid <- lookupGetParam "sid"
 
     selectedSectors <- mapMaybe ((toSqlKey <$>) . readMaybe . unpack) <$> lookupGetParams paramSector
@@ -380,3 +379,7 @@ getCatalogBusinessLogoR bid = do
     case photo of
       Just (Entity _ (BusinessLogo _ mime bs _)) -> return $ TypedContent (encodeUtf8 mime) $ toContent bs
       Nothing -> redirect $ StaticR img_broken_image_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg
+
+
+keyScrollTop :: Text
+keyScrollTop = "scrollTop"

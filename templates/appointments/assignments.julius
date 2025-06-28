@@ -1,1 +1,7 @@
 
+
+window.scroll(0, isNaN(sessionStorage.getItem(#{keyScrollTop})) ? 0 : Number(sessionStorage.getItem(#{keyScrollTop})));
+
+window.addEventListener('scrollend', function (e) {
+  sessionStorage.setItem(#{keyScrollTop}, window.scrollY);
+});

@@ -1,7 +1,7 @@
 
 ^{widgetMainMenu idOverlay idDialogMainMenu}
 
-<header.fixed.primary>
+<header.fixed.primary ##{idHeader}>
   <nav.responsive.max>
     <button.circle.transparent data-ui=##{idDialogMainMenu}>
       <i>menu
@@ -11,26 +11,35 @@
 
     ^{widgetAccount}
 
-<main.responsive>
+<main.responsive.no-padding ##{idMain}>
 
   $if null businesses
-    <figure style="text-align:center">
-      <span.on-secondary style="font-size:4rem">&varnothing;
-      <figcaption.md-typescale-body-large>
+    <figure.center-align>
+      <i.extra.secondary-text>folder_open
+      <figcaption.large-text>
         _{MsgThereAreNoDataYet}
-        <div.md-typescale-body-small>
+        <div.small-text.secondary-text>
           _{MsgYouMightWantToAddAFew}
+          
   $else
-    <md-list>
-      $forall Entity bid (Business _ name _ _) <- businesses
-        <md-list-item type=link href=@{BusinessR uid bid}>
-          <div slot=headline>
+    
+    $forall Entity bid (Business _ name fname _) <- businesses
+      <a.row.padding.wave href=@{BusinessR uid bid}>
+        <img.circle src=@{BusinessLogoR uid bid} loading=lazy alt=_{MsgLogotype}>
+        <div.max>
+          <div.#{classHeadline}.large-text>
             #{name}
-          <md-icon slot=end>arrow_forward_ios
-        <md-divider>
 
-  <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-    <a href=@{BusinessNewR uid}>
-    <md-icon slot=icon>add
+          <div.#{classSupportingText}.secondary-text>
+            $maybe fullName <- fname
+              #{fullName}
 
-^{widgetSnackbar msgs}
+        <i.secondary-text>arrow_forward_ios
+
+      <hr>
+
+
+  <a.button.circle.extra.fixed.right.bottom.margin.medium-elevate href=@{BusinessNewR uid} title=_{MsgAdd}>
+    <i>add
+
+  ^{widgetSnackbar msgs}

@@ -1,14 +1,6 @@
 
 ##{idMain}
 
-    display: flex
-    flex-direction: column
-
-    form
-        margin: 0 1rem
-        display: flex
-        flex-direction: column
-
     ##{idCalendarPage}
         display: grid
         gap: 0.5rem
@@ -48,7 +40,3 @@
         div.cell.disabled
             border: 1px dashed var(--surface-dim,black)
             color: rgba(0,0,0,0.6)
-
-    section.prompt
-        margin: 1rem
-        text-align: center

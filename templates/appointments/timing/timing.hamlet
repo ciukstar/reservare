@@ -1,23 +1,25 @@
 
-<header.background>
-  <md-icon-button href=@?{(AppointmentStaffR,stati)} aria-label=_{MsgBack} rel=prev ##{idButtonBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@?{(AppointmentStaffR,stati)} ##{idButtonBack} role=button title=_{MsgBack} rel=prev>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgAppointmentTime}
+    <h6.max>
+      _{MsgAppointmentTime}
 
-
-<main>
+<main.responsive ##{idMain}>
   
   <div.calendar ##{idCalendarPage}>
     <div.header>
-      <md-icon-button type=link href=@?{(AppointmentTimingR prev,stati)} rel=nofollow aria-label=_{MsgPrevious}>
-        <md-icon>arrow_back_ios
+      <a.button.transparent.circle href=@?{(AppointmentTimingR prev,stati)} role=button rel=nofollow aria-label=_{MsgPrevious}>
+        <i>arrow_back_ios_new
+        
       $with m <- show month
         <time.month-of-year datetime=#{m}>
           #{m}
-      <md-icon-button type=link href=@?{(AppointmentTimingR next,stati)} rel=nofollow aria-label=_{MsgNext}>
-        <md-icon>arrow_forward_ios
+          
+      <a.button.transparent.circle href=@?{(AppointmentTimingR next,stati)} role=button rel=nofollow aria-label=_{MsgNext}>
+        <i>arrow_forward_ios
 
     $forall wd <- [MsgMon,MsgTue,MsgWed,MsgThu,MsgFri,MsgSat,MsgSun]
       <div.col-header>
@@ -27,8 +29,9 @@
         $with (y,m,d) <- toGregorian day
           $if (&&) ((==) month (YearMonth y m)) (M.member day slots)
             <a.cell href=@?{(AppointmentTimeSlotsR day,stati)} rel=nofollow
-              :(Just day) == (localDay <$> tid):.primary
-              :(Just day) /= (localDay <$> tid):.primary-negative>
+                    :(Just day) == (localDay <$> tid):.primary
+                    :(Just day) /= (localDay <$> tid):.primary-text>
+                    
               <time.day-of-month datetime=#{show day}>
                 <small>#{d}
               $maybe slot <- tid
@@ -36,6 +39,7 @@
                   $with dt <- show slot
                     <time.time-of-day datetime=#{dt}>
                       #{dt}
+                      
           $elseif (&&) ((==) month (YearMonth y m)) (not $ M.member day slots)
             <div.cell.disabled>
               <time.day-of-month datetime=#{show day}>
@@ -48,23 +52,24 @@
           $else
             <div>
 
-  <section.prompt>
+  <section.margin.center-align>
     $if null slots
-      <p.md-typescale-body-medium>_{MsgEmployeeWorkScheduleForThisMonthNotSetYet}.
+      <p>_{MsgEmployeeWorkScheduleForThisMonthNotSetYet}.
     $else
       $maybe slot <- tid
         $with dt <- show slot
-          <div.md-typescale-label-large>_{MsgAppointmentSetFor}
-          <time.full-datetime.md-typescale-body-large datetime=#{dt}>#{dt}
+          <div.large-text>_{MsgAppointmentSetFor}
+          <time.full-datetime.large-text datetime=#{dt}>#{dt}
       $nothing
-        <p.md-typescale-body-medium>_{MsgSelectAvailableDayAndTimePlease}.
+        <p>_{MsgSelectAvailableDayAndTimePlease}.
 
   <form method=post action=@?{(AppointmentTimingR month,stati)} enctype=#{et} ##{idFormTiming}>
     ^{fw}
 
-  <md-fab ##{idFabNext} label=_{MsgNext} aria-label=_{MsgNext}
-    onclick="document.getElementById('#{idFormTiming}').submit()">
-    <md-icon slot=icon>arrow_forward
+  <button.circle.extend.fixed.right.bottom.margin.medium-elevate type=submit form=#{idFormTiming}
+                     ##{idFabNext} title=_{MsgNext}>
+    <i>arrow_forward
+    <span>_{MsgNext}
 
 
   ^{widgetSnackbar msgs}

@@ -1,6 +1,4 @@
 
-window.scroll("0",#{fromMaybe "0" scrollY4});
-
 document.querySelectorAll('time.day[datetime]').forEach(function (x) {
   x.textContent = new Date(x.getAttribute('datetime')).toLocaleDateString(
     navigator.language,
@@ -21,12 +19,8 @@ document.querySelectorAll('time.time-slot[datetime]').forEach(function (x) {
   );
 });
 
-document.getElementById(#{idFabSelect}).addEventListener('click',function (e) {
-  const form = document.getElementById(#{idFormSlots});
-  form.action = [new window.URL(form.action)].map(y => {
-    y.searchParams.set(#{paramScrollY4}, window.scrollY);
-    return y.href;
-  })[0];
-  
-  form.submit();
+window.scroll(0, isNaN(sessionStorage.getItem(#{keyScrollTop4})) ? 0 : Number(sessionStorage.getItem(#{keyScrollTop4})));
+
+window.addEventListener('scrollend', function (e) {
+  sessionStorage.setItem(#{keyScrollTop4}, window.scrollY);
 });

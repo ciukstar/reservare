@@ -1,5 +1,5 @@
 
-<header.fixed>
+<header.fixed ##{idHeader}>
   <nav>
     <a.button.transparent.circle href=@{HomeR} title=_{MsgBack} role=button>
       <i>arrow_back
@@ -10,7 +10,7 @@
     <a.button.transparent.circle href=@{AccountEditR uid} title=_{MsgEdit} role=button>
       <i>edit
       
-<main.responsive.no-padding>
+<main.responsive.no-padding ##{idMain}>
   
   <div.tabs.min>
   
@@ -21,10 +21,9 @@
       _{MsgPersonalInfo}
 
   <div.page.padding.center-align.active>
-    <figure>
-    
-      <img.extra src=@{AccountPhotoR uid} loading=lazy alt=_{MsgPhoto}>
-      
+  
+    <figure.center-align>  
+      <img.extra.circle src=@{AccountPhotoR uid} loading=lazy alt=_{MsgPhoto}>
       <figcaption>
       
         $maybe Entity _ (User email _ _ _ _ name super admin) <- user
@@ -41,5 +40,9 @@
                 $forall role <- roles
                   _{role} #
 
-    <a.button.transparent.link href=@{AuthR LogoutR} role=button>
-      _{MsgSignOut}
+    <nav.center-align>
+      <a.button.transparent.link href=@{AuthR LogoutR} role=button>
+        _{MsgSignOut}
+
+
+  ^{widgetSnackbar msgs}

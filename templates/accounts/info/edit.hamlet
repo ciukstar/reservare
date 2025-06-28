@@ -1,15 +1,19 @@
 
-<header>
-  <md-icon-button href=@{AccountInfoR uid} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.transparent.circle href=@{AccountInfoR uid} title=_{MsgBack} role=button>
+      <i>arrow_back
 
-  <section.md-typescale-title-large>
-    _{MsgPersonalInfo}
+    <h6.max>
+      _{MsgPersonalInfo}
       
-<main>
+<main.responsive ##{idMain}>
 
   <form method=post action=@{AccountInfoR uid} enctype=#{et}>
     ^{fw}
-    <div.app-form-actions>
-      <md-text-button type=button href=@{AccountInfoR uid}>_{MsgCancel}
-      <md-filled-button type=submit>_{MsgSave}
+    <nav.right-align>
+      <a.button.transparent.link href=@{AccountInfoR uid} role=button>
+        _{MsgCancel}
+        
+      <button type=submit>
+        _{MsgSave}

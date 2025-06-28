@@ -263,12 +263,12 @@ instance Yesod App where
     isAuthorized (WorkspaceNewR uid _) _ = isAuthenticatedSelf uid
     isAuthorized (WorkspacesR uid _) _ = isAuthenticatedSelf uid
 
+    
     isAuthorized (BusinessDeleR uid _) _ = isAuthenticatedSelf uid
     isAuthorized (BusinessEditR uid _) _ = isAuthenticatedSelf uid
     isAuthorized (BusinessR uid _) _ = isAuthenticatedSelf uid
     isAuthorized (BusinessNewR uid) _ = isAuthenticatedSelf uid
     isAuthorized r@(BusinessesR uid) _ = setUltDest r >> isAuthenticatedSelf uid
-
 
 
     isAuthorized (DataR (ServiceAssignmentDeleR _ _)) _ = isAdmin
@@ -1150,6 +1150,7 @@ widgetAccount = do
 
 widgetMainMenu :: Text -> Text -> Widget
 widgetMainMenu idOverlay idDialogMainMenu = do
+    uid <- maybeAuthId
     curr <- getCurrentRoute
     idButtonMainMenuClose <- newIdent
     $(widgetFile "widgets/menu")

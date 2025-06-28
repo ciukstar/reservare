@@ -18,6 +18,13 @@
         <i>home
         <span>_{MsgHome}
 
+    $maybe uid <- uid
+      <li.wave.round :curr == Just (BusinessesR uid):.active>
+        <a href=@{BusinessesR uid}>
+          <i>cases
+          <span>_{MsgBusiness}
+
+
   <hr.top-margin>
   <div.small-text>
     _{MsgData}

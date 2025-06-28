@@ -1,5 +1,5 @@
 
-<header.fixed>
+<header.fixed ##{idHeader}>
   <nav>
     <a.button.transparent.circle href=@{HomeR} title=_{MsgBack} role=button>
       <i>arrow_back
@@ -11,7 +11,7 @@
       <a.button.transparent.circle href=@{AccountInfoEditR uid} title=_{MsgEdit} role=button>
         <i>edit
       
-<main.responsive.no-padding>
+<main.responsive.no-padding ##{idMain}>
   
   <div.tabs.min>
   
@@ -44,4 +44,5 @@
           <button type=submit>
             _{MsgSave}
 
-    ^{widgetSnackbar msgs}
+
+  ^{widgetSnackbar msgs}

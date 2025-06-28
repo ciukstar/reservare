@@ -1,19 +1,21 @@
 
-<header>
-  <md-icon-button href=@{BusinessR uid bid} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{BusinessR uid bid} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgBusiness}
+    <h6.max>
+      _{MsgBusiness}
 
-<main>
+<main.responsive ##{idMain}>
 
   <form method=post action=@{BusinessR uid bid} enctype=#{et} novalidate ##{idFormBusiness}>
     ^{fw}
-    <div.form-actions>
-      <md-text-button type=button href=@{BusinessR uid bid}>
+    <nav.right-align>
+      <a.button.transparent.link href=@{BusinessR uid bid} role=button>
         _{MsgCancel}
-      <md-filled-button type=submit>
+        
+      <button type=submit>
         _{MsgSave}
 
-^{widgetSnackbar msgs}
+  ^{widgetSnackbar msgs}

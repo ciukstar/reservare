@@ -2268,7 +2268,7 @@ getDataBusinessR bid = do
     attribution <- ((unValue =<<) <$>) $ runDB $ selectOne $ do
         x <- from $ table @BusinessLogo
         where_ $ x ^. BusinessLogoBusiness ==. val bid
-        return (x ^. BusinessLogoAttribution) 
+        return (x ^. BusinessLogoAttribution)
 
     (fw0,et0) <- generateFormPost formBusinessDelete
 
@@ -2303,10 +2303,12 @@ postDataBusinessesR = do
                     ]
           addMessageI statusSuccess MsgRecordAdded
           redirect $ DataR DataBusinessesR
+          
       FormSuccess (r,_,_) -> do
           runDB $ insert_ r
           addMessageI statusSuccess MsgRecordAdded
           redirect $ DataR DataBusinessesR
+          
       _otherwise -> do
           msgs <- getMessages
           defaultLayout $ do

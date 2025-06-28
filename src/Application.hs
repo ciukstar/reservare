@@ -93,11 +93,17 @@ import Handler.Resources (getDocsR)
 import Handler.Home ( getHomeR )
 
 import Handler.Business
-    ( getBusinessesR, getBusinessNewR, postBusinessesR, getBusinessR
-    , getBusinessEditR, postBusinessDeleR, postBusinessR
-    , getWorkspacesR, getWorkspaceNewR, postWorkspacesR
-    , getWorkspaceR, getWorkspaceEditR, postWorkspaceR
+    ( getBusinessesR, postBusinessesR
+    , getBusinessNewR
+    , getBusinessR, postBusinessR
+    , getBusinessEditR
+    , postBusinessDeleR
+    , getWorkspacesR, postWorkspacesR
+    , getWorkspaceNewR
+    , getWorkspaceR, postWorkspaceR
+    , getWorkspaceEditR
     , postWorkspaceDeleR
+    , getBusinessLogoR
     )
 
 import Handler.Data.Services

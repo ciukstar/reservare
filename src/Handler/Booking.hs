@@ -1,7 +1,7 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes       #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE InstanceSigs #-}
@@ -15,7 +15,7 @@ module Handler.Booking
   , getBookPaymentR, postBookPaymentR
   , getBookDetailsR
   , widgetFilterChips
-  , paramSector, paramBusiness, paramWorkspace, paramScrollY
+  , paramSector, paramBusiness, paramWorkspace
   ) where
 
 import qualified AtVenue.Data as V (Route(CheckoutR))
@@ -72,8 +72,6 @@ import Foundation
       )
     )
 
-import Material3 (md3mreq)
-
 import Model
     ( statusError, keyBacklink, keyBacklinkAuth
     , ServiceId, Service(Service)
@@ -118,7 +116,7 @@ import Yesod.Auth (maybeAuth, Route (LoginR))
 import Yesod.Core.Handler
     ( getMessages, newIdent, addMessageI, getRequest
     , YesodRequest (reqGetParams), redirect, getMessageRender
-    , setUltDestCurrent, setUltDest, setUltDestReferer, lookupGetParam
+    , setUltDestCurrent, setUltDest, setUltDestReferer
     )
 import Yesod.Core
     ( Yesod(defaultLayout), MonadIO (liftIO), whamlet
@@ -175,7 +173,6 @@ getBookDetailsR bid = do
 postBookPaymentR :: Handler Html
 postBookPaymentR = do
     stati <- reqGetParams <$> getRequest
-    scrollY5 <- lookupGetParam paramScrollY5
 
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
@@ -190,12 +187,8 @@ postBookPaymentR = do
     user <- maybeAuth
 
     case (fr,user) of
-      (FormSuccess (sid',eid',tid',oid'), Nothing) -> do
-          setUltDest ( BookPaymentR, listUpsert [ ("sid", pack $ show $ fromSqlKey sid')
-                                                , ("eid", pack $ show $ fromSqlKey eid')
-                                                , ("tid", pack $ show (utcToLocalTime utc tid'))
-                                                , ("oid", pack $ show $ fromSqlKey oid')
-                                                ] stati
+      (FormSuccess (_sid',_eid',_tid',oid'), Nothing) -> do
+          setUltDest ( BookPaymentR, ("oid", pack $ show $ fromSqlKey oid') : stati
                      )
           redirect $ AuthR LoginR
 
@@ -263,7 +256,6 @@ postBookPaymentR = do
                     idHeader <- newIdent
                     idMain <- newIdent
                     idFormPayment <- newIdent
-                    idFabNext <- newIdent
                     $(widgetFile "common/css/header")
                     $(widgetFile "common/css/main")
                     $(widgetFile "book/payment/payment")
@@ -276,7 +268,6 @@ postBookPaymentR = do
                     idHeader <- newIdent
                     idMain <- newIdent
                     idFormPayment <- newIdent
-                    idFabNext <- newIdent
                     $(widgetFile "common/css/header")
                     $(widgetFile "common/css/main")
                     $(widgetFile "book/payment/payment")
@@ -289,7 +280,6 @@ postBookPaymentR = do
               idHeader <- newIdent
               idMain <- newIdent
               idFormPayment <- newIdent
-              idFabNext <- newIdent
               $(widgetFile "common/css/header")
               $(widgetFile "common/css/main")
               $(widgetFile "book/payment/payment")
@@ -302,7 +292,6 @@ postBookPaymentR = do
               idHeader <- newIdent
               idMain <- newIdent
               idFormPayment <- newIdent
-              idFabNext <- newIdent
               $(widgetFile "common/css/header")
               $(widgetFile "common/css/main")
               $(widgetFile "book/payment/payment")
@@ -311,7 +300,6 @@ postBookPaymentR = do
 getBookPaymentR :: Handler Html
 getBookPaymentR = do
     stati <- reqGetParams <$> getRequest
-    scrollY5 <- lookupGetParam paramScrollY5
 
     sid <- toSqlKey <$> runInputGet ( ireq intField "sid" )
     eid <- toSqlKey <$> runInputGet ( ireq intField "eid" )
@@ -418,7 +406,6 @@ getBookPaymentR = do
               idHeader <- newIdent
               idMain <- newIdent
               idFormPayment <- newIdent
-              idFabNext <- newIdent
               $(widgetFile "common/css/header")
               $(widgetFile "common/css/main")
               $(widgetFile "book/payment/payment")
@@ -456,7 +443,7 @@ formPayment sid eid time option extra = do
             )
         return x
 
-    (optionR,optionV) <- md3mreq (md3radioFieldList options) "" option
+    (optionR,optionV) <- mreq (md3radioFieldList options) "" option
 
     let r = (,,,) <$> serviceR <*> staffR <*> (localTimeToUTC utc <$> timeR) <*> optionR
     let w = [whamlet|#{extra} ^{fvInput serviceV} ^{fvInput staffV} ^{fvInput timeV} ^{fvInput optionV}|]
@@ -519,7 +506,6 @@ formPayment sid eid time option extra = do
 postBookTimeSlotsR :: Day -> Handler Html
 postBookTimeSlotsR day = do
     stati <- reqGetParams <$> getRequest
-    scrollY4 <- lookupGetParam paramScrollY4
 
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
@@ -531,12 +517,9 @@ postBookTimeSlotsR day = do
 
     ((fr,fw),et) <- runFormPost $ formTimeSlot slots sid eid tid
     case fr of
-      FormSuccess (sid',eid',tid') -> redirect
+      FormSuccess (_sid',_eid',tid') -> redirect
           ( BookTimingR month
-          , listUpsert [ ("sid", pack $ show $ fromSqlKey sid')
-                       , ("eid", pack $ show $ fromSqlKey eid')
-                       , ("tid", pack $ show tid')
-                       ] stati
+          , ("tid", pack $ show tid') : stati
           )
       FormFailure errs -> do
           forM_ errs $ \err -> addMessageI statusError err
@@ -568,7 +551,6 @@ postBookTimeSlotsR day = do
 getBookTimeSlotsR :: Day -> Handler Html
 getBookTimeSlotsR day = do
     stati <- reqGetParams <$> getRequest
-    scrollY4 <- lookupGetParam paramScrollY4
 
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
@@ -680,7 +662,6 @@ formTimeSlot slots sid eid tid extra = do
 postBookTimingR :: Month -> Handler Html
 postBookTimingR month = do
     stati <- reqGetParams <$> getRequest
-    scrollY3 <- lookupGetParam paramScrollY3
 
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
@@ -689,12 +670,9 @@ postBookTimingR month = do
     ((fr,fw),et) <- runFormPost $ formTiming sid eid tid
 
     case fr of
-      FormSuccess (sid',eid',tid') -> redirect ( BookPaymentR
-                                               , listUpsert [ ("sid", pack $ show $ fromSqlKey sid')
-                                                            , ("eid", pack $ show $ fromSqlKey eid')
-                                                            , ("tid", pack $ show tid')
-                                                            ] stati
-                                               )
+      FormSuccess (_sid',_eid',tid') -> redirect ( BookPaymentR
+                                                 , ("tid", pack $ show tid') : stati
+                                                 )
       FormFailure errs -> do
 
           let start = weekFirstDay Monday (periodFirstDay month)
@@ -769,7 +747,6 @@ postBookTimingR month = do
 getBookTimingR :: Month -> Handler Html
 getBookTimingR month = do
     stati <- reqGetParams <$> getRequest
-    scrollY3 <- lookupGetParam paramScrollY3
 
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
@@ -846,7 +823,6 @@ formTiming sid eid time extra = do
 postBookStaffR :: Handler Html
 postBookStaffR = do
     stati <- reqGetParams <$> getRequest
-    scrollY2 <- lookupGetParam paramScrollY2
 
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
@@ -856,11 +832,9 @@ postBookStaffR = do
 
     ((fr,fw),et) <- runFormPost $ formStaff sid eid
     case fr of
-      FormSuccess (sid',eid') -> redirect ( BookTimingR month
-                                          , listUpsert [ ("sid", pack $ show $ fromSqlKey sid')
-                                                       , ("eid", pack $ show $ fromSqlKey eid')
-                                                       ] stati
-                                          )
+      FormSuccess (_sid',eid') -> redirect ( BookTimingR month
+                                           , ("eid", pack $ show $ fromSqlKey eid') : stati
+                                           )
       FormFailure errs -> do
           forM_ errs $ \err -> addMessageI statusError err
           msgs <- getMessages
@@ -869,7 +843,6 @@ postBookStaffR = do
               idHeader <- newIdent
               idMain <- newIdent
               idFormStaff <- newIdent
-              idFabNext <- newIdent
               $(widgetFile "common/css/header")
               $(widgetFile "common/css/main")
               $(widgetFile "book/staff/staff")
@@ -882,7 +855,6 @@ postBookStaffR = do
               idHeader <- newIdent
               idMain <- newIdent
               idFormStaff <- newIdent
-              idFabNext <- newIdent
               $(widgetFile "common/css/header")
               $(widgetFile "common/css/main")
               $(widgetFile "book/staff/staff")
@@ -891,7 +863,6 @@ postBookStaffR = do
 getBookStaffR :: Handler Html
 getBookStaffR = do
     stati <- reqGetParams <$> getRequest
-    scrollY2 <- lookupGetParam paramScrollY2
 
     sid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "sid" )
     eid <- (toSqlKey <$>) <$> runInputGet ( iopt intField "eid" )
@@ -904,7 +875,6 @@ getBookStaffR = do
         idHeader <- newIdent
         idMain <- newIdent
         idFormStaff <- newIdent
-        idFabNext <- newIdent
         $(widgetFile "common/css/header")
         $(widgetFile "common/css/main")
         $(widgetFile "book/staff/staff")
@@ -1047,7 +1017,6 @@ postBookServicesR = do
               idFormService <- newIdent
               $(widgetFile "common/css/header")
               $(widgetFile "common/css/main")
-              $(widgetFile "common/js/scrolltop")
               $(widgetFile "book/services")
               
       FormMissing -> do
@@ -1060,7 +1029,6 @@ postBookServicesR = do
               idFormService <- newIdent
               $(widgetFile "common/css/header")
               $(widgetFile "common/css/main")
-              $(widgetFile "common/js/scrolltop")
               $(widgetFile "book/services")
 
 
@@ -1092,7 +1060,6 @@ getBookServicesR = do
         idFormService <- newIdent
         $(widgetFile "common/css/header")
         $(widgetFile "common/css/main")
-        $(widgetFile "common/js/scrolltop")
         $(widgetFile "book/services")
 
 
@@ -1252,17 +1219,27 @@ paramWorkspace :: Text
 paramWorkspace = "w"
 
 
-paramScrollY5 :: Text
-paramScrollY5 = "y5"
+keyScrollLeftX3 :: Text
+keyScrollLeftX3 = "scrollLeftX3"
 
-paramScrollY4 :: Text
-paramScrollY4 = "y4"
+keyScrollLeftX2 :: Text
+keyScrollLeftX2 = "scrollLeftX2"
 
-paramScrollY3 :: Text
-paramScrollY3 = "y3"
+keyScrollLeftX1 :: Text
+keyScrollLeftX1 = "scrollLeftX1"
 
-paramScrollY2 :: Text
-paramScrollY2 = "y2"
 
-paramScrollY :: Text
-paramScrollY = "y"
+keyScrollTop5 :: Text
+keyScrollTop5 = "scrollTop5"
+
+keyScrollTop4 :: Text
+keyScrollTop4 = "scrollTop4"
+
+keyScrollTop3 :: Text
+keyScrollTop3 = "scrollTop3"
+
+keyScrollTop2 :: Text
+keyScrollTop2 = "scrollTop2"
+
+keyScrollTop :: Text
+keyScrollTop = "scrollTop"

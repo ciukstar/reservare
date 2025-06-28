@@ -42,7 +42,7 @@
 /users/#UserId/businesses/#BusinessId/workspaces/new/form               WorkspaceNewR  GET
 /users/#UserId/businesses/#BusinessId/workspaces/#WorkspaceId           WorkspaceR     GET POST
 /users/#UserId/businesses/#BusinessId/workspaces                        WorkspacesR    GET POST
-    
+
 /users/#UserId/businesses/#BusinessId/form/dele  BusinessDeleR POST
 /users/#UserId/businesses/#BusinessId/form/edit  BusinessEditR GET
 /users/#UserId/businesses/new/form               BusinessNewR  GET

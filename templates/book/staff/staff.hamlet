@@ -13,7 +13,7 @@
     ^{fw}
 
 
-  <button.circle.extend.fixed.right.bottom.margin.medium-elevate type=button ##{idFabNext} title=_{MsgNext}>
+  <button.circle.extend.fixed.right.bottom.margin.medium-elevate type=submit form=#{idFormStaff} title=_{MsgNext}>
     <i>arrow_forward
     <span>_{MsgNext}
 

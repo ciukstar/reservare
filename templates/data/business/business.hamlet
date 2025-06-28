@@ -62,7 +62,7 @@
           $nothing
             #{ownerEmail}
 
-    ^{widgetSnackbar msgs}
+  ^{widgetSnackbar msgs}
 
 
 <div.overlay ##{idOverlay} data-ui=##{idDialogDelete}>

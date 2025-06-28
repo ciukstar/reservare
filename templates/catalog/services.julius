@@ -1,6 +1,4 @@
 
-window.scroll("0",#{fromMaybe "0" scrollY});
-
 document.querySelectorAll(
   '.#{rawJS classCurrency}[data-value][data-currency]'
 ).forEach(function (x) {
@@ -13,11 +11,9 @@ document.querySelectorAll(
   }).format(x.dataset.value / 100);
 });
 
-document.body.querySelectorAll('a[href]').forEach(function (x) {
-  x.addEventListener('click',function (e) {
-    x.href = [new window.URL(x.href)].map(y => {
-      y.searchParams.set(#{paramScrollY}, window.scrollY);
-      return y.href;
-    })[0];
-  });
+
+window.scroll(0, isNaN(sessionStorage.getItem(#{keyScrollTop})) ? 0 : Number(sessionStorage.getItem(#{keyScrollTop})));
+
+window.addEventListener('scrollend', function (e) {
+  sessionStorage.setItem(#{keyScrollTop}, window.scrollY);
 });

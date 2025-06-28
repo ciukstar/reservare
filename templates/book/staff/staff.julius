@@ -1,5 +1,10 @@
 
-window.scroll("0",#{fromMaybe "0" scrollY2});
+
+window.scroll(0, isNaN(sessionStorage.getItem(#{keyScrollTop2})) ? 0 : Number(sessionStorage.getItem(#{keyScrollTop2})));
+
+window.addEventListener('scrollend', function (e) {
+  sessionStorage.setItem(#{keyScrollTop2}, window.scrollY);
+});
 
 if (sessionStorage.getItem(#{keyBacklink})) {
   document.querySelector('a[rel=prev][href]').href = sessionStorage.getItem(#{keyBacklink});
@@ -7,14 +12,4 @@ if (sessionStorage.getItem(#{keyBacklink})) {
 
 document.querySelector('a[rel=prev][href]').addEventListener('click', e => {
   sessionStorage.removeItem(#{keyBacklink});
-});
-
-document.getElementById(#{idFabNext}).addEventListener('click',function (e) {
-  const form = document.getElementById(#{idFormStaff});
-  form.action = [new window.URL(form.action)].map(y => {
-    y.searchParams.set(#{paramScrollY2}, window.scrollY);
-    return y.href;
-  })[0];
-  
-  form.submit();
 });

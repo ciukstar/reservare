@@ -1,4 +1,29 @@
 
-#{extra} 
+#{extra}
+  
+<label for=#{fvId logoV} ##{idLabelLogo}>
+  <figure.center-align ##{idFigureLogo}>
+    $maybe Entity bid _ <- business
+      <img.extra.circle src=@{BusinessLogoR uid bid} ##{idImgLogo} loading=lazy alt=_{MsgLogotype}>
+    $nothing
+      <img.extra.circle src=@{StaticR img_broken_image_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg}
+           ##{idImgLogo} loading=lazy alt=_{MsgLogotype}>
+    <figcaption.small-padding>
 
-^{fvInput nameV}
+      $maybe errs <- fvErrors logoV
+        <div.error-text>
+          #{errs}
+   
+      <button.small.transparent.border type=button onclick="document.getElementById('#{idLabelLogo}').click()">
+        <i>upload_file
+        _{MsgLogotype}
+
+^{fvInput logoV}
+
+^{md3widgetTextarea attribV}
+
+^{md3widget nameV}
+
+^{md3widget fullNameV}
+
+^{md3widgetTextarea descrV}

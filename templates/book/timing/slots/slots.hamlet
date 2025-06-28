@@ -29,7 +29,7 @@
       <nav.right-align.padding>
         <a.button.transparent.link href=@?{(BookTimingR month,stati)} role=button>
           _{MsgCancel}
-        <button type=button ##{idFabSelect}>
+        <button type=submit ##{idFabSelect}>
           _{MsgSelect}
 
   ^{widgetSnackbar msgs}

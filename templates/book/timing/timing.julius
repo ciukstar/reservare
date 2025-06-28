@@ -1,6 +1,4 @@
 
-window.scroll("0",#{fromMaybe "0" scrollY3});
-
 document.querySelectorAll('time.month-of-year[datetime]').forEach(function (x) {
   x.textContent = new Date(x.getAttribute('datetime')).toLocaleDateString(
     navigator.language,
@@ -32,17 +30,12 @@ document.querySelectorAll('time.full-datetime[datetime]').forEach(function (x) {
   );
 });
 
+window.scroll(0, isNaN(sessionStorage.getItem(#{keyScrollTop3})) ? 0 : Number(sessionStorage.getItem(#{keyScrollTop3})));
+
+window.addEventListener('scrollend', function (e) {
+  sessionStorage.setItem(#{keyScrollTop3}, window.scrollY);
+});
 
 document.getElementById(#{idFabNext}).addEventListener('click',function (e) {
-
   sessionStorage.setItem(#{keyBacklinkAuth},'@?{(BookTimingR month,stati)}');
-  
-  const form = document.getElementById(#{idFormTiming});
-  form.action = [new window.URL(form.action)].map(y => {
-    y.searchParams.set(#{paramScrollY3}, window.scrollY);
-    return y.href;
-  })[0];
-  
-  form.submit();
-  
 });

@@ -1,51 +1,50 @@
 
-<header>
-  <md-icon-button href=@{BusinessesR uid} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{BusinessesR uid} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgBusiness}
+    <h6.max>
+      _{MsgBusiness}
 
-<main>
+<main.responsive.no-padding ##{idMain}>
 
-  <md-tabs>
-  
-    <md-primary-tab #idTabDetails aria-cotrols=idPanelDetails onclick="this.querySelector('a[href]').click()">
-      <a href=@{BusinessR uid bid}>
-      _{MsgDetails}
-      
-    <md-primary-tab ##{idTabWorkspaces} aria-cotrols=#{idPanelWorkspaces} active
-      onclick="this.querySelector('a[href]').click()">
-      
-      <a href=@{BusinessR uid bid}>
-      _{MsgWorkspaces}
+  <nav.scroll>
+    <div.tabs.min>
+
+      <a.no-wrap href=@{BusinessR uid bid}>
+        _{MsgDetails}
+
+      <a.active.no-wrap href=@{WorkspacesR uid bid}>
+        _{MsgWorkspaces}
       
 
-  <div #idPanelDetails role=tabpanel aria-labelledby=idTabDetails hidden>
-
-  <div ##{idPanelWorkspaces} role=tabpanel aria-labelledby=#{idTabWorkspaces}>
+  <div.page.active>
 
     $if null workspaces
-      <figure style="text-align:center">
-        <span.on-secondary style="font-size:4rem">&varnothing;
-        <figcaption.md-typescale-body-large>
+      <figure.center-align>
+        <i.extra.secondary-text>folder_open
+        <figcaption.large-text>
           _{MsgThereAreNoDataYet}
-          <div.md-typescale-body-small>
+          <div.small-text.secondary-text>
             _{MsgYouMightWantToAddAFew}
     $else
-      <md-list>
-        $forall Entity wid (Workspace _ name address _ _) <- workspaces
-          <md-list-item type=link href=@{WorkspaceR uid bid wid}>
-            <div slot=headline>
+      
+      $forall Entity wid (Workspace _ name address _ _) <- workspaces
+        <a.row.padding.wave href=@{WorkspaceR uid bid wid}>
+          <div.max>
+            <div.#{classHeadline}.large-text>
               #{name}
-            <div slot=supporting-text>
+            <div.#{classSupportingText}.secondary-text>
               #{address}
-            <md-icon slot=end>arrow_forward_ios
-          <md-divider>
 
-    <md-fab ##{idFabAdd} aria-label=_{MsgAdd} onclick="this.querySelector('a[href]').click()">
-      <a href=@{WorkspaceNewR uid bid}>
-      <md-icon slot=icon>add
+          <i.secondary-text>arrow_forward_ios
+
+        <hr>
 
 
-    ^{widgetSnackbar msgs}
+  <a.button.circle.extra.fixed.right.bottom.margin.medium-elevate href=@{WorkspaceNewR uid bid} title=_{MsgAdd}>
+    <i>add
+
+
+  ^{widgetSnackbar msgs}

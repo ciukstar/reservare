@@ -1,59 +1,85 @@
 
-<header>
-  <md-icon-button href=@{BusinessesR uid} aria-label=_{MsgBack}>
-    <md-icon>arrow_back
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{BusinessesR uid} role=button title=_{MsgBack}>
+      <i>arrow_back
 
-  <span.md-typescale-title-large>
-    _{MsgBusiness}
-
-  <span #headerEnd>
-    <md-icon-button type=button aria-label=_{MsgDele} onclick="document.getElementById('idDialogDelete').show()">
-      <md-icon>delete
-    <md-icon-button href=@{BusinessEditR uid bid} aria-label=_{MsgEdit}>
-      <md-icon>edit
-
-<md-dialog #idDialogDelete>
-  <div slot=headline>
-    _{MsgConfirmPlease}
-  <div slot=content>
-    _{MsgDeleteAreYouSure}
-  <div slot=actions>
-    <md-text-button type=button onclick="document.getElementById('idDialogDelete').close()">
-      _{MsgCancel}
-    <form slot=content method=post action=@{BusinessDeleR uid bid} enctype=#{et2}>
-      ^{fw2}
-      <md-filled-button type=submit>
-        _{MsgDele}
-
-<main>
-
-  <md-tabs>
-  
-    <md-primary-tab ##{idTabDetails} aria-cotrols=#{idPanelDetails} active onclick="this.querySelector('a[href]').click()">
-      <a href=@{BusinessR uid bid}>
-      _{MsgDetails}
+    <h6.max>
+      _{MsgBusiness}
       
-    <md-primary-tab #idTabWorkspaces aria-cotrols=idPanelworkspaces onclick="this.querySelector('a[href]').click()">
-      <a href=@{WorkspacesR uid bid}>
-      _{MsgWorkspaces}
+    <a.button.transparent.circle role=button title=_{MsgDele} data-ui=##{idDialogDelete}>
+      <i.error-text>delete
+      
+    <a.button.transparent.circle href=@{BusinessEditR uid bid} role=button title=_{MsgEdit}>
+      <i>edit
+
+<main.responsive.no-padding ##{idMain}>
+
+  <nav.scroll>
+    <div.tabs.min>
+
+      <a.active.no-wrap href=@{BusinessR uid bid}>
+        _{MsgDetails}
+
+      <a.no-wrap href=@{WorkspacesR uid bid}>
+        _{MsgWorkspaces}
       
 
-  <div ##{idPanelDetails} role=tabpanel aria-labelledby=#{idTabDetails}>
+  <div.page.active.padding>
 
-    $maybe (Entity _ (Business _ name _ _), Entity _ (User ownerEmail _ _ _ _ ownerName _ _)) <- business        
+    $maybe (Entity bid (Business _ name fname descr), owner) <- business
       <dl>
-
-        <dt.md-typescale-label-large scope=row>_{MsgTheName}
-        <dd.md-typescale-body-medium>
+        <dt.bold>_{MsgLogotype}
+        <dd.small-margin>
+        
+          <figure>
+            <img.extra.circle src=@{BusinessLogoR uid bid} loading=lazy alt=_{MsgLogotype}>
+            $maybe attrib <- attribution
+              <figcaption>
+                <div.small-text.secondary-text>
+                  ^{attrib}
+        
+        <dt.bold>_{MsgTheName}
+        <dd.small-margin>
           #{name}
 
-        <dt.md-typescale-label-large scope=row>_{MsgOwner}
-        <dd.md-typescale-body-medium>
-          $maybe name <- ownerName
-            #{name}
-          $nothing
-            #{ownerEmail}
+        $maybe fname <- fname
+          <dt.bold>_{MsgBusinessFullName}
+          <dd.small-margin>
+            #{fname}
 
-    ^{widgetSnackbar msgs}
+        $maybe descr <- descr
+          <dt.bold>_{MsgDescription}
+          <dd.small-margin>
+            #{descr}
 
-  <div #idPanelWorkspaces role=tabpanel aria-labelledby=idTabWorkspaces hidden>
+        <dt.bold>_{MsgOwner}
+        <dd.small-margin>
+          $with Entity _ (User oemail _ _ _ _ oname _ _) <- owner
+            $maybe oname <- oname
+              #{oname}
+            $nothing
+              #{oemail}
+
+  ^{widgetSnackbar msgs}
+
+
+<div.overlay ##{idOverlay} data-ui=##{idDialogDelete}>
+
+<dialog ##{idDialogDelete}>
+  <h6>
+    _{MsgConfirmPlease}
+    
+  <p>
+    _{MsgDeleteAreYouSure}
+    
+  <nav.right-align>
+      
+    <form method=post action=@{BusinessDeleR uid bid} enctype=#{et0} ##{idFormDelete}>
+      ^{fw0}
+      
+    <button.transparent.link type=button data-ui=##{idDialogDelete}>
+      _{MsgCancel}
+
+    <button.error type=submit form=#{idFormDelete}>
+      _{MsgDele}

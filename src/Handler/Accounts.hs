@@ -19,9 +19,8 @@ import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
 
 import Database.Esqueleto.Experimental
-    ( selectOne, from, table, val, where_
+    ( selectOne, from, table, val, where_, update, set
     , (^.), (==.), (=.)
-    , update, set
     )
 import Database.Persist (Entity(Entity), entityVal, upsert)
 import qualified Database.Persist as P ((=.))
@@ -68,7 +67,8 @@ import Yesod.Core
     )
 import Yesod.Core.Content (TypedContent (TypedContent), ToContent (toContent))
 import Yesod.Core.Handler
-    ( redirect, getMessages, addMessageI, fileSourceByteString, fileContentType)
+    ( redirect, getMessages, addMessageI, fileSourceByteString, fileContentType
+    )
 import Yesod.Core.Widget (setTitleI, whamlet)
 import Yesod.Form.Fields (fileField, dayField, textField)
 import Yesod.Form.Functions (generateFormPost, runFormPost, mopt)
@@ -88,9 +88,14 @@ postAccountInfoR uid = do
           void $ runDB $ upsert r [ UserInfoBirthDate P.=. bday ]
           addMessageI statusSuccess MsgRecordEdited
           redirect $ AccountInfoR uid
+          
       _otherwise -> do
           defaultLayout $ do
               setTitleI MsgPersonalInfo
+              idHeader <- newIdent
+              idMain <- newIdent
+              $(widgetFile "common/css/header")
+              $(widgetFile "common/css/main")
               $(widgetFile "accounts/info/edit")
 
 
@@ -103,6 +108,10 @@ getAccountInfoEditR uid = do
     (fw,et) <- generateFormPost $ formUserInfo uid info
     defaultLayout $ do
         setTitleI MsgPersonalInfo
+        idHeader <- newIdent
+        idMain <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "accounts/info/edit")
 
 
@@ -161,6 +170,10 @@ getAccountInfoR uid = do
     
     defaultLayout $ do
         setTitleI MsgPersonalInfo
+        idHeader <- newIdent
+        idMain <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "accounts/info/info")
 
 
@@ -206,10 +219,13 @@ postAccountR uid = do
 getAccountR :: UserId -> Handler Html
 getAccountR uid = do
     user <- maybeAuth
+    msgs <- getMessages
     defaultLayout $ do
         setTitleI MsgUserAccount
-        
-        idPanelAccount <- newIdent
+        idHeader <- newIdent
+        idMain <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "accounts/account")
 
 
