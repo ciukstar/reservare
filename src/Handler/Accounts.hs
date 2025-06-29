@@ -1,16 +1,14 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes       #-}
 
 module Handler.Accounts
-  ( getAccountR
-  , getAccountPhotoR
-  , getAccountInfoR
+  ( getAccountR, postAccountR
   , getAccountEditR
+  , getAccountPhotoR
+  , getAccountInfoR, postAccountInfoR
   , getAccountInfoEditR
-  , postAccountInfoR
-  , postAccountR
   ) where
 
 import Control.Monad (void)
@@ -29,20 +27,20 @@ import Foundation
     ( Handler, Form, widgetSnackbar
     , Route
       ( StaticR, AuthR, AccountPhotoR, AccountInfoR, AccountR
-      , HomeR, AccountEditR, AccountInfoEditR
+      , HomeR, AccountEditR, AccountInfoEditR, AccountSettingsR
       )
     , AppMessage
       ( MsgUserAccount, MsgSuperuser, MsgAdministrator, MsgSignOut
       , MsgPhoto, MsgPersonalInfo, MsgAccount, MsgBack, MsgEdit, MsgCancel
       , MsgSave, MsgFullName, MsgBirthday, MsgNotIndicated, MsgRecordEdited
-      , MsgClose, MsgUploadPhoto, MsgTakePhoto
+      , MsgClose, MsgUploadPhoto, MsgTakePhoto, MsgSettings, MsgTheme
       )
     )
     
 import Material3 (md3widget)
 
 import Model
-    ( statusSuccess
+    ( statusSuccess, keyThemeMode
     , UserId, UserPhoto (UserPhoto), User (User, userName)
     , UserInfo (UserInfo, userInfoBirthDate)
     , EntityField
@@ -78,6 +76,19 @@ import Yesod.Form.Types
     , fvId, fvInput
     )
 import Yesod.Persist.Core (runDB)
+
+
+getAccountSettingsR :: UserId -> Handler Html
+getAccountSettingsR uid = do
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgPersonalInfo 
+        idHeader <- newIdent
+        idMain <- newIdent
+        idInputThemeMode <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
+        $(widgetFile "accounts/settings/settings")
 
 
 postAccountInfoR :: UserId -> Handler Html
@@ -152,7 +163,7 @@ formAccount user extra = do
     idButtonCapture <- newIdent
 
     return ( (,) <$> nameR <*> photoR
-           , $(widgetFile "accounts/form")  
+           , $(widgetFile "accounts/form")
            )
 
 

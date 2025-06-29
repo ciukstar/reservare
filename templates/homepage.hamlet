@@ -1,7 +1,7 @@
 
 ^{widgetMainMenu idOverlay idDialogMainMenu}
 
-<header.fixed.primary>
+<header.fixed.primary ##{idHeader}>
   <nav.responsive.max>
     <button.circle.transparent data-ui=##{idDialogMainMenu}>
       <i>menu
@@ -11,16 +11,16 @@
 
     ^{widgetAccount}
 
-<main.responsive>
+<main.responsive ##{idMain}>
 
   <figure.center-align.large-margin>
-    <img.extra.no-round src=@{StaticR img_book_online_120dp_00696D_FILL0_wght400_GRAD0_opsz48_svg}
+    <img.extra.no-round src=@{StaticR img_book_online_64dp_6750A4_FILL0_wght400_GRAD0_opsz48_svg}
                         loading=lazy alt=_{MsgLogotype}>
                         
   <h1.title.small>
     _{MsgWelcomeTo} _{MsgAppName}
 
-  <nav.#{idNavButtons}>
+  <nav ##{idNavButtons}>
     <a.button.fill href=@{CatalogR} role=button>
       _{MsgServiceCatalog}
 

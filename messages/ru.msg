@@ -230,6 +230,8 @@ MainMenu: Главное меню
 Users: Пользователи
 Welcome: Добро пожаловать
 AppDocumentation: Документация приложения
+MetaKeywords: онлайн, бронирование, услуги, прием, прогрессивное, веб, приложение, pwa
+MetaDescription: Онлайн-бронирование услуг и встреч
 AppDescription: Онлайн-бронирование услуг и встреч
 AppName: Reservare
 

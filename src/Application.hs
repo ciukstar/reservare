@@ -83,9 +83,12 @@ import Handler.Booking
     )
 
 import Handler.Accounts
-    ( getAccountR, getAccountPhotoR, getAccountInfoR
-    , getAccountEditR, getAccountInfoEditR, postAccountInfoR
-    , postAccountR
+    ( getAccountR, postAccountR
+    , getAccountEditR
+    , getAccountPhotoR
+    , getAccountInfoR, postAccountInfoR
+    , getAccountInfoEditR
+    , getAccountSettingsR
     )
 
 import Handler.Resources (getDocsR)
@@ -226,7 +229,9 @@ import Handler.Data.Tokens
     , postTokensGoogleapisClearR
     )
 
-import Handler.Common ( getFaviconR, getRobotsR, getSitemapR )
+import Handler.Common
+    ( getFaviconR, getRobotsR, getSitemapR, getWebAppManifestR
+    )
 
 import Stripe ()
 import Stripe.Data (Stripe(Stripe))

@@ -12,14 +12,18 @@
         <i>edit
       
 <main.responsive.no-padding ##{idMain}>
-  
-  <div.tabs.min>
-  
-    <a href=@{AccountR uid}>
-      _{MsgAccount}
-        
-    <a.active href=@{AccountInfoR uid}>
-      _{MsgPersonalInfo}
+
+  <nav.scroll>  
+    <div.tabs.min>
+
+      <a.no-wrap href=@{AccountR uid}>
+        _{MsgAccount}
+
+      <a.active.no-wrap href=@{AccountInfoR uid}>
+        _{MsgPersonalInfo}
+
+      <a.no-wrap href=@{AccountSettingsR uid}>
+        _{MsgSettings}
 
   <div.page.padding.center-align.active>
         

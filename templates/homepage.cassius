@@ -1,10 +1,12 @@
 
-h1.title
+##{idMain}
 
-    font-size: 1.5rem
-    text-align: center
+    h1.title
 
-.#{idNavButtons}
+        font-size: 1.5rem
+        text-align: center
 
-    display: grid
-    justify-content: center
+    ##{idNavButtons}
+
+        display: grid
+        justify-content: center

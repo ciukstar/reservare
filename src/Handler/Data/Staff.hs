@@ -920,3 +920,7 @@ getEmployeePhotoR eid = do
     case photo of
       Just (Entity _ (StaffPhoto _ mime bs _)) -> return $ TypedContent (encodeUtf8 mime) $ toContent bs
       Nothing -> redirect $ StaticR img_account_circle_24dp_FILL0_wght400_GRAD0_opsz24_svg
+
+
+keyScrollTop :: Text
+keyScrollTop = "scrollTop"

@@ -16,7 +16,8 @@ import Foundation
 
 import Settings (widgetFile)
 import Settings.StaticFiles
-    (img_book_online_120dp_00696D_FILL0_wght400_GRAD0_opsz48_svg)
+    ( img_book_online_64dp_6750A4_FILL0_wght400_GRAD0_opsz48_svg
+    )
 
 import Text.Hamlet (Html)
 
@@ -31,5 +32,9 @@ getHomeR = do
         setTitleI MsgWelcome
         idOverlay <- newIdent
         idDialogMainMenu <- newIdent
+        idHeader <- newIdent
+        idMain <- newIdent
         idNavButtons <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "homepage")

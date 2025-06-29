@@ -160,6 +160,10 @@ statusError :: Text
 statusError = "error"
 
 
+keyThemeMode :: Text
+keyThemeMode = "reservare_theme_mode"
+
+
 keyBacklinkAuth :: Text
 keyBacklinkAuth = "backlinkAuth"
 

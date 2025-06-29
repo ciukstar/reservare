@@ -230,6 +230,8 @@ MainMenu: Main menu
 Users: Users
 Welcome: Welcome
 AppDocumentation: App documentation
+MetaKeywords: online, booking, services, reception, progressive, web, application, pwa
+MetaDescription: Online bookings for services and appointments
 AppDescription: Online bookings for services and appointments
 AppName: Reservare
 

@@ -17,6 +17,8 @@ module Handler.Business
   , getBusinessLogoR
   ) where
 
+import Control.Monad (void)
+
 import Data.Text (Text, unpack, pack)
 import Data.Text.Encoding (encodeUtf8)
 
@@ -63,7 +65,8 @@ import Model
       )
     , EntityField
       ( UserId, BusinessId, BusinessOwner, WorkspaceId, WorkspaceBusiness
-      , WorkspaceName, BusinessLogoBusiness, BusinessLogoAttribution, BusinessName, BusinessLogoMime, BusinessLogoPhoto
+      , WorkspaceName, BusinessLogoBusiness, BusinessLogoAttribution
+      , BusinessName, BusinessLogoMime, BusinessLogoPhoto
       )
     )
 
@@ -90,7 +93,6 @@ import Yesod.Form.Fields
     )
 import Yesod.Form.Functions (generateFormPost, runFormPost, checkM, mreq, mopt)
 import Yesod.Persist.Core (runDB)
-import Control.Monad (void)
 
 
 postWorkspaceDeleR :: UserId -> BusinessId -> WorkspaceId -> Handler Html
@@ -559,3 +561,7 @@ getBusinessLogoR _ bid = do
     case logo of
       Just (Entity _ (BusinessLogo _ mime bs _)) -> return $ TypedContent (encodeUtf8 mime) $ toContent bs
       Nothing -> redirect $ StaticR img_broken_image_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg
+
+
+keyScrollTop :: Text
+keyScrollTop = "scrollTop"

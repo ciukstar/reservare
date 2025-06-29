@@ -230,6 +230,8 @@ MainMenu: Menu principal
 Users: Utilisateurs
 Welcome: Bienvenu
 AppDocumentation: Documentation de l'application
+MetaKeywords: en ligne, réservation, services, réception, progressif, web, application, pwa
+MetaDescription: Réservations en ligne de prestations et de rendez-vous
 AppDescription: Réservations en ligne de prestations et de rendez-vous
 AppName: Reservare
 

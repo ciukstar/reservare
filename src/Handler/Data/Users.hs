@@ -272,3 +272,7 @@ getUsersR = do
         $(widgetFile "common/css/rows")
         $(widgetFile "common/css/attribution")
         $(widgetFile "data/users/users")
+
+
+keyScrollTop :: Text
+keyScrollTop = "scrollTop"

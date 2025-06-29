@@ -230,6 +230,8 @@ MainMenu: Meniu principal
 Users: Utilizatori
 Welcome: Bine ați venit
 AppDocumentation: Documentația aplicației
+MetaKeywords: online, rezervare, servicii, recepție, progresiv, web, aplicație, PWA
+MetaDescription: Rezervări online pentru servicii și programări
 AppDescription: Rezervări online pentru servicii și programări
 AppName: Reservare
 

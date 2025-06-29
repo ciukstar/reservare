@@ -1033,4 +1033,7 @@ getSectorsR ps@(Sectors gids) = do
         $(widgetFile "common/css/header")
         $(widgetFile "common/css/main")
         $(widgetFile "data/sectors/subsectors")
-        
+
+
+keyScrollTop :: Text
+keyScrollTop = "scrollTop"

@@ -4,14 +4,14 @@
 <dialog.left.primary ##{idDialogMainMenu}>
 
   <header.fixed.max>
-    <nav.margin>
+    <nav.margin.small-margin>
       <img.small src=@{StaticR img_logo_on_primary_svg} loading=lazy alt=_{MsgLogo}>
       <h6.max>
         _{MsgAppName}
-      <button.transparent.circle.large ##{idButtonMainMenuClose} data-ui=##{idDialogMainMenu}>
+      <button.transparent.circle ##{idButtonMainMenuClose} data-ui=##{idDialogMainMenu}>
         <i>close
 
-  <ol.list>
+  <ol.list.top-margin>
 
     <li.wave.round :curr == Just HomeR:.active>
       <a href=@{HomeR}>

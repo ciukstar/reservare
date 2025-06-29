@@ -3,9 +3,9 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -199,7 +199,7 @@ instance Yesod App where
             $(widgetFile "default-layout")
 
         lang <- fromMaybe "en" . headMay <$> languages
-
+        msgr <- getMessageRender
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
     -- The page to be redirected to when authentication is required.
@@ -264,6 +264,7 @@ instance Yesod App where
     isAuthorized (WorkspacesR uid _) _ = isAuthenticatedSelf uid
 
     
+    isAuthorized (BusinessLogoR uid _) _ = isAuthenticatedSelf uid
     isAuthorized (BusinessDeleR uid _) _ = isAuthenticatedSelf uid
     isAuthorized (BusinessEditR uid _) _ = isAuthenticatedSelf uid
     isAuthorized (BusinessR uid _) _ = isAuthenticatedSelf uid
@@ -414,7 +415,7 @@ instance Yesod App where
     isAuthorized (DataR TokensGoogleapisClearR) _ = isAdmin
     isAuthorized (DataR TokensGoogleapisHookR) _ = isAdmin
     isAuthorized (DataR TokensR) _ = isAdmin
-
+    
     isAuthorized (AccountInfoEditR uid) _ = isAuthenticatedSelf uid
     isAuthorized (AccountEditR uid) _ = isAuthenticatedSelf uid
     isAuthorized (AccountInfoR uid) _ = isAuthenticatedSelf uid
@@ -427,6 +428,8 @@ instance Yesod App where
 
     isAuthorized (AuthR _) _ = return Authorized
     isAuthorized r@HomeR _ = setUltDest r >> return Authorized
+    
+    isAuthorized WebAppManifestR _ = return Authorized
     isAuthorized SitemapR _ = return Authorized
     isAuthorized FaviconR _ = return Authorized
     isAuthorized RobotsR _ = return Authorized

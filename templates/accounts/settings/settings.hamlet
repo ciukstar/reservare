@@ -1,0 +1,36 @@
+
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.transparent.circle href=@{HomeR} title=_{MsgBack} role=button>
+      <i>arrow_back
+
+    <h6.max>
+      _{MsgUserAccount}
+      
+<main.responsive.no-padding ##{idMain}>
+  
+  <nav.scroll>
+    <div.tabs.min>
+
+      <a.no-wrap href=@{AccountR uid}>
+        _{MsgAccount}
+
+      <a.no-wrap href=@{AccountInfoR uid}>
+        _{MsgPersonalInfo}
+
+      <a.active.no-wrap href=@{AccountSettingsR uid}>
+        _{MsgSettings}
+
+  <div.page.padding.center-align.active>
+
+    <div.field.middle-align>
+      <nav>
+        <label.switch.icon>
+          <input type=checkbox ##{idInputThemeMode}>
+          <span>
+            <i>dark_mode
+        <label.large-text.max for=#{idInputThemeMode}>
+          _{MsgTheme}
+  
+          
+^{widgetSnackbar msgs}
