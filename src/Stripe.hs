@@ -3,9 +3,9 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE InstanceSigs          #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE QuasiQuotes           #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Stripe where
@@ -76,7 +76,8 @@ import Stripe.Data
       , MsgInvalidPaymentAmount, MsgYourBookingHasBeenCreatedSuccessfully
       , MsgUnhandledError, MsgPaymentStatus, MsgSomethingWentWrong, MsgFinish
       , MsgViewBookingDetails, MsgReturnToHomePage, MsgPaymentIntentCancelled
-      , MsgClose
+      , MsgClose, MsgAnUnexpectedErrorOccurred, MsgYourPaymentWasNotSuccessful
+      , MsgPaymentSucceeded, MsgYourPaymentIsProcessing
       )
     )
     
@@ -87,7 +88,7 @@ import Yesod.Core
     , mkYesodSubDispatch, Html, Yesod (defaultLayout), SubHandlerFor
     , MonadHandler (liftHandler), addScriptRemote, setTitleI, newIdent
     , getRouteToParent, getUrlRender, getMessages, returnJson, addMessage
-    , toHtml, addMessageI, redirectUltDest, lookupSession
+    , toHtml, addMessageI, redirectUltDest, lookupSession, getMessageRender
     )
 import Yesod.Core.Types (YesodSubRunnerEnv)
 import Yesod.Persist.Core (YesodPersist(runDB, YesodPersistBackend))
@@ -273,8 +274,10 @@ getCheckoutR bid oid = do
             [ "return_url"    .= (rndr $ rtp $ CompletionR bid oid :: Text)
             , "receipt_email" .= email
             ]
-
+            
+    msgr <- getMessageRender
     msgs <- getMessages
+    
     liftHandler $ defaultLayout $ do
         setTitleI MsgCheckout
         idHeader <- newIdent
@@ -291,7 +294,6 @@ getCheckoutR bid oid = do
         $(widgetFile "common/css/header")
         $(widgetFile "common/css/main")
         $(widgetFile "gateways/stripe/checkout")
-
 
         
 instance (YesodStripe m, YesodPersist m, YesodPersistBackend m ~ SqlBackend) => YesodSubDispatch Stripe m where

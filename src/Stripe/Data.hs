@@ -54,6 +54,11 @@ data StripeMessage = MsgBack
                    | MsgFinish
                    | MsgPaymentIntentCancelled
                    | MsgClose
+                   | MsgAnUnexpectedErrorOccurred
+                   | MsgPaymentSucceeded
+                   | MsgYourPaymentIsProcessing
+                   | MsgYourPaymentWasNotSuccessful
+
 
 englishStripeMessage :: StripeMessage -> Text
 englishStripeMessage MsgBack = "Back"
@@ -72,6 +77,10 @@ englishStripeMessage MsgReturnToHomePage = "Return to Home Page"
 englishStripeMessage MsgFinish = "Finish"
 englishStripeMessage MsgPaymentIntentCancelled = "Payment intent was cancelled"
 englishStripeMessage MsgClose = "Close"
+englishStripeMessage MsgAnUnexpectedErrorOccurred = "An unexpected error occurred"
+englishStripeMessage MsgPaymentSucceeded = "Payment succeeded"
+englishStripeMessage MsgYourPaymentIsProcessing = "Your payment is processing"
+englishStripeMessage MsgYourPaymentWasNotSuccessful = "Your payment was not successful, please try again"
 
 
 frenchStripeMessage :: StripeMessage -> Text
@@ -91,6 +100,10 @@ frenchStripeMessage MsgReturnToHomePage = "Retour à la page d'accueil"
 frenchStripeMessage MsgFinish = "Finir"
 frenchStripeMessage MsgPaymentIntentCancelled = "L'intention de paiement a été annulée"
 frenchStripeMessage MsgClose = "Fermer"
+frenchStripeMessage MsgAnUnexpectedErrorOccurred = "Une erreur inattendue s'est produite"
+frenchStripeMessage MsgPaymentSucceeded = "Paiement réussi"
+frenchStripeMessage MsgYourPaymentIsProcessing = "Votre paiement est en cours de traitement"
+frenchStripeMessage MsgYourPaymentWasNotSuccessful = "Votre paiement n'a pas réussi, veuillez réessayer"
 
 
 romanianStripeMessage :: StripeMessage -> Text
@@ -110,6 +123,10 @@ romanianStripeMessage MsgReturnToHomePage = "Înapoi la pagina de start"
 romanianStripeMessage MsgFinish = "Finalizare"
 romanianStripeMessage MsgPaymentIntentCancelled = "Intenția de plată a fost anulată"
 romanianStripeMessage MsgClose = "Închide"
+romanianStripeMessage MsgAnUnexpectedErrorOccurred = "A apărut o eroare neașteptată"
+romanianStripeMessage MsgPaymentSucceeded = "Plata a reușit"
+romanianStripeMessage MsgYourPaymentIsProcessing = "Plata dvs. este în curs de procesare"
+romanianStripeMessage MsgYourPaymentWasNotSuccessful = "Plata dumneavoastră nu a reușit, vă rugăm să încercați din nou"
 
 
 russianStripeMessage :: StripeMessage -> Text
@@ -129,6 +146,10 @@ russianStripeMessage MsgReturnToHomePage = "Вернуться на главну
 russianStripeMessage MsgFinish = "Завершить"
 russianStripeMessage MsgPaymentIntentCancelled = "Намерение платежа было отменено"
 russianStripeMessage MsgClose = "Закрыть"
+russianStripeMessage MsgAnUnexpectedErrorOccurred = "Произошла непредвиденная ошибка"
+russianStripeMessage MsgPaymentSucceeded = "Платеж прошел успешно"
+russianStripeMessage MsgYourPaymentIsProcessing = "Ваш платеж обрабатывается"
+russianStripeMessage MsgYourPaymentWasNotSuccessful = "Ваш платеж не был успешным, попробуйте еще раз"
 
 
 defaultStripeMessage :: StripeMessage -> Text

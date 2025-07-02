@@ -1,11 +1,6 @@
 
 ##{idMain}
 
-    ##{idBannerStripe}
-        display: none
-        align-self: stretch
-        padding: 1rem 
-
     ##{idSectionPriceTag}
     
         .#{classCurrency}

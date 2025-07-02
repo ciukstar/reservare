@@ -22,12 +22,6 @@ document.querySelectorAll(
   }).format(x.dataset.value);
 });
 
-
-Array.from(document.querySelectorAll('.app-snackbar')).forEach(x => {
-  x.querySelector('md-icon-button').onclick = (e) => { x.style.display = 'none'; };
-  setTimeout(() => { x.style.display = 'none'; }, 5000);
-});
-
 // This is your test publishable API key.
 const stripe = Stripe(#{pk});
 
@@ -112,7 +106,7 @@ async function handleSubmit(e) {
   if (error.type === "card_error" || error.type === "validation_error") {
     showMessage(error.message);
   } else {
-    showMessage("An unexpected error occurred.");
+    showMessage(#{msgr MsgAnUnexpectedErrorOccurred});
   }
 
   setLoading(false);
@@ -132,25 +126,55 @@ async function checkStatus() {
 
   switch (paymentIntent.status) {
     case "succeeded":
-      showMessage("Payment succeeded!");
+      showMessage(#{msgr MsgPaymentSucceeded});
       break;
     case "processing":
-      showMessage("Your payment is processing.");
+      showMessage(#{msgr MsgYourPaymentIsProcessing});
       break;
     case "requires_payment_method":
-      showMessage("Your payment was not successful, please try again.");
+      showMessage(#{msgr MsgYourPaymentWasNotSuccessful});
       break;
     default:
-      showMessage("Something went wrong.");
+      showMessage(#{msgr MsgSomethingWentWrong});
       break;
   }
 }
 
-function showMessage(messageText) {
-  const banner = document.getElementById(#{idBannerStripe});
-  banner.textContent = messageText;
-  banner.style.display = 'block';
+function showMessage(message) {
+
+  document.getElementById(#{idBannerStripe})?.remove();
   
+  document.getElementById(#{idMain}).prepend((() => {
+    const banner = document.createElement('div');
+    banner.id = #{idBannerStripe};
+    banner.classList.add('row','error','small-round','padding');
+    banner.setAttribute('role','banner');
+
+    banner.appendChild((() => {
+      const content = document.createElement('div');
+      content.classList.add('max');
+      content.textContent = message;
+      return content;
+    }) ());
+
+    banner.appendChild((() => {
+      const close = document.createElement('button');
+      close.classList.add('transparent','small','circle');
+      close.title = #{msgr MsgClose};
+
+      close.appendChild((() => {
+        const icon = document.createElement('i');
+        icon.textContent = 'close';
+        return icon;
+      }) ());
+      
+      close.addEventListener('click', e => { banner.remove(); });
+      
+      return close;
+    }) ());
+    
+    return banner;
+  }) ());
 }
 
 // Show a spinner on payment submission

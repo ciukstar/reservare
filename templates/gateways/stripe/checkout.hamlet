@@ -9,8 +9,6 @@
 
 <main.responsive ##{idMain}>
 
-  <div.error.no-round role=banner ##{idBannerStripe}>
-
   <section.center-align ##{idSectionPriceTag}>
     <h6.secondary-text>_{MsgPaymentAmount}
     <p.#{classCurrency}.bold.large-text data-value=#{cents} data-currency=#{currency}>

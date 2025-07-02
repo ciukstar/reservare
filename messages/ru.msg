@@ -1,4 +1,3 @@
-
 Theme: Тема
 Settings: Настройки
 Features: Возможности

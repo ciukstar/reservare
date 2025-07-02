@@ -14,13 +14,13 @@
       <legend>_{MsgTheAppointment}
       <dl>
         <dt.bold>_{MsgAppointmentTime}
-        <dd>
+        <dd.small-margin>
           $with dt <- show time
             <time.full-datetime datetime=#{dt}>#{dt}
 
         $with Entity _ (Workspace _ name address _ _) <- workspace
           <dt.bold>_{MsgLocation}
-          <dd>
+          <dd.small-margin>
             #{name}
 
           <dt.bold>_{MsgAddress}
@@ -32,17 +32,17 @@
       <dl>
         $with Entity _ (Staff name _ mobile phone) <- employee
           <dt.bold>_{MsgFullName}
-          <dd>
+          <dd.small-margin>
             #{name}
 
           $maybe mobile <- mobile
             <dt.bold>_{MsgMobile}
-            <dd>
+            <dd.small-margin>
               <a href="tel:#{mobile}">#{mobile}
 
           $maybe phone <- phone
             <dt.bold>_{MsgPhone}
-            <dd>
+            <dd.small-margin>
               <a href="tel:#{phone}">#{phone}
 
     <fieldset>
@@ -50,7 +50,7 @@
       <dl>
         $with Entity _ (Service _ name _ price _ duration _) <- service
           <dt.bold>_{MsgTheName}
-          <dd>
+          <dd.small-margin>
             #{name}
 
           <dt.bold>_{MsgPrice}
@@ -59,7 +59,7 @@
               #{price} #{currency}
 
           <dt.bold>_{MsgDuration}
-          <dd>
+          <dd.small-margin>
             #{show duration}
 
     <fieldset>
@@ -79,7 +79,7 @@
               $with dt <- show time
                 <time.full-datetime datetime=#{dt}>#{dt}
                 
-            <dd>              
+            <dd.small-margin>
               <span.currency data-value=#{amount} data-currency=#{currency}>
                 #{amount} #{currency}
               <span>

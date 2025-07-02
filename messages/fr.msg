@@ -1,4 +1,3 @@
-
 Theme: Thème
 Settings: Paramètres
 Features: Fonctionnalités
