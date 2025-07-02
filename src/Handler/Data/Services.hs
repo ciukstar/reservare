@@ -29,10 +29,9 @@ module Handler.Data.Services
 
 import Control.Monad (void, unless, when, join)
 
-import qualified Data.Aeson as A (toJSON)
 import Data.Bifunctor (Bifunctor(bimap, second))
 import qualified Data.Map as M (fromListWith, findWithDefault)
-import Data.Maybe (mapMaybe, fromMaybe, isJust)
+import Data.Maybe (mapMaybe, isJust)
 import Data.Text (Text, pack, unpack)
 import Data.Text.Encoding (encodeUtf8)
 import Data.Time (nominalDiffTimeToSeconds, secondsToNominalDiffTime)
@@ -138,7 +137,6 @@ import Yesod.Form.Fields
     , intField, checkBoxField, htmlField
     )
 import Yesod.Form.Functions (mreq, mopt, generateFormPost, runFormPost, checkM)
-import Yesod.Form.Input (runInputGet, iopt)
 import Yesod.Persist (YesodPersist(runDB))
 
 
@@ -938,10 +936,6 @@ widgetChips = do
     let paramsWokspaces bid = (\x -> (paramWorkspace,pack $ show $ fromSqlKey x))
             <$> filter (\x -> x `notElem` M.findWithDefault [] bid businessWorkspaces) selectedWorkspaces
     
-    scrollX1 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX1)
-    scrollX2 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX2)
-    scrollX3 <- fromMaybe 0 . (readMaybe @Double . unpack =<<) <$> runInputGet (iopt textField paramX3)
-    
     idFilterChips <- newIdent
     idDetailsSectors <- newIdent
     classSummaryLabel <- newIdent
@@ -951,11 +945,6 @@ widgetChips = do
     idChipSetWorkspaces <- newIdent
     
     $(widgetFile "data/services/widgets/chips")
-
-
-
-keyScrollTop :: Text
-keyScrollTop = "scrollTop"
 
 
 paramSector :: Text
@@ -968,11 +957,15 @@ paramWorkspace :: Text
 paramWorkspace = "w"
 
 
-paramX3 :: Text
-paramX3 = "x3"
+keyScrollLeft3 :: Text
+keyScrollLeft3 = "scrollLeft3DataServices"
 
-paramX2 :: Text
-paramX2 = "x2"
+keyScrollLeft2 :: Text
+keyScrollLeft2 = "scrollLeft2DataServices"
 
-paramX1 :: Text
-paramX1 = "x1"
+keyScrollLeft1 :: Text
+keyScrollLeft1 = "scrollLeft1DataServices"
+
+
+keyScrollTop1 :: Text
+keyScrollTop1 = "scrollTop1DataServices"

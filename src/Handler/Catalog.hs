@@ -2,7 +2,7 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms   #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes       #-}
 
 module Handler.Catalog
   ( getCatalogR
@@ -84,6 +84,7 @@ import Model
     , BusinessLogo (BusinessLogo)
     , StaffPhoto (StaffPhoto)
     , Schedule (Schedule)
+    , Sector (Sector)
     , EntityField
       ( ServiceAvailable, ServicePhotoService, ServiceWorkspace, WorkspaceId
       , ServiceType, WorkspaceBusiness, ServiceId, ServicePhotoId, BusinessId
@@ -91,7 +92,7 @@ import Model
       , BusinessLogoBusiness, StaffPhotoStaff, BusinessLogoAttribution
       , AssignmentId, StaffPhotoAttribution, ScheduleAssignment
       , ScheduleDay, SectorId
-      ), Sector (Sector)
+      )
     )
 
 import Settings (widgetFile)
@@ -109,7 +110,7 @@ import Text.Printf (printf)
 import Yesod.Core
     ( Yesod(defaultLayout), setTitleI, lookupGetParams, getMessages
     , TypedContent (TypedContent), ToContent (toContent), redirect
-    , newIdent, lookupGetParam, YesodRequest (reqGetParams), getRequest
+    , newIdent, YesodRequest (reqGetParams), getRequest
     , MonadIO (liftIO), getMessageRender
     )
 import Yesod.Core.Widget (toWidget)
@@ -259,7 +260,6 @@ getCatalogServiceBusinessR sid = do
         $(widgetFile "catalog/business")
 
 
-
 getCatalogServiceR :: ServiceId -> Handler Html
 getCatalogServiceR sid = do
 
@@ -286,17 +286,19 @@ getCatalogServiceR sid = do
         setTitleI MsgService
         idHeader <- newIdent
         idMain <- newIdent
+        idNavTabs <- newIdent
+        idCarousel <- newIdent
         classCurrency <- newIdent
         classDuration <- newIdent        
         $(widgetFile "common/js/seconds2duration")
         $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
         $(widgetFile "catalog/service")
 
 
 getCatalogR :: Handler Html
 getCatalogR = do
     stati <- reqGetParams <$> getRequest
-    paramSid <- lookupGetParam "sid"
 
     selectedSectors <- mapMaybe ((toSqlKey <$>) . readMaybe . unpack) <$> lookupGetParams paramSector
     selectedBusinesses <- mapMaybe ((toSqlKey <$>) . readMaybe . unpack) <$> lookupGetParams paramBusiness
@@ -381,5 +383,11 @@ getCatalogBusinessLogoR bid = do
       Nothing -> redirect $ StaticR img_broken_image_24dp_00696D_FILL0_wght400_GRAD0_opsz24_svg
 
 
-keyScrollTop :: Text
-keyScrollTop = "scrollTop"
+keyScrollLeft2 :: Text
+keyScrollLeft2 = "scrollLeft2Catalog"
+
+keyScrollLeft1 :: Text
+keyScrollLeft1 = "scrollLeft1Catalog"
+
+keyScrollTop1 :: Text
+keyScrollTop1 = "scrollTop1Catalog"

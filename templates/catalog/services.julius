@@ -12,8 +12,8 @@ document.querySelectorAll(
 });
 
 
-window.scroll(0, isNaN(sessionStorage.getItem(#{keyScrollTop})) ? 0 : Number(sessionStorage.getItem(#{keyScrollTop})));
+window.scroll(0, isNaN(sessionStorage.getItem(#{keyScrollTop1})) ? 0 : Number(sessionStorage.getItem(#{keyScrollTop1})));
 
 window.addEventListener('scrollend', function (e) {
-  sessionStorage.setItem(#{keyScrollTop}, window.scrollY);
+  sessionStorage.setItem(#{keyScrollTop1}, window.scrollY);
 });

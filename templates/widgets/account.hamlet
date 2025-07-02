@@ -1,5 +1,5 @@
 
-$maybe Entity uid (User email _ name _ _ _ _ _) <- user
+$maybe Entity uid (User email _ _ _ _ name _ _) <- user
   
   <button.circle.transparent.no-elevate data-ui=##{idMenu}>
     <img.photo.profile src=@{AccountPhotoR uid} alt=_{MsgPhoto} loading=lazy title=#{fromMaybe email name}>

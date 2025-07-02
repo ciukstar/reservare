@@ -1,3 +1,7 @@
+
+Theme: Тема
+Settings: Настройки
+Features: Возможности
 TakePhoto: Сфотографироваться
 UploadPhoto: Загрузить фото
 Close: Закрыть

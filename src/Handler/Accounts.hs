@@ -9,6 +9,7 @@ module Handler.Accounts
   , getAccountPhotoR
   , getAccountInfoR, postAccountInfoR
   , getAccountInfoEditR
+  , getAccountSettingsR
   ) where
 
 import Control.Monad (void)

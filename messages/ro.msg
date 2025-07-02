@@ -1,3 +1,6 @@
+Theme: Tema
+Settings: Setări
+Features: Funcții
 TakePhoto: Faceți o poză
 UploadPhoto: Încărcați o fotografie
 Close: Închide

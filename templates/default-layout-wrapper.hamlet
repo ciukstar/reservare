@@ -24,12 +24,12 @@ $doctype 5
     <link rel=icon type="image/svg+xml" href=@{StaticR img_book_online_144dp_6750A4_FILL0_wght400_GRAD0_opsz48_svg}>
     <link rel=manifest href=@{WebAppManifestR}>
 
-    <link href="https://cdn.jsdelivr.net/npm/beercss@3.11.27/dist/cdn/beer.min.css" rel=stylesheet>
+    <link href="https://cdn.jsdelivr.net/npm/beercss@3.11.29/dist/cdn/beer.min.css" rel=stylesheet>
     
     ^{pageHead pc}
 
     
-    <script type=module src="https://cdn.jsdelivr.net/npm/beercss@3.11.27/dist/cdn/beer.min.js">
+    <script type=module src="https://cdn.jsdelivr.net/npm/beercss@3.11.29/dist/cdn/beer.min.js">
     <script type=module src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@1.1.2/dist/cdn/material-dynamic-colors.min.js">
             
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.0.3/js.cookie.min.js">

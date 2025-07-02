@@ -19,27 +19,27 @@
   $else
     
     $forall ((Entity sid (Service _ name _ price _ _ _),Entity _ (Workspace _ _ _ _ currency)),sector) <- services
-      <a.row.padding.wave href=@?{(CatalogServiceR sid,(<>) [("sid",pack $ show $ fromSqlKey sid)] stati)}
-        :Just (pack $ show $ fromSqlKey sid) == paramSid:active>
+      $with stat <- ("sid",pack $ show $ fromSqlKey sid)
+        <a.row.padding.wave href=@?{(CatalogServiceR sid,[stat])}>
 
-        <img.circle src=@{CatalogServicePhotoDefaultR sid} loading=lazy alt=_{MsgPhoto}>
- 
-        <div.max>
-          <div.#{classHeadline}.large-text>
-            #{name}  
-     
-          <div.#{classSupportingText}.secondary-text>
-            $maybe Entity _ (Sector gname descr _) <- sector
-              $maybe descr <- descr
-                #{descr}
-              $nothing
-                #{gname}
-  
-          <div.#{classCurrency}.#{classSupportingText}.secondary-text data-value=#{price} data-currency=#{currency}>
-            #{currency}#{price}
-     
-        <i.secondary-text>arrow_forward_ios
- 
-      <hr>
+          <img.circle src=@{CatalogServicePhotoDefaultR sid} loading=lazy alt=_{MsgPhoto}>
+
+          <div.max>
+            <div.#{classHeadline}.large-text :elem stat stati:.primary-text>
+              #{name}  
+
+            <div.#{classSupportingText}.secondary-text>
+              $maybe Entity _ (Sector gname descr _) <- sector
+                $maybe descr <- descr
+                  #{descr}
+                $nothing
+                  #{gname}
+
+            <div.#{classCurrency}.#{classSupportingText}.secondary-text data-value=#{price} data-currency=#{currency}>
+              #{currency}#{price}
+
+          <i.secondary-text>arrow_forward_ios
+
+        <hr>
 
   ^{widgetSnackbar msgs}

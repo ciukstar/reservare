@@ -1035,5 +1035,5 @@ getSectorsR ps@(Sectors gids) = do
         $(widgetFile "data/sectors/subsectors")
 
 
-keyScrollTop :: Text
-keyScrollTop = "scrollTop"
+keyScrollTop1 :: Text
+keyScrollTop1 = "scrollTop1DataSectors"

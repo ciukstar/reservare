@@ -1,3 +1,7 @@
+
+Theme: Theme
+Settings: Settings
+Features: Features
 TakePhoto: Take a photo
 UploadPhoto: Upload photo
 Close: Close

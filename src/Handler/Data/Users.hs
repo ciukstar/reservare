@@ -274,5 +274,5 @@ getUsersR = do
         $(widgetFile "data/users/users")
 
 
-keyScrollTop :: Text
-keyScrollTop = "scrollTop"
+keyScrollTop1 :: Text
+keyScrollTop1 = "scrollTop1DataUsers"

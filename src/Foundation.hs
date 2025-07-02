@@ -76,8 +76,8 @@ import Yesod.Auth.Email
     ( authEmail, Email, Identifier, SaltedPass, VerKey, VerUrl
     , forgotPasswordR, registerR, loginR, setpassR
     , EmailCreds
-      ( emailCredsId, emailCredsAuthId, emailCredsStatus, emailCredsVerkey
-      , emailCredsEmail, EmailCreds
+      ( EmailCreds, emailCredsId, emailCredsAuthId, emailCredsStatus
+      , emailCredsVerkey, emailCredsEmail
       )
     , YesodAuthEmail
       ( AuthEmailId, getEmail, getEmailCreds, setPassword, getPassword
@@ -90,13 +90,13 @@ import Yesod.Auth.Email
 import qualified Yesod.Auth.Email as AE (Email)
 import Yesod.Auth.OAuth2.Google (oauth2GoogleScopedWidget)
 import Yesod.Auth.Message
-    ( AuthMessage
+    ( defaultMessage, englishMessage, frenchMessage, russianMessage, romanianMessage
+    , AuthMessage
       ( ConfirmPass, NewPass, CurrentPassword, SetPassTitle, PasswordResetTitle
       , SendPasswordResetEmail, PasswordResetPrompt, Register, EnterEmail
       , RegisterLong, ConfirmationEmailSentTitle, NewPass, SetPass, InvalidLogin
       , LoginTitle
       )
-    , defaultMessage, englishMessage, frenchMessage, russianMessage, romanianMessage
     )
 
 import Yesod.Default.Util   (addStaticContentExternal)
@@ -416,6 +416,7 @@ instance Yesod App where
     isAuthorized (DataR TokensGoogleapisHookR) _ = isAdmin
     isAuthorized (DataR TokensR) _ = isAdmin
     
+    isAuthorized (AccountSettingsR uid) _ = isAuthenticatedSelf uid
     isAuthorized (AccountInfoEditR uid) _ = isAuthenticatedSelf uid
     isAuthorized (AccountEditR uid) _ = isAuthenticatedSelf uid
     isAuthorized (AccountInfoR uid) _ = isAuthenticatedSelf uid

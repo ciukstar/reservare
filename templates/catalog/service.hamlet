@@ -9,7 +9,7 @@
 
 <main.responsive.no-padding ##{idMain}>
 
-  <nav.scroll>
+  <nav.scroll ##{idNavTabs}>
     <div.tabs.min>
 
       <a.active href=@?{(CatalogServiceR sid,stati)}>
@@ -24,39 +24,38 @@
   <div.page.active.padding>
 
     $with (service,photos) <- service
-      <div.app-carousel>
+      <div ##{idCarousel}>
         $forall Entity fid (ServicePhoto _ _ _ attrib) <- photos
           <figure>
-            <img src=@{CatalogServicePhotoR sid fid} width=auto height=128 loading=lazy alt=_{MsgPhoto}>
-            $maybe attribution <- attrib
-              <div.small-text.secondary-text>
-                #{attribution}
+            <img src=@{CatalogServicePhotoR sid fid} loading=lazy width=120 height=120 alt=_{MsgPhoto}>
+            <figcaption>
+              $maybe attribution <- attrib
+                <div.small-text.secondary-text>
+                  #{attribution}
                 
-      <div.main>
-      
-        <nav.center-align.margin>
-          <a.button.fill type=button href=@?{(BookStaffR,[("sid",pack $ show $ fromSqlKey sid)])}
-                         onclick="sessionStorage.setItem('#{keyBacklink}','@?{(CatalogServiceR sid,stati)}')">
-            _{MsgBookNow}
-     
-        $maybe (Entity _ (Service _ name descr price _ duration _),Entity _ (Workspace _ _ _ _ currency)) <- service
-          <dl>
-            <dt.bold>_{MsgTheName}
-            <dd.small-margin>
-              #{name}
+      <nav.center-align.margin>
+        <a.button.responsive.fill type=button href=@?{(BookStaffR,[("sid",pack $ show $ fromSqlKey sid)])}
+                        onclick="sessionStorage.setItem('#{keyBacklink}','@?{(CatalogServiceR sid,stati)}')">
+          _{MsgBookNow}
 
-            <dt.bold>_{MsgDescription}
-            <dd.small-margin>
-              $maybe descr <- descr
-                #{descr}
+      $maybe (Entity _ (Service _ name descr price _ duration _),Entity _ (Workspace _ _ _ _ currency)) <- service
+        <dl>
+          <dt.bold>_{MsgTheName}
+          <dd.small-margin>
+            #{name}
 
-            <dt.bold>_{MsgPrice}
-            <dd.#{classCurrency}.small-margin data-value=#{price} data-currency=#{currency}>
-              #{currency}#{price}
+          <dt.bold>_{MsgDescription}
+          <dd.small-margin>
+            $maybe descr <- descr
+              #{descr}
 
-            <dt.bold>_{MsgDuration}
-            <dd.#{classDuration}.small-margin data-seconds=#{show $ nominalDiffTimeToSeconds duration}>
-              #{show duration}
+          <dt.bold>_{MsgPrice}
+          <dd.#{classCurrency}.small-margin data-value=#{price} data-currency=#{currency}>
+            #{currency}#{price}
+
+          <dt.bold>_{MsgDuration}
+          <dd.#{classDuration}.small-margin data-seconds=#{show $ nominalDiffTimeToSeconds duration}>
+            #{show duration}
 
 
   ^{widgetSnackbar msgs}

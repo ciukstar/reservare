@@ -19,7 +19,7 @@
     
     <figure.center-align>
     
-      <img.extra src=@{AccountPhotoR uid} loading=lazy alt=_{MsgPhoto}>
+      <img.extra.small-round src=@{AccountPhotoR uid} loading=lazy alt=_{MsgPhoto}>
       
       <figcaption.secondary-text.small-text>
         $maybe attrib <- attrib

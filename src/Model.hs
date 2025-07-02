@@ -23,9 +23,11 @@ import ClassyPrelude.Yesod
 import qualified Data.Proxy as DP (Proxy (Proxy))
 import Data.Time.Calendar.Month (Month)
 import Data.Time
-    ( NominalDiffTime, nominalDiffTimeToSeconds, secondsToNominalDiffTime )
+    ( NominalDiffTime, nominalDiffTimeToSeconds, secondsToNominalDiffTime
+    )
 import Data.Time.LocalTime
-    ( TimeZone (timeZoneMinutes), minutesToTimeZone, TimeOfDay )
+    ( TimeZone (timeZoneMinutes), minutesToTimeZone, TimeOfDay
+    )
 
 import Database.Persist.Quasi ( lowerCaseSettings )
 import Database.Persist.Sql (PersistFieldSql (sqlType), fromSqlKey, toSqlKey)

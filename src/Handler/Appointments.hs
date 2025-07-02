@@ -1147,25 +1147,25 @@ paramWorkspace = "w"
 
 
 keyScrollLeftX5 :: Text
-keyScrollLeftX5 = "scrollLeftX5"
+keyScrollLeftX5 = "scrollLeftX5Appointments"
 
 keyScrollLeftX4 :: Text
-keyScrollLeftX4 = "scrollLeftX4"
+keyScrollLeftX4 = "scrollLeftX4Appointments"
 
 keyScrollLeftX3 :: Text
-keyScrollLeftX3 = "scrollLeftX3"
+keyScrollLeftX3 = "scrollLeftX3Appointments"
 
 keyScrollLeftX2 :: Text
-keyScrollLeftX2 = "scrollLeftX2"
+keyScrollLeftX2 = "scrollLeftX2Appointments"
 
 keyScrollLeftX1 :: Text
-keyScrollLeftX1 = "scrollLeftX1"
+keyScrollLeftX1 = "scrollLeftX1Appointments"
 
 keyScrollTop3 :: Text
-keyScrollTop3 = "scrollTop3"
+keyScrollTop3 = "scrollTop3Appointments"
 
 keyScrollTop2 :: Text
-keyScrollTop2 = "scrollTop2"
+keyScrollTop2 = "scrollTop2Appointments"
 
-keyScrollTop :: Text
-keyScrollTop = "scrollTop"
+keyScrollTop1 :: Text
+keyScrollTop1 = "scrollTop1Appointments"
