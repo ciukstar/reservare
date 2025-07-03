@@ -1,3 +1,6 @@
+YouHaveNotBookedAnyServicesYet: You have not booked any services yet
+MySchedule: My schedule
+MyReservationsAndAppointments: My reservations and appointments
 Theme: Theme
 Settings: Settings
 Features: Features

@@ -1,9 +1,7 @@
 -- By default this file is used by `parseRoutesFile` in Foundation.hs
 -- Syntax for this file here: https://www.yesodweb.com/book/routing-and-handlers
 
-
 /catalog/#BusinessId/logo CatalogBusinessLogoR GET
-
 
 /catalog/#ServiceId/#StaffId/assignments/#AssignmentId/#Day/slots CatalogStaffScheduleSlotsR  GET
 /catalog/#ServiceId/assignments/#AssignmentId/#Month/schedule     CatalogStaffScheduleR       GET
@@ -36,6 +34,8 @@
 /stripe   StripeR   Stripe   getStripe
 /atvenue  AtVenueR  AtVenue  getAtVenue
 
+
+/users/#UserId/schedule ScheduleR GET
     
 /users/#UserId/businesses/#BusinessId/workspaces/#WorkspaceId/form/dele WorkspaceDeleR POST
 /users/#UserId/businesses/#BusinessId/workspaces/#WorkspaceId/form/edit WorkspaceEditR GET

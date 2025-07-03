@@ -1,0 +1,41 @@
+
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{HomeR} role=button title=_{MsgBack}>
+      <i>arrow_back
+
+    <h6.max>
+      _{MsgMySchedule}
+
+<main.responsive.no-padding ##{idMain}>
+
+  $if null books
+    <figure.center-align>
+      <i.extra.secondary-text>folder_open
+      <figcaption.large-text>
+        _{MsgYouHaveNotBookedAnyServicesYet}
+          
+  $else
+
+    $forall (Entity _ (Book _ _ _ time charge currency),(service,(workspace,employee))) <- books
+      <a.row.padding.wave href=#>
+        $with Entity sid (Service _ name _ price _ _ _) <- service
+          <img.circle src=@{DataR $ ServicePhotoDefaultR sid} loading=lazy alt=_{MsgPhoto}>
+
+          <div.max>
+            <div.#{classHeadline}.large-text>
+              #{name}
+       
+            <div.#{classSupportingText}.secondary-text>
+              $with dt <- show time
+                <time.#{classDaytime} datetime=#{dt}>#{dt}
+       
+            <div.#{classCurrency}.#{classSupportingText}.secondary-text data-value=#{price} data-currency=#{currency}>
+              #{currency}#{price}
+
+        <i.secondary-text>arrow_forward_ios
+
+      <hr>
+
+
+  ^{widgetSnackbar msgs}

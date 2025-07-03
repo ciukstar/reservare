@@ -20,7 +20,7 @@
   <h1.title.small>
     _{MsgWelcomeTo} _{MsgAppName}
 
-  <nav ##{idNavButtons}>
+  <nav.large-space ##{idNavButtons}>
     <a.button.fill href=@{CatalogR} role=button>
       _{MsgServiceCatalog}
 
@@ -29,6 +29,10 @@
 
     <a.button.fill href=@{AppointmentStaffR} role=button>
       _{MsgMakeAnAppointment}
+
+    $maybe uid <- uid
+      <a.button.transparent.border href=@{ScheduleR uid} role=button>
+        _{MsgMyReservationsAndAppointments}
     
 
   ^{widgetSnackbar msgs}

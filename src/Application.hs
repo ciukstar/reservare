@@ -95,6 +95,10 @@ import Handler.Resources (getDocsR)
 
 import Handler.Home ( getHomeR )
 
+import Handler.Schedule
+    ( getScheduleR
+    ) 
+
 import Handler.Business
     ( getBusinessesR, postBusinessesR
     , getBusinessNewR

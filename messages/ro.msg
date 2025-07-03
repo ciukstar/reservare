@@ -1,3 +1,6 @@
+YouHaveNotBookedAnyServicesYet: Nu ați rezervat încă niciun serviciu
+MySchedule: Programul
+MyReservationsAndAppointments: Rezervările și programările mele
 Theme: Tema
 Settings: Setări
 Features: Funcții

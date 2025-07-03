@@ -7,7 +7,7 @@
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE FlexibleContexts #-}
 
@@ -260,6 +260,8 @@ instance Yesod App where
     isAuthorized BookStaffR _ = setUltDestCurrent >> return Authorized
     isAuthorized BookServicesR _ = setUltDestCurrent >> return Authorized
 
+    
+    isAuthorized r@(ScheduleR uid) _ = setUltDest r >> isAuthenticatedSelf uid
 
     isAuthorized (WorkspaceDeleR uid _ _) _ = isAuthenticatedSelf uid
     isAuthorized (WorkspaceEditR uid _ _) _ = isAuthenticatedSelf uid

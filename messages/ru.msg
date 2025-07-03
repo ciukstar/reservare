@@ -1,3 +1,6 @@
+YouHaveNotBookedAnyServicesYet: Вы еще не забронировали ни одной услуги
+MySchedule: Расписание
+MyReservationsAndAppointments: Мои бронирования и встречи
 Theme: Тема
 Settings: Настройки
 Features: Возможности
