@@ -6,12 +6,13 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE QuasiQuotes           #-}
 {-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeOperators         #-}
 
 module Stripe where
 
 import Control.Exception.Safe
-    (tryAny, SomeException (SomeException), Exception (fromException))
+    ( tryAny, SomeException (SomeException), Exception (fromException)
+    )
 import Control.Lens ((^?), (?~), to)
 import qualified Control.Lens as L ((^.))
     
@@ -37,7 +38,7 @@ import Database.Persist.Sql (SqlBackend, insert_)
 import Model
     ( endpointStripePaymentIntents, endpointStripePaymentIntentCancel
     , ultDestKey, scriptRemoteStripe, statusSuccess, statusError
-    , BookId, PayOptionId
+    , UserId, BookId, PayOptionId
     , Service (Service)
     , Workspace (Workspace), Book
     , Payment
@@ -67,7 +68,7 @@ import Stripe.Data
     ( Stripe, resourcesStripe
     , YesodStripe
       ( getStripeConfPk, getUserEmail, getStripeConfSk, getBookDetailsR
-      , getHomeR
+      , getHomeR, getMaybeAuthId
       )
     , Route
       (CheckoutR, CompletionR, CancelR, IntentR)
@@ -77,7 +78,8 @@ import Stripe.Data
       , MsgUnhandledError, MsgPaymentStatus, MsgSomethingWentWrong, MsgFinish
       , MsgViewBookingDetails, MsgReturnToHomePage, MsgPaymentIntentCancelled
       , MsgClose, MsgAnUnexpectedErrorOccurred, MsgYourPaymentWasNotSuccessful
-      , MsgPaymentSucceeded, MsgYourPaymentIsProcessing
+      , MsgPaymentSucceeded, MsgYourPaymentIsProcessing, MsgAuthenticationRequired
+      , MsgAnotherAccountAccessProhibited
       )
     )
     
@@ -89,15 +91,19 @@ import Yesod.Core
     , MonadHandler (liftHandler), addScriptRemote, setTitleI, newIdent
     , getRouteToParent, getUrlRender, getMessages, returnJson, addMessage
     , toHtml, addMessageI, redirectUltDest, lookupSession, getMessageRender
+    , permissionDeniedI
     )
 import Yesod.Core.Types (YesodSubRunnerEnv)
-import Yesod.Persist.Core (YesodPersist(runDB, YesodPersistBackend))
 import Yesod.Form.Input (runInputGet, ireq)
 import Yesod.Form.Fields (textField)
+import Yesod.Persist.Core (YesodPersist(runDB, YesodPersistBackend))
 
 
-postCancelR :: (YesodStripe m) => SubHandlerFor Stripe m Html
-postCancelR = do
+postCancelR :: YesodStripe m => UserId -> SubHandlerFor Stripe m Html
+postCancelR uid = do
+
+    checkAuthorized uid
+    
     intent <- runInputGet $ ireq textField "pi"
     homeR <- liftHandler getHomeR
     let endpoint = endpointStripePaymentIntentCancel intent
@@ -109,9 +115,11 @@ postCancelR = do
 
 
 getCompletionR :: (YesodStripe m, YesodPersist m, YesodPersistBackend m ~ SqlBackend)
-               => BookId -> PayOptionId -> SubHandlerFor Stripe m Html
-getCompletionR bid oid = do
+               => UserId -> BookId -> PayOptionId -> SubHandlerFor Stripe m Html
+getCompletionR uid bid oid = do
 
+    checkAuthorized uid
+    
     intent <- runInputGet $ ireq textField "payment_intent"
     _ <- runInputGet $ ireq textField "payment_intent_client_secret"
     _ <- runInputGet $ ireq textField "redirect_status"
@@ -214,8 +222,11 @@ getCompletionR bid oid = do
                 $(widgetFile "gateways/stripe/error")
 
 
-postIntentR :: (YesodStripe m) => Int -> Text -> SubHandlerFor Stripe m A.Value
-postIntentR cents currency = do
+postIntentR :: YesodStripe m => UserId -> Int -> Text -> SubHandlerFor Stripe m A.Value
+postIntentR uid cents currency = do
+
+    checkAuthorized uid
+    
     sk <- liftHandler $ encodeUtf8 <$> getStripeConfSk
     let opts = defaults & auth ?~ basicAuth sk ""
     response <- liftIO $ tryAny $ postWith opts (unpack endpointStripePaymentIntents)
@@ -247,8 +258,10 @@ postIntentR cents currency = do
 
 
 getCheckoutR :: (YesodStripe m, YesodPersist m, YesodPersistBackend m ~ SqlBackend)
-             => BookId -> PayOptionId -> SubHandlerFor Stripe m Html
-getCheckoutR bid oid = do
+             => UserId -> BookId -> PayOptionId -> SubHandlerFor Stripe m Html
+getCheckoutR uid bid oid = do
+    
+    checkAuthorized uid
 
     pk <- liftHandler getStripeConfPk
 
@@ -271,7 +284,7 @@ getCheckoutR bid oid = do
     ult <- fromMaybe (rndr homeR) <$> lookupSession ultDestKey
 
     let confirmParams = encodeToLazyText $ object
-            [ "return_url"    .= (rndr $ rtp $ CompletionR bid oid :: Text)
+            [ "return_url"    .= (rndr $ rtp $ CompletionR uid bid oid :: Text)
             , "receipt_email" .= email
             ]
             
@@ -294,6 +307,17 @@ getCheckoutR bid oid = do
         $(widgetFile "common/css/header")
         $(widgetFile "common/css/main")
         $(widgetFile "gateways/stripe/checkout")
+
+
+checkAuthorized :: YesodStripe m => UserId -> SubHandlerFor Stripe m ()
+checkAuthorized uid = do
+    muid <- liftHandler getMaybeAuthId
+
+    liftHandler $ case muid of
+      Nothing -> permissionDeniedI MsgAuthenticationRequired
+
+      Just uid' | uid' /= uid -> permissionDeniedI MsgAnotherAccountAccessProhibited
+                | otherwise -> return ()
 
         
 instance (YesodStripe m, YesodPersist m, YesodPersistBackend m ~ SqlBackend) => YesodSubDispatch Stripe m where

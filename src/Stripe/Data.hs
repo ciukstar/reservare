@@ -10,7 +10,7 @@ module Stripe.Data where
 
 import Data.Text (Text)
 
-import Model (BookId, PayOptionId)
+import Model (BookId, PayOptionId, UserId)
 
 import Yesod.Core
     ( RenderRoute(renderRoute, Route), Yesod, HandlerFor
@@ -23,14 +23,15 @@ import Yesod.Form (FormMessage)
 data Stripe = Stripe
 
 mkYesodSubData "Stripe" [parseRoutes|
-/cancel                          CancelR     POST
-/completion/#BookId/#PayOptionId CompletionR GET
-/intent/#Int/#Text               IntentR     POST
-/checkout/#BookId/#PayOptionId   CheckoutR   GET
+/users/#UserId/cancel                          CancelR     POST
+/users/#UserId/completion/#BookId/#PayOptionId CompletionR GET
+/users/#UserId/intent/#Int/#Text               IntentR     POST
+/users/#UserId/checkout/#BookId/#PayOptionId   CheckoutR   GET
 |]
 
 
 class (Yesod m, RenderMessage m FormMessage, RenderMessage m StripeMessage) => YesodStripe m where
+    getMaybeAuthId :: HandlerFor m (Maybe UserId)
     getHomeR :: HandlerFor m (Route m)
     getUserEmail :: HandlerFor m (Maybe Text)
     getStripeConfPk :: HandlerFor m Text
@@ -58,6 +59,8 @@ data StripeMessage = MsgBack
                    | MsgPaymentSucceeded
                    | MsgYourPaymentIsProcessing
                    | MsgYourPaymentWasNotSuccessful
+                   | MsgAuthenticationRequired
+                   | MsgAnotherAccountAccessProhibited
 
 
 englishStripeMessage :: StripeMessage -> Text
@@ -81,6 +84,8 @@ englishStripeMessage MsgAnUnexpectedErrorOccurred = "An unexpected error occurre
 englishStripeMessage MsgPaymentSucceeded = "Payment succeeded"
 englishStripeMessage MsgYourPaymentIsProcessing = "Your payment is processing"
 englishStripeMessage MsgYourPaymentWasNotSuccessful = "Your payment was not successful, please try again"
+englishStripeMessage MsgAuthenticationRequired = "Authentication required"
+englishStripeMessage MsgAnotherAccountAccessProhibited = "Access to another user's account is prohibited"
 
 
 frenchStripeMessage :: StripeMessage -> Text
@@ -104,6 +109,8 @@ frenchStripeMessage MsgAnUnexpectedErrorOccurred = "Une erreur inattendue s'est 
 frenchStripeMessage MsgPaymentSucceeded = "Paiement réussi"
 frenchStripeMessage MsgYourPaymentIsProcessing = "Votre paiement est en cours de traitement"
 frenchStripeMessage MsgYourPaymentWasNotSuccessful = "Votre paiement n'a pas réussi, veuillez réessayer"
+frenchStripeMessage MsgAuthenticationRequired = "Authentification requise"
+frenchStripeMessage MsgAnotherAccountAccessProhibited = "L'accès au compte d'un autre utilisateur est interdit"
 
 
 romanianStripeMessage :: StripeMessage -> Text
@@ -127,6 +134,8 @@ romanianStripeMessage MsgAnUnexpectedErrorOccurred = "A apărut o eroare neaște
 romanianStripeMessage MsgPaymentSucceeded = "Plata a reușit"
 romanianStripeMessage MsgYourPaymentIsProcessing = "Plata dvs. este în curs de procesare"
 romanianStripeMessage MsgYourPaymentWasNotSuccessful = "Plata dumneavoastră nu a reușit, vă rugăm să încercați din nou"
+romanianStripeMessage MsgAuthenticationRequired = "Este necesară autentificarea"
+romanianStripeMessage MsgAnotherAccountAccessProhibited = "Accesul la contul altui utilizator este interzis"
 
 
 russianStripeMessage :: StripeMessage -> Text
@@ -150,6 +159,8 @@ russianStripeMessage MsgAnUnexpectedErrorOccurred = "Произошла непр
 russianStripeMessage MsgPaymentSucceeded = "Платеж прошел успешно"
 russianStripeMessage MsgYourPaymentIsProcessing = "Ваш платеж обрабатывается"
 russianStripeMessage MsgYourPaymentWasNotSuccessful = "Ваш платеж не был успешным, попробуйте еще раз"
+russianStripeMessage MsgAuthenticationRequired = "Требуется аутентификация"
+russianStripeMessage MsgAnotherAccountAccessProhibited = "Доступ к учетной записи другого пользователя запрещен"
 
 
 defaultStripeMessage :: StripeMessage -> Text

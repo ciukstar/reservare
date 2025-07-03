@@ -16,7 +16,7 @@ Array.from(document.querySelectorAll('.snackbar')).forEach(x => {
 
 const checkout = new window.YooMoneyCheckoutWidget({
   confirmation_token: #{token},
-  return_url: '@{rtp $ CompletionR bid pid paymentId}',
+  return_url: '@{rtp $ CompletionR uid bid pid paymentId}',
   error_callback: function (error) {
     
     const banner = document.getElementById(#{idBannerYookassa});

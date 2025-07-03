@@ -24,7 +24,7 @@
             #{name}
 
           <dt.bold>_{MsgAddress}
-          <dd>
+          <dd.small-margin>
             #{address}
 
     <fieldset>

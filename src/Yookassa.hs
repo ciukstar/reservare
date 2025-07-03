@@ -27,9 +27,8 @@ import Data.UUID.V4 (nextRandom)
 import Data.UUID (toASCIIBytes)
 
 import Database.Esqueleto.Experimental
-    ( selectOne, from, table, innerJoin, on, where_, val
+    ( selectOne, from, table, innerJoin, on, where_, val, update, set
     , (:&) ((:&)), (^.), (==.), (=.)
-    , update, set
     )
 import Database.Persist (Entity(Entity))
 import Database.Persist.Sql (SqlBackend, insert)
@@ -40,6 +39,7 @@ import Model
     , BookId, PayOptionId
     , Service (Service)
     , Workspace (Workspace), Book
+    , PaymentId, UserId
     , Payment
       ( Payment, paymentBook, paymentOption, paymentTime, paymentAmount
       , paymentCurrency, paymentIdetifier, paymentStatus, paymentError
@@ -47,7 +47,7 @@ import Model
     , EntityField
       ( BookId, BookService, ServiceId, ServiceWorkspace, WorkspaceId
       , ServiceAvailable, PaymentStatus, PaymentId
-      ), PaymentId
+      )
     )
 
 import Network.HTTP.Client
@@ -70,7 +70,7 @@ import Yesod.Core
     , MonadHandler (liftHandler), addScriptRemote, setTitleI, newIdent
     , getUrlRender, getMessages
     , MonadIO (liftIO), addMessage, toHtml, addMessageI
-    , lookupSession, invalidArgs, invalidArgsI, getRouteToParent
+    , lookupSession, invalidArgs, invalidArgsI, getRouteToParent, permissionDeniedI
     )
 import Yesod.Core.Types (YesodSubRunnerEnv)
 import Yesod.Persist.Core (YesodPersist(runDB, YesodPersistBackend))
@@ -79,22 +79,24 @@ import Yookassa.Data
     ( Yookassa, resourcesYookassa
     , YesodYookassa
       ( getYookassaConfShopId, getYookassaConfSecret
-      , getBookDetailsR, getHomeR
+      , getBookDetailsR, getHomeR, getMaybeAuthId
       )
     , Route (CheckoutR, CompletionR)
     , YookassaMessage
-      ( MsgBack, MsgCheckout, MsgPaymentAmount, MsgCancel
-      , MsgYooKassa, MsgUnhandledError, MsgInvalidPaymentAmount
-      , MsgYourBookingHasBeenCreatedSuccessfully, MsgPaymentStatus
-      , MsgViewBookingDetails, MsgReturnToHomePage, MsgFinish
-      , MsgPaymentDeclined, MsgSomethingWentWrong, MsgClose
+      ( MsgBack, MsgCheckout, MsgPaymentAmount, MsgCancel, MsgUnhandledError
+      , MsgYooKassa, MsgYourBookingHasBeenCreatedSuccessfully, MsgPaymentStatus
+      , MsgViewBookingDetails, MsgReturnToHomePage, MsgInvalidPaymentAmount
+      , MsgPaymentDeclined, MsgSomethingWentWrong, MsgAuthenticationRequired
+      , MsgAnotherAccountAccessProhibited, MsgClose, MsgFinish
       )
     )
 
 
 getCompletionR :: (YesodYookassa m, YesodPersist m, YesodPersistBackend m ~ SqlBackend)
-               => BookId -> PaymentId -> Text -> SubHandlerFor Yookassa m Html
-getCompletionR bid pid paymentId = do
+               => UserId -> BookId -> PaymentId -> Text -> SubHandlerFor Yookassa m Html
+getCompletionR uid bid pid paymentId = do
+
+    checkAuthorized uid
 
     shopid <- liftHandler $ encodeUtf8 <$> getYookassaConfShopId
     secret <- liftHandler $ encodeUtf8 <$> getYookassaConfSecret
@@ -124,9 +126,11 @@ getCompletionR bid pid paymentId = do
 
 
 getCheckoutR :: (YesodYookassa m, YesodPersist m, YesodPersistBackend m ~ SqlBackend)
-             => BookId -> PayOptionId -> SubHandlerFor Yookassa m Html
-getCheckoutR bid oid = do
+             => UserId -> BookId -> PayOptionId -> SubHandlerFor Yookassa m Html
+getCheckoutR uid bid oid = do
 
+    checkAuthorized uid
+    
     book <- liftHandler $ runDB $ selectOne $ do
         x :& s :& w <- from $ table @Book
             `innerJoin` table @Service `on` (\(x :& s) -> x ^. BookService ==. s ^. ServiceId)
@@ -225,6 +229,16 @@ getCheckoutR bid oid = do
                         $(widgetFile "common/css/main")
                         $(widgetFile "gateways/yookassa/checkout")
 
+
+checkAuthorized :: YesodYookassa m => UserId -> SubHandlerFor Yookassa m ()
+checkAuthorized uid = do
+    muid <- liftHandler getMaybeAuthId
+
+    liftHandler $ case muid of
+      Nothing -> permissionDeniedI MsgAuthenticationRequired
+
+      Just uid' | uid' /= uid -> permissionDeniedI MsgAnotherAccountAccessProhibited
+                | otherwise -> return ()
 
         
 instance (YesodYookassa m, YesodPersist m, YesodPersistBackend m ~ SqlBackend) => YesodSubDispatch Yookassa m where

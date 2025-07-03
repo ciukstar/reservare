@@ -56,7 +56,7 @@ import Stripe.Data
     , frenchStripeMessage, romanianStripeMessage, russianStripeMessage
     , YesodStripe
       ( getUserEmail, getStripeConfPk, getStripeConfSk, getHomeR
-      , getBookDetailsR
+      , getBookDetailsR, getMaybeAuthId
       )
     )
 
@@ -110,7 +110,10 @@ import Yesod.Form.I18n.Russian (russianFormMessage)
 import Data.Time.Calendar.Month (Month)
 
 import Yookassa.Data
-    ( YesodYookassa (getHomeR, getYookassaConfShopId, getBookDetailsR, getYookassaConfSecret)
+    ( YesodYookassa
+      ( getHomeR, getYookassaConfShopId, getBookDetailsR, getYookassaConfSecret
+      , getMaybeAuthId
+      )
     , YookassaMessage, Yookassa
     , defaultYookassaMessage, englishYookassaMessage, frenchYookassaMessage
     , romanianYookassaMessage, russianYookassaMessage
@@ -118,7 +121,8 @@ import Yookassa.Data
     
 import AtVenue.Data
     ( AtVenue, AtVenueMessage
-    , YesodAtVenue (getHomeR, getBookDetailsR), defaultAtVenueMessage, englishAtVenueMessage
+    , YesodAtVenue (getHomeR, getBookDetailsR, getMaybeAuthId)
+    , defaultAtVenueMessage, englishAtVenueMessage
     , frenchAtVenueMessage, romanianAtVenueMessage, russianAtVenueMessage
     )
 
@@ -1077,6 +1081,9 @@ instance RenderMessage App AtVenueMessage where
 
 
 instance YesodAtVenue App where
+    getMaybeAuthId :: Handler (Maybe UserId)
+    getMaybeAuthId = maybeAuthId
+    
     getHomeR :: HandlerFor App (Route App)
     getHomeR = return HomeR
     
@@ -1095,6 +1102,9 @@ instance RenderMessage App StripeMessage where
 
 
 instance YesodStripe App where
+    getMaybeAuthId :: Handler (Maybe UserId)
+    getMaybeAuthId = maybeAuthId
+    
     getHomeR :: HandlerFor App (Route App)
     getHomeR = return HomeR
     
@@ -1124,6 +1134,9 @@ instance RenderMessage App YookassaMessage where
 
 
 instance YesodYookassa App where
+    getMaybeAuthId :: Handler (Maybe UserId)
+    getMaybeAuthId = maybeAuthId
+    
     getHomeR :: HandlerFor App (Route App)
     getHomeR = return HomeR
     

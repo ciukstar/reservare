@@ -9,7 +9,7 @@
 
 <main.responsive ##{idMain}>
 
-  <div.error.no-round role=banner ##{idBannerYookassa}>
+  <div.error.small-round role=banner ##{idBannerYookassa}>
 
   <section.center-align ##{idSectionPriceTag}>
     <h6.secondary-text>_{MsgPaymentAmount}

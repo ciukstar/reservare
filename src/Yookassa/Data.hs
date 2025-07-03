@@ -9,7 +9,7 @@ module Yookassa.Data where
 
 import Data.Text (Text)
 
-import Model (BookId, PayOptionId, PaymentId)
+import Model (BookId, PayOptionId, PaymentId, UserId)
 
 import Yesod.Core
     ( RenderRoute(renderRoute, Route), Yesod, HandlerFor
@@ -23,12 +23,13 @@ data Yookassa = Yookassa
 
 
 mkYesodSubData "Yookassa" [parseRoutes|
-/completion/#BookId/#PaymentId/#Text CompletionR GET
-/checkout/#BookId/#PayOptionId       CheckoutR   GET
+/users/#UserId/completion/#BookId/#PaymentId/#Text CompletionR GET
+/users/#UserId/checkout/#BookId/#PayOptionId       CheckoutR   GET
 |]
 
 
 class (Yesod m, RenderMessage m FormMessage, RenderMessage m YookassaMessage) => YesodYookassa m where
+    getMaybeAuthId :: HandlerFor m (Maybe UserId)
     getHomeR :: HandlerFor m (Route m)
     getYookassaConfShopId :: HandlerFor m Text
     getYookassaConfSecret :: HandlerFor m Text
@@ -36,22 +37,24 @@ class (Yesod m, RenderMessage m FormMessage, RenderMessage m YookassaMessage) =>
 
 
 data YookassaMessage = MsgBack
-                   | MsgCheckout
-                   | MsgPaymentAmount
-                   | MsgPay
-                   | MsgCancel
-                   | MsgYooKassa
-                   | MsgUnhandledError
-                   | MsgInvalidPaymentAmount
-                   | MsgYourBookingHasBeenCreatedSuccessfully
-                   | MsgPaymentStatus
-                   | MsgSomethingWentWrong
-                   | MsgViewBookingDetails
-                   | MsgReturnToHomePage
-                   | MsgFinish
-                   | MsgInvalidArguments
-                   | MsgPaymentDeclined
-                   | MsgClose
+                     | MsgCheckout
+                     | MsgPaymentAmount
+                     | MsgPay
+                     | MsgCancel
+                     | MsgYooKassa
+                     | MsgUnhandledError
+                     | MsgInvalidPaymentAmount
+                     | MsgYourBookingHasBeenCreatedSuccessfully
+                     | MsgPaymentStatus
+                     | MsgSomethingWentWrong
+                     | MsgViewBookingDetails
+                     | MsgReturnToHomePage
+                     | MsgFinish
+                     | MsgInvalidArguments
+                     | MsgPaymentDeclined
+                     | MsgClose
+                     | MsgAuthenticationRequired
+                     | MsgAnotherAccountAccessProhibited
 
 englishYookassaMessage :: YookassaMessage -> Text
 englishYookassaMessage MsgBack = "Back"
@@ -71,6 +74,8 @@ englishYookassaMessage MsgFinish = "Finish"
 englishYookassaMessage MsgInvalidArguments = "Invalid arguments"
 englishYookassaMessage MsgPaymentDeclined = "Payment declined"
 englishYookassaMessage MsgClose = "Close"
+englishYookassaMessage MsgAuthenticationRequired = "Authentication required"
+englishYookassaMessage MsgAnotherAccountAccessProhibited = "Access to another user's account is prohibited"
 
 
 frenchYookassaMessage :: YookassaMessage -> Text
@@ -91,6 +96,8 @@ frenchYookassaMessage MsgFinish = "Finir"
 frenchYookassaMessage MsgInvalidArguments = "Arguments invalides"
 frenchYookassaMessage MsgPaymentDeclined = "Paiement refusé"
 frenchYookassaMessage MsgClose = "Fermer"
+frenchYookassaMessage MsgAuthenticationRequired = "Authentification requise"
+frenchYookassaMessage MsgAnotherAccountAccessProhibited = "L'accès au compte d'un autre utilisateur est interdit"
 
 
 romanianYookassaMessage :: YookassaMessage -> Text
@@ -111,6 +118,8 @@ romanianYookassaMessage MsgFinish = "Finalizare"
 romanianYookassaMessage MsgInvalidArguments = "Argumente nevalide"
 romanianYookassaMessage MsgPaymentDeclined = "Plata a fost refuzată"
 romanianYookassaMessage MsgClose = "Închide"
+romanianYookassaMessage MsgAuthenticationRequired = "Este necesară autentificarea"
+romanianYookassaMessage MsgAnotherAccountAccessProhibited = "Accesul la contul altui utilizator este interzis"
 
 
 russianYookassaMessage :: YookassaMessage -> Text
@@ -131,6 +140,8 @@ russianYookassaMessage MsgFinish = "Завершить"
 russianYookassaMessage MsgInvalidArguments = "Неверные аргументы"
 russianYookassaMessage MsgPaymentDeclined = "Платеж отклонен"
 russianYookassaMessage MsgClose = "Закрыть"
+russianYookassaMessage MsgAuthenticationRequired = "Требуется аутентификация"
+russianYookassaMessage MsgAnotherAccountAccessProhibited = "Доступ к учетной записи другого пользователя запрещен"
 
 
 defaultYookassaMessage :: YookassaMessage -> Text

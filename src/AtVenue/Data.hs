@@ -9,7 +9,7 @@ module AtVenue.Data where
 
 import Data.Text (Text)
 
-import Model (BookId, PayOptionId)
+import Model (BookId, PayOptionId, UserId)
 
 import Yesod.Core
     ( RenderRoute(renderRoute, Route), Yesod, HandlerFor
@@ -21,31 +21,35 @@ import Yesod.Form (FormMessage)
 data AtVenue = AtVenue
 
 mkYesodSubData "AtVenue" [parseRoutes|
-/checkout/#BookId/#PayOptionId CheckoutR GET
+/users/#UserId/checkout/#BookId/#PayOptionId CheckoutR GET
 |]
 
 
 class (Yesod m, RenderMessage m FormMessage, RenderMessage m AtVenueMessage) => YesodAtVenue m where
+    getMaybeAuthId :: HandlerFor m (Maybe UserId)
     getHomeR :: HandlerFor m (Route m)
     getBookDetailsR :: BookId -> HandlerFor m (Route m)
 
 
 data AtVenueMessage = MsgBack
-                   | MsgCheckout
-                   | MsgPaymentAmount
-                   | MsgPay
-                   | MsgCancel
-                   | MsgStripe
-                   | MsgUnhandledError
-                   | MsgInvalidPaymentAmount
-                   | MsgYourBookingHasBeenCreatedSuccessfully
-                   | MsgPaymentStatus
-                   | MsgSomethingWentWrong
-                   | MsgViewBookingDetails
-                   | MsgReturnToHomePage
-                   | MsgFinish
-                   | MsgPaymentIntentCancelled
-                   | MsgClose
+                    | MsgCheckout
+                    | MsgPaymentAmount
+                    | MsgPay
+                    | MsgCancel
+                    | MsgStripe
+                    | MsgUnhandledError
+                    | MsgInvalidPaymentAmount
+                    | MsgYourBookingHasBeenCreatedSuccessfully
+                    | MsgPaymentStatus
+                    | MsgSomethingWentWrong
+                    | MsgViewBookingDetails
+                    | MsgReturnToHomePage
+                    | MsgFinish
+                    | MsgPaymentIntentCancelled
+                    | MsgClose
+                    | MsgAuthenticationRequired
+                    | MsgAnotherAccountAccessProhibited
+
 
 englishAtVenueMessage :: AtVenueMessage -> Text
 englishAtVenueMessage MsgBack = "Back"
@@ -64,6 +68,8 @@ englishAtVenueMessage MsgReturnToHomePage = "Return to Home Page"
 englishAtVenueMessage MsgFinish = "Finish"
 englishAtVenueMessage MsgPaymentIntentCancelled = "Payment intent was cancelled"
 englishAtVenueMessage MsgClose = "Close"
+englishAtVenueMessage MsgAuthenticationRequired = "Authentication required"
+englishAtVenueMessage MsgAnotherAccountAccessProhibited = "Access to another user's account is prohibited"
 
 
 frenchAtVenueMessage :: AtVenueMessage -> Text
@@ -83,6 +89,9 @@ frenchAtVenueMessage MsgReturnToHomePage = "Retour à la page d'accueil"
 frenchAtVenueMessage MsgFinish = "Finir"
 frenchAtVenueMessage MsgPaymentIntentCancelled = "L'intention de paiement a été annulée"
 frenchAtVenueMessage MsgClose = "Fermer"
+frenchAtVenueMessage MsgAuthenticationRequired = "Authentification requise"
+frenchAtVenueMessage MsgAnotherAccountAccessProhibited = "L'accès au compte d'un autre utilisateur est interdit"
+
 
 romanianAtVenueMessage :: AtVenueMessage -> Text
 romanianAtVenueMessage MsgBack = "Înapoi"
@@ -101,6 +110,9 @@ romanianAtVenueMessage MsgReturnToHomePage = "Înapoi la pagina de start"
 romanianAtVenueMessage MsgFinish = "Finalizare"
 romanianAtVenueMessage MsgPaymentIntentCancelled = "Intenția de plată a fost anulată"
 romanianAtVenueMessage MsgClose = "Închide"
+romanianAtVenueMessage MsgAuthenticationRequired = "Este necesară autentificarea"
+romanianAtVenueMessage MsgAnotherAccountAccessProhibited = "Accesul la contul altui utilizator este interzis"
+
 
 russianAtVenueMessage :: AtVenueMessage -> Text
 russianAtVenueMessage MsgBack = "Вернуться"
@@ -119,6 +131,9 @@ russianAtVenueMessage MsgReturnToHomePage = "Вернуться на главн�
 russianAtVenueMessage MsgFinish = "Завершить"
 russianAtVenueMessage MsgPaymentIntentCancelled = "Намерение платежа было отменено"
 russianAtVenueMessage MsgClose = "Закрыть"
+russianAtVenueMessage MsgAuthenticationRequired = "Требуется аутентификация"
+russianAtVenueMessage MsgAnotherAccountAccessProhibited = "Доступ к учетной записи другого пользователя запрещен"
+
 
 defaultAtVenueMessage :: AtVenueMessage -> Text
 defaultAtVenueMessage = englishAtVenueMessage

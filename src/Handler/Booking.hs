@@ -220,7 +220,7 @@ postBookPaymentR = do
                                         , ("oid", pack $ show $ fromSqlKey oid')
                                         ] stati
                 setUltDest (BookPaymentR, params)
-                redirect (StripeR $ S.CheckoutR bid oid', params)
+                redirect (StripeR $ S.CheckoutR uid bid oid', params)
 
             (Just (charge,currency),Just (Entity _ (PayOption _ PayNow _ (Just PayGatewayYookassa) _ _))) -> do
                 bid <- runDB $ insert $ Book { bookCustomer = uid
@@ -236,7 +236,7 @@ postBookPaymentR = do
                              , ("oid", pack $ show $ fromSqlKey oid')
                              ]
                 setUltDest (BookPaymentR, params)
-                redirect (YookassaR $ Y.CheckoutR bid oid', params)
+                redirect (YookassaR $ Y.CheckoutR uid bid oid', params)
 
             (Just (charge,currency),Just (Entity _ (PayOption _ PayAtVenue _ _ _ _))) -> do
                 bid <- runDB $ insert $ Book { bookCustomer = uid
@@ -246,7 +246,7 @@ postBookPaymentR = do
                                              , bookCharge = charge
                                              , bookCurrency = currency
                                              }
-                redirect (AtVenueR $ V.CheckoutR bid oid')
+                redirect (AtVenueR $ V.CheckoutR uid bid oid')
 
             (_,Just (Entity _ (PayOption _ PayNow _ Nothing _ _))) -> do
                 addMessageI statusError MsgPaymentGatewayNotSpecified
@@ -352,11 +352,11 @@ getBookPaymentR = do
                                        , bookCurrency = currency
                                        }
           setUltDestReferer
-          redirect ( StripeR $ S.CheckoutR bid oid', [ ("sid", pack $ show $ fromSqlKey sid)
-                                                     , ("eid", pack $ show $ fromSqlKey eid)
-                                                     , ("tid", pack $ show (utcToLocalTime utc tid))
-                                                     , ("oid", pack $ show $ fromSqlKey oid')
-                                                     ]
+          redirect ( StripeR $ S.CheckoutR uid bid oid', [ ("sid", pack $ show $ fromSqlKey sid)
+                                                         , ("eid", pack $ show $ fromSqlKey eid)
+                                                         , ("tid", pack $ show (utcToLocalTime utc tid))
+                                                         , ("oid", pack $ show $ fromSqlKey oid')
+                                                         ]
                    )
 
       ([Entity oid' (PayOption _ PayNow _ (Just PayGatewayYookassa) _ _)],Just (charge,currency),Just (Entity uid _)) -> do
@@ -368,11 +368,11 @@ getBookPaymentR = do
                                        , bookCurrency = currency
                                        }
           setUltDestReferer
-          redirect ( YookassaR $ Y.CheckoutR bid oid', [ ("sid", pack $ show $ fromSqlKey sid)
-                                                       , ("eid", pack $ show $ fromSqlKey eid)
-                                                       , ("tid", pack $ show (utcToLocalTime utc tid))
-                                                       , ("oid", pack $ show $ fromSqlKey oid')
-                                                       ]
+          redirect ( YookassaR $ Y.CheckoutR uid bid oid', [ ("sid", pack $ show $ fromSqlKey sid)
+                                                           , ("eid", pack $ show $ fromSqlKey eid)
+                                                           , ("tid", pack $ show (utcToLocalTime utc tid))
+                                                           , ("oid", pack $ show $ fromSqlKey oid')
+                                                           ]
                    )
 
       ([Entity _ (PayOption _ PayNow _ Nothing _ _)],Just _,Just _) -> do
@@ -394,7 +394,7 @@ getBookPaymentR = do
                                        , bookCharge = charge
                                        , bookCurrency = currency
                                        }
-          redirect (AtVenueR $ V.CheckoutR bid oid')
+          redirect (AtVenueR $ V.CheckoutR uid bid oid')
 
       _ -> do
 
