@@ -1,0 +1,24 @@
+
+<header.fixed ##{idHeader}>
+  <nav>
+    <a.button.circle.transparent href=@{HomeR} role=button title=_{MsgBack}>
+      <i>arrow_back
+
+    <h6.max>
+      _{MsgMySchedule}
+
+<main.responsive.no-padding ##{idMain}>
+
+  <div.tabs.min.scroll>
+
+    <a.no-wrap href=@{UserScheduleR uid}>
+      _{MsgAppointments}
+
+    <a.active.no-wrap href=@{UserCalendarR uid month}>
+      _{MsgCalendar}
+      
+
+  <div.page.active>
+
+
+  ^{widgetSnackbar msgs}

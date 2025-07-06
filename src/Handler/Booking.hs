@@ -1,10 +1,10 @@
 {-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes       #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE QuasiQuotes           #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE PatternSynonyms       #-}
+{-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Handler.Booking
@@ -73,7 +73,7 @@ import Foundation
     )
 
 import Model
-    ( statusError, keyBacklink, keyBacklinkAuth
+    ( statusError, keyPrevServices, keyPrevStaff, keyBacklinkAuth
     , ServiceId, Service(Service)
     , WorkspaceId, Workspace (Workspace)
     , BusinessId, Business (Business)
@@ -164,6 +164,7 @@ getBookDetailsR bid = do
     defaultLayout $ do
         setTitleI MsgPaymentStatus
         idHeader <- newIdent
+        idButtonClose <- newIdent
         idMain <- newIdent
         $(widgetFile "common/css/header")
         $(widgetFile "common/css/main")
@@ -841,6 +842,7 @@ postBookStaffR = do
           defaultLayout $ do
               setTitleI MsgStaff
               idHeader <- newIdent
+              idLinkBack <- newIdent
               idMain <- newIdent
               idFormStaff <- newIdent
               $(widgetFile "common/css/header")
@@ -853,6 +855,7 @@ postBookStaffR = do
           defaultLayout $ do
               setTitleI MsgStaff
               idHeader <- newIdent
+              idLinkBack <- newIdent
               idMain <- newIdent
               idFormStaff <- newIdent
               $(widgetFile "common/css/header")
@@ -873,6 +876,7 @@ getBookStaffR = do
     defaultLayout $ do
         setTitleI MsgStaff
         idHeader <- newIdent
+        idLinkBack <- newIdent
         idMain <- newIdent
         idFormStaff <- newIdent
         $(widgetFile "common/css/header")
@@ -1013,6 +1017,7 @@ postBookServicesR = do
           defaultLayout $ do
               setTitleI MsgServices
               idHeader <- newIdent
+              idLinkBack <- newIdent
               idMain <- newIdent
               idFormService <- newIdent
               $(widgetFile "common/css/header")
@@ -1025,6 +1030,7 @@ postBookServicesR = do
           defaultLayout $ do
               setTitleI MsgServices
               idHeader <- newIdent
+              idLinkBack <- newIdent
               idMain <- newIdent
               idFormService <- newIdent
               $(widgetFile "common/css/header")
@@ -1056,6 +1062,7 @@ getBookServicesR = do
     defaultLayout $ do
         setTitleI MsgServices
         idHeader <- newIdent
+        idLinkBack <- newIdent
         idMain <- newIdent
         idFormService <- newIdent
         $(widgetFile "common/css/header")

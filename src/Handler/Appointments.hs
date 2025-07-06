@@ -64,7 +64,7 @@ import Foundation
     )
 
 import Model
-    ( statusError, keyBacklink, keyBacklinkAuth
+    ( statusError, keyPrevTiming, keyPrevSlots, keyBacklinkAuth
     , ServiceId, Service(Service)
     , WorkspaceId, Workspace (Workspace)
     , BusinessId, Business (Business)

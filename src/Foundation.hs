@@ -204,6 +204,7 @@ instance Yesod App where
 
         lang <- fromMaybe "en" . headMay <$> languages
         msgr <- getMessageRender
+        
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
     -- The page to be redirected to when authentication is required.
@@ -261,7 +262,8 @@ instance Yesod App where
     isAuthorized BookServicesR _ = setUltDestCurrent >> return Authorized
 
     
-    isAuthorized r@(ScheduleR uid) _ = setUltDest r >> isAuthenticatedSelf uid
+    isAuthorized r@(UserCalendarR uid _) _ = setUltDest r >> isAuthenticatedSelf uid
+    isAuthorized r@(UserScheduleR uid) _ = setUltDest r >> isAuthenticatedSelf uid
 
     isAuthorized (WorkspaceDeleR uid _ _) _ = isAuthenticatedSelf uid
     isAuthorized (WorkspaceEditR uid _ _) _ = isAuthenticatedSelf uid

@@ -34,3 +34,7 @@ scrolls.map(
   });
 
 });
+
+document.getElementById(#{idButtonBook}).addEventListener('click', e => {
+  sessionStorage.setItem(#{keyPrevStaff},'@?{(CatalogServiceR sid,stati)}');
+});

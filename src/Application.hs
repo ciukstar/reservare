@@ -96,7 +96,8 @@ import Handler.Resources (getDocsR)
 import Handler.Home ( getHomeR )
 
 import Handler.Schedule
-    ( getScheduleR
+    ( getUserScheduleR
+    , getUserCalendarR
     ) 
 
 import Handler.Business

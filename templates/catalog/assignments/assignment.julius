@@ -12,5 +12,5 @@ document.body.querySelectorAll('time[datetime]').forEach(function (x) {
 });
 
 document.getElementById(#{idButtonMakeAppointment}).addEventListener('click', e => {
-  sessionStorage.setItem(#{keyBacklink},'@?{(CatalogServiceAssignmentR sid aid,stati)}');
+  sessionStorage.setItem(#{keyPrevTiming},'@?{(CatalogServiceAssignmentR sid aid,stati)}');
 });

@@ -73,7 +73,7 @@ import Handler.Booking
     )
 
 import Model
-    ( keyBacklink
+    ( keyPrevStaff, keyPrevTiming
     , ServiceId, Service (Service)
     , Workspace (Workspace)
     , ServicePhotoId, ServicePhoto (ServicePhoto)
@@ -141,7 +141,7 @@ getCatalogStaffScheduleSlotsR sid eid aid day = do
         $(widgetFile "catalog/assignments/schedule/slots/slots")
         unless (null slots) $ toWidget [julius|
                 document.getElementById(#{idButtonMakeAnAppointment}).addEventListener('click', e => {
-                  sessionStorage.setItem(#{keyBacklink},'@?{(CatalogStaffScheduleSlotsR sid eid aid day,stati)}')
+                  sessionStorage.setItem(#{keyPrevTiming},'@?{(CatalogStaffScheduleSlotsR sid eid aid day,stati)}')
                 });
             |]
 
@@ -288,6 +288,7 @@ getCatalogServiceR sid = do
         idMain <- newIdent
         idNavTabs <- newIdent
         idCarousel <- newIdent
+        idButtonBook <- newIdent
         classCurrency <- newIdent
         classDuration <- newIdent        
         $(widgetFile "common/js/seconds2duration")

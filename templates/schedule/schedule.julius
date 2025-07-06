@@ -4,8 +4,8 @@ document.querySelectorAll('time.#{rawJS classDaytime}[datetime]').forEach(functi
   x.textContent = new Date(x.getAttribute('datetime')).toLocaleDateString(
     navigator.language,
     { year: 'numeric',
-      month: 'long',
-      weekday: 'long',
+      month: 'short',
+      weekday: 'short',
       day: 'numeric',
       hour: 'numeric',
       minute: 'numeric'
@@ -21,4 +21,9 @@ document.querySelectorAll('.#{rawJS classCurrency}[data-value][data-currency]').
     maximumFractionDigits: 2,
     useGrouping: true
   }).format(x.dataset.value / 100);
+});
+
+
+document.getElementById(#{idButtonBookService}).addEventListener('click', function (e) {
+  sessionStorage.setItem(#{keyPrevServices},'@{UserScheduleR uid}');
 });

@@ -4,3 +4,10 @@ window.scroll(0, isNaN(sessionStorage.getItem(#{keyScrollTop1})) ? 0 : Number(se
 window.addEventListener('scrollend', function (e) {
   sessionStorage.setItem(#{keyScrollTop1}, window.scrollY);
 });
+
+document.getElementById(#{idLinkBack}).addEventListener('click', e => {
+  [sessionStorage.getItem(#{keyPrevServices})].filter(x => URL.canParse(x)).forEach(x => {
+    e.target.href = x;
+    sessionStorage.removeItem(#{keyPrevServices});
+  });
+});

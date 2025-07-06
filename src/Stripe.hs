@@ -38,6 +38,7 @@ import Database.Persist.Sql (SqlBackend, insert_)
 import Model
     ( endpointStripePaymentIntents, endpointStripePaymentIntentCancel
     , ultDestKey, scriptRemoteStripe, statusSuccess, statusError
+    , keyPrevServices
     , UserId, BookId, PayOptionId
     , Service (Service)
     , Workspace (Workspace), Book
@@ -193,6 +194,7 @@ getCompletionR uid bid oid = do
                 liftHandler $ defaultLayout $ do
                     setTitleI MsgPaymentStatus
                     idHeader <- newIdent
+                    idButtonClose <- newIdent
                     idMain <- newIdent
                     $(widgetFile "common/css/header")
                     $(widgetFile "common/css/main")

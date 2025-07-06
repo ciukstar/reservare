@@ -3,3 +3,11 @@ document.querySelectorAll('.snackbar').forEach(x => {
   x.querySelector('button.close').onclick = (e) => { x.remove(); };
   setTimeout(() => { x.remove(); }, 5000);
 });
+
+
+document.getElementById(#{idButtonClose}).addEventListener('click', e => {
+  [sessionStorage.getItem(#{keyPrevServices})].filter(x => URL.canParse(x)).forEach(x => {
+    e.target.href = x;
+    sessionStorage.removeItem(#{keyPrevServices});
+  });
+});

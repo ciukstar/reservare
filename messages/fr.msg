@@ -1,3 +1,5 @@
+Appointments: Rendez-vous
+Calendar: Calendrier
 YouHaveNotBookedAnyServicesYet: Vous n'avez pas encore réservé de services
 MySchedule: Mes rendez-vous
 MyReservationsAndAppointments: Mes réservations et rendez-vous

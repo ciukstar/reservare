@@ -9,33 +9,54 @@
 
 <main.responsive.no-padding ##{idMain}>
 
-  $if null books
-    <figure.center-align>
-      <i.extra.secondary-text>folder_open
-      <figcaption.large-text>
-        _{MsgYouHaveNotBookedAnyServicesYet}
-          
-  $else
+  <div.tabs.min.scroll>
 
-    $forall (Entity _ (Book _ _ _ time charge currency),(service,(workspace,employee))) <- books
-      <a.row.padding.wave href=#>
-        $with Entity sid (Service _ name _ price _ _ _) <- service
-          <img.circle src=@{DataR $ ServicePhotoDefaultR sid} loading=lazy alt=_{MsgPhoto}>
+    <a.active.no-wrap href=@{UserScheduleR uid}>
+      _{MsgAppointments}
 
-          <div.max>
-            <div.#{classHeadline}.large-text>
-              #{name}
-       
-            <div.#{classSupportingText}.secondary-text>
-              $with dt <- show time
-                <time.#{classDaytime} datetime=#{dt}>#{dt}
-       
-            <div.#{classCurrency}.#{classSupportingText}.secondary-text data-value=#{price} data-currency=#{currency}>
-              #{currency}#{price}
+    <a.no-wrap href=@{UserCalendarR uid month}>
+      _{MsgCalendar}
+      
 
-        <i.secondary-text>arrow_forward_ios
+  <div.page.active>
 
-      <hr>
+    $if null books
+      <figure.center-align.margin>
+        <i.extra.secondary-text>folder_open
+        <figcaption.secondary-text>
+          <p>_{MsgYouHaveNotBookedAnyServicesYet}
+
+          <a.button.fill href=@{BookServicesR} role=button ##{idButtonBookService}>
+            _{MsgBookAService}
+
+    $else
+
+      $forall (Entity _ (Book _ _ _ time charge currency),(service,(workspace,employee))) <- books
+        <a.row.padding.wave href=#>
+          $with Entity sid (Service _ name _ price _ _ _) <- service
+            <img.circle src=@{DataR $ ServicePhotoDefaultR sid} loading=lazy alt=_{MsgPhoto}>
+
+            <div.max>
+              <div.#{classHeadline}.large-text>
+                #{name}
+
+              <div.#{classSupportingText}.secondary-text>
+                $with dt <- show time
+                  <time.#{classDaytime} datetime=#{dt}>#{dt}
+
+              <div.#{classCurrency}.#{classSupportingText}.secondary-text data-value=#{price} data-currency=#{currency}>
+                #{currency}#{price}
+
+          <i.secondary-text>arrow_forward_ios
+
+        <hr>
+
+
+  $if not (null books)
+    <a.button.extend.circle.fixed.right.bottom.margin.medium-elevate href=@{BookServicesR}
+             ##{idButtonBookService} title=_{MsgAdd}>
+      <i>add
+      <span>_{MsgBookAService}
 
 
   ^{widgetSnackbar msgs}

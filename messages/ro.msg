@@ -1,3 +1,5 @@
+Appointments: Programări
+Calendar: Calendar
 YouHaveNotBookedAnyServicesYet: Nu ați rezervat încă niciun serviciu
 MySchedule: Programul
 MyReservationsAndAppointments: Rezervările și programările mele

@@ -1,7 +1,7 @@
 
 <header.fixed ##{idHeader}>
   <nav>
-    <a.button.circle.transparent href=@?{(BookServicesR,stati)} role=button title=_{MsgBack} rel=prev>
+    <a.button.circle.transparent href=@?{(BookServicesR,stati)} role=button title=_{MsgBack} rel=prev ##{idLinkBack}>
       <i>arrow_back
 
     <h6.max>

@@ -169,5 +169,14 @@ keyThemeMode = "reservare_theme_mode"
 keyBacklinkAuth :: Text
 keyBacklinkAuth = "backlinkAuth"
 
-keyBacklink :: Text
-keyBacklink = "backlink"
+keyPrevSlots :: Text
+keyPrevSlots = "reservrePrevSlots"
+
+keyPrevTiming :: Text
+keyPrevTiming = "reservrePrevTiming"
+
+keyPrevStaff :: Text
+keyPrevStaff = "reservrePrevStaff"
+
+keyPrevServices :: Text
+keyPrevServices = "reservrePrevServices"

@@ -3,13 +3,14 @@ $doctype 5
 <html class="no-js" lang=#{lang}>
   <head>
 
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S3LLJ8KH28">
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+    $if not (dev $ appSettings master)
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-S3LLJ8KH28">
+      <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
 
-      gtag('config', 'G-S3LLJ8KH28');
+        gtag('config', 'G-S3LLJ8KH28');
 
     
     <meta charset="UTF-8">

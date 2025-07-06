@@ -6,10 +6,10 @@ window.addEventListener('scrollend', function (e) {
   sessionStorage.setItem(#{keyScrollTop2}, window.scrollY);
 });
 
-if (sessionStorage.getItem(#{keyBacklink})) {
-  document.querySelector('a[rel=prev][href]').href = sessionStorage.getItem(#{keyBacklink});
-}
 
-document.querySelector('a[rel=prev][href]').addEventListener('click', e => {
-  sessionStorage.removeItem(#{keyBacklink});
+document.getElementById(#{idLinkBack}).addEventListener('click', e => {
+  [sessionStorage.getItem(#{keyPrevStaff})].filter(x => URL.canParse(x)).forEach(x => {
+    e.target.href = x;
+    sessionStorage.removeItem(#{keyPrevStaff});
+  });
 });

@@ -1,7 +1,7 @@
 
 <header.fixed ##{idHeader}>
   <nav>
-    <a.button.circle.transparent href=@{homeR} role=button title=_{MsgClose}>
+    <a.button.circle.transparent href=@{homeR} role=button title=_{MsgClose} ##{idButtonClose}>
       <i>close
 
     <h6.max>

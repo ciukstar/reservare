@@ -8,7 +8,7 @@ module Handler.Home (getHomeR) where
 import Foundation
     ( Handler, widgetMainMenu, widgetAccount, widgetSnackbar
     , Route
-      ( CatalogR, AppointmentStaffR, BookServicesR, ScheduleR, StaticR
+      ( CatalogR, AppointmentStaffR, BookServicesR, UserScheduleR, StaticR
       )
     , AppMessage
       ( MsgWelcome, MsgAppName, MsgWelcomeTo, MsgMakeAnAppointment

@@ -35,7 +35,8 @@
 /atvenue  AtVenueR  AtVenue  getAtVenue
 
 
-/users/#UserId/schedule ScheduleR GET
+/users/#UserId/calendar/#Month UserCalendarR    GET
+/users/#UserId/schedule        UserScheduleR    GET
     
 /users/#UserId/businesses/#BusinessId/workspaces/#WorkspaceId/form/dele WorkspaceDeleR POST
 /users/#UserId/businesses/#BusinessId/workspaces/#WorkspaceId/form/edit WorkspaceEditR GET

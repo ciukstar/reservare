@@ -1,5 +1,4 @@
 
-
 document.querySelectorAll('time.full-datetime[datetime]').forEach(function (x) {
   x.textContent = new Date(x.getAttribute('datetime')).toLocaleDateString(
     navigator.language,
@@ -21,4 +20,12 @@ document.querySelectorAll('.currency[data-value][data-currency]').forEach(functi
     maximumFractionDigits: 2,
     useGrouping: true
   }).format(x.dataset.value / 100);
+});
+
+
+document.getElementById(#{idButtonClose}).addEventListener('click', e => {
+  [sessionStorage.getItem(#{keyPrevServices})].filter(x => URL.canParse(x)).forEach(x => {
+    e.target.href = x;
+    sessionStorage.removeItem(#{keyPrevServices});
+  });
 });

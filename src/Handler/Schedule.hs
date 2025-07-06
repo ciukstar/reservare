@@ -8,7 +8,8 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Handler.Schedule
-  ( getScheduleR
+  ( getUserScheduleR
+  , getUserCalendarR
   ) where
 
 
@@ -36,38 +37,38 @@ import Database.Esqueleto.Experimental
     , toSqlKey, val, where_, selectOne, Value (unValue), between
     , valList, just, subSelectList, justList, isNothing_, leftJoin
     )
-import Database.Persist (Entity (Entity), entityKey, insert)
+import Database.Persist (Entity (Entity))
 import Database.Persist.Sql (fromSqlKey)
 
 import Foundation
-    ( Handler, Form, App, Widget, widgetSnackbar
+    ( Handler, Form, Widget, widgetSnackbar
     , Route
-      ( HomeR, BookServicesR, BookStaffR, BookTimingR, BookTimeSlotsR
-      , BookPaymentR, AuthR, StripeR, YookassaR, AtVenueR, StaffPhotoR
-      , CatalogServicePhotoDefaultR, DataR
+      ( HomeR, UserCalendarR
+      , StaffPhotoR, DataR, UserScheduleR, BookServicesR
       )
     , DataR (ServicePhotoDefaultR)
     , AppMessage
       ( MsgMon, MsgTue, MsgWed, MsgThu, MsgFri, MsgSat, MsgSun
       , MsgServices, MsgNext, MsgServices, MsgThereAreNoDataYet, MsgClose
-      , MsgBack, MsgStaff, MsgAppointmentTime, MsgPaymentOption, MsgCancel
+      , MsgBack, MsgStaff, MsgPaymentOption, MsgCancel
       , MsgPaymentStatus, MsgReturnToHomePage, MsgService, MsgEmployee
-      , MsgSelect, MsgSelectTime, MsgAppointmentSetFor, MsgPrevious
+      , MsgSelect, MsgSelectTime, MsgPrevious
       , MsgSelectAvailableDayAndTimePlease, MsgEmployeeScheduleNotGeneratedYet
       , MsgNoEmployeesAvailableNow, MsgNoServicesWereFoundForSearchTerms
       , MsgInvalidFormData, MsgEmployeeWorkScheduleForThisMonthNotSetYet
-      , MsgBookingDetails, MsgPrice, MsgMobile, MsgPhone, MsgLocation
-      , MsgAddress, MsgFullName, MsgTheAppointment, MsgTheName, MsgDuration
+      , MsgPrice, MsgMobile, MsgPhone, MsgLocation
+      , MsgFullName, MsgTheAppointment, MsgTheName, MsgDuration
       , MsgPaymentGatewayNotSpecified, MsgNoPaymentsHaveBeenMadeYet
       , MsgPayments, MsgTotalCharge, MsgError, MsgNoPaymentOptionSpecified
-      , MsgWorkspaceWithoutPaymentOptions, MsgBusinesses, MsgWorkspaces
+      , MsgWorkspaceWithoutPaymentOptions, MsgCalendar, MsgAppointments
       , MsgSectors, MsgSelectServiceToBookPlease, MsgPhoto, MsgMySchedule
       , MsgMyReservationsAndAppointments, MsgYouHaveNotBookedAnyServicesYet
+      , MsgBookAService, MsgAdd, MsgHome
       )
     )
 
 import Model
-    ( statusError, keyBacklink, keyBacklinkAuth
+    ( statusError, keyPrevServices, keyBacklinkAuth
     , ServiceId, Service(Service)
     , WorkspaceId, Workspace (Workspace)
     , BusinessId, Business (Business)
@@ -99,8 +100,7 @@ import Model
 
 import Settings ( widgetFile )
 
-import Text.Cassius (cassius)
-import Text.Julius (julius, RawJS (rawJS))
+import Text.Julius (RawJS (rawJS))
 import Text.Hamlet (Html)
 import Text.Read (readMaybe)
 
@@ -115,7 +115,6 @@ import Yesod.Core
     , MonadHandler (liftHandler), handlerToWidget
     , SomeMessage (SomeMessage), ToWidget (toWidget)
     )
-import Yesod.Core.Types (HandlerFor)
 import Yesod.Core.Widget (setTitleI)
 import Yesod.Form
     ( FieldView(fvInput), Field (fieldView)
@@ -128,20 +127,11 @@ import Yesod.Form.Fields
     ( textField, intField, radioField', optionsPairs, OptionList (olOptions)
     , Option (optionExternalValue, optionInternalValue), datetimeLocalField
     )
-import Yesod.Form.Functions (generateFormPost, mreq, runFormPost)
 import Yesod.Persist.Core (YesodPersist(runDB))
 
 
-getScheduleR :: UserId -> Handler Html
-getScheduleR uid = do
-    
-    books <- runDB $ select $ do
-        x :& s :& w :& e <- from $ table @Book
-            `innerJoin` table @Service `on` (\(x :& s) -> x ^. BookService ==. s ^. ServiceId)
-            `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
-            `innerJoin` table @Staff `on` (\(x :& _ :& _ :& e) -> x ^. BookStaff ==. e ^. StaffId)
-        where_ $ x ^. BookCustomer ==. val uid
-        return (x,(s,(w,e)))
+getUserCalendarR :: UserId -> Month -> Handler Html
+getUserCalendarR uid month = do
     
     msgs <- getMessages
     defaultLayout $ do
@@ -150,9 +140,38 @@ getScheduleR uid = do
         idMain <- newIdent
         classHeadline <- newIdent
         classSupportingText <- newIdent
+        $(widgetFile "common/css/header")
+        $(widgetFile "common/css/main")
+        $(widgetFile "common/css/rows")
+        $(widgetFile "schedule/calendar/calendar")
+
+
+getUserScheduleR :: UserId -> Handler Html
+getUserScheduleR uid = do
+    
+    books <- runDB $ select $ do
+        x :& s :& w :& e <- from $ table @Book
+            `innerJoin` table @Service `on` (\(x :& s) -> x ^. BookService ==. s ^. ServiceId)
+            `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
+            `innerJoin` table @Staff `on` (\(x :& _ :& _ :& e) -> x ^. BookStaff ==. e ^. StaffId)
+        where_ $ x ^. BookCustomer ==. val uid
+        return (x,(s,(w,e)))
+
+    month <- (\(y,m,_) -> YearMonth y m) . toGregorian . utctDay <$> liftIO getCurrentTime
+
+    setUltDestCurrent
+    
+    msgs <- getMessages
+    defaultLayout $ do
+        setTitleI MsgMyReservationsAndAppointments 
+        idHeader <- newIdent
+        idMain <- newIdent
+        idButtonBookService <- newIdent
+        classHeadline <- newIdent
+        classSupportingText <- newIdent
         classDaytime <- newIdent
         classCurrency <- newIdent
         $(widgetFile "common/css/header")
         $(widgetFile "common/css/main")
         $(widgetFile "common/css/rows")
-        $(widgetFile "schedule/schedule") 
+        $(widgetFile "schedule/schedule")

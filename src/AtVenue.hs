@@ -2,7 +2,7 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeApplications #-}
@@ -23,7 +23,7 @@ import AtVenue.Data
 import Database.Persist.Sql (SqlBackend)
 
 import Model
-    ( statusSuccess, statusError
+    ( statusSuccess, statusError, keyPrevServices
     , BookId, PayOptionId, UserId
     )
 
@@ -54,6 +54,7 @@ getCheckoutR uid bid _oid = do
     liftHandler $ defaultLayout $ do
         setTitleI MsgPaymentStatus
         idHeader <- newIdent
+        idButtonClose <- newIdent
         idMain <- newIdent
         $(widgetFile "common/css/header")
         $(widgetFile "common/css/main")

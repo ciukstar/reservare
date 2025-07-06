@@ -1,3 +1,5 @@
+Appointments: Записи
+Calendar: Календарь
 YouHaveNotBookedAnyServicesYet: Вы еще не забронировали ни одной услуги
 MySchedule: Расписание
 MyReservationsAndAppointments: Мои бронирования и встречи

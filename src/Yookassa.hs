@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ViewPatterns      #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -35,7 +35,7 @@ import Database.Persist.Sql (SqlBackend, insert)
 
 import Model
     ( endpointYookassa
-    , ultDestKey, statusSuccess, statusError
+    , ultDestKey, statusSuccess, statusError, keyPrevServices
     , BookId, PayOptionId
     , Service (Service)
     , Workspace (Workspace), Book
@@ -119,6 +119,7 @@ getCompletionR uid bid pid paymentId = do
     liftHandler $ defaultLayout $ do
         setTitleI MsgPaymentStatus
         idHeader <- newIdent
+        idButtonClose <- newIdent
         idMain <- newIdent
         $(widgetFile "common/css/header")
         $(widgetFile "common/css/main")

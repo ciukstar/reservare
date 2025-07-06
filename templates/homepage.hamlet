@@ -31,7 +31,7 @@
       _{MsgMakeAnAppointment}
 
     $maybe uid <- uid
-      <a.button.transparent.border href=@{ScheduleR uid} role=button>
+      <a.button.transparent.border href=@{UserScheduleR uid} role=button>
         _{MsgMyReservationsAndAppointments}
     
 
