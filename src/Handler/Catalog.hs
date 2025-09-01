@@ -18,7 +18,7 @@ module Handler.Catalog
   , getCatalogBusinessLogoR
   ) where
 
-import Control.Monad (unless, join)
+import Control.Monad (unless)
 
 import Data.Bifunctor (Bifunctor(second, first))
 import qualified Data.Map as M
@@ -151,7 +151,7 @@ getCatalogStaffScheduleR sid aid month = do
 
     today <- liftIO $ utctDay <$> getCurrentTime
     
-    assignment <- ((second (join . unValue) <$>) <$>) $ runDB $ selectOne $ do
+    assignment <- ((second unValue <$>) <$>) $ runDB $ selectOne $ do
         x :& f <- from $ table @Assignment
             `leftJoin` table @StaffPhoto `on` (\(x :& f) -> just (x ^. AssignmentStaff) ==. f ?. StaffPhotoStaff)
         where_ $ x ^. AssignmentId ==. val aid
@@ -193,7 +193,7 @@ getCatalogServiceAssignmentR sid aid = do
 
     stati <- reqGetParams <$> getRequest
     
-    assignment <- (second (join . unValue) <$>) <$> runDB ( selectOne $ do
+    assignment <- (second unValue <$>) <$> runDB ( selectOne $ do
         x :& s :& w :& b :& e :& f <- from $ table @Assignment
             `innerJoin` table @Service `on` (\(x :& s) -> x ^. AssignmentService ==. s ^. ServiceId)
             `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
@@ -242,7 +242,7 @@ getCatalogServiceBusinessR :: ServiceId -> Handler Html
 getCatalogServiceBusinessR sid = do
     stati <- reqGetParams <$> getRequest
 
-    workspace <- (first (second (second (join . unValue))) <$>) <$> runDB ( selectOne $ do
+    workspace <- (first (second (second unValue)) <$>) <$> runDB ( selectOne $ do
         x :& w :& b :& l :& o <- from $ table @Service
             `innerJoin` table @Workspace `on` (\(x :& w) -> x ^. ServiceWorkspace ==. w ^. WorkspaceId)
             `innerJoin` table @Business `on` (\(_ :& w :& b) -> w ^. WorkspaceBusiness ==. b ^. BusinessId)

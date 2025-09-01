@@ -27,7 +27,7 @@ module Handler.Data.Sectors
   ) where
 
 import Control.Applicative ((<|>))
-import Control.Monad (void, join)
+import Control.Monad (void)
 
 import Data.Bifunctor (Bifunctor(bimap, second))
 import qualified Data.List.Safe as LS (last)
@@ -361,7 +361,7 @@ getSectorServiceAssignmentsR :: SectorId -> ServiceId -> Sectors -> Handler Html
 getSectorServiceAssignmentsR gid sid ps = do
     stati <- reqGetParams <$> getRequest
 
-    assignments <- (second (second (second (second(second (join . unValue))))) <$>) <$> runDB ( select $ do
+    assignments <- (second (second (second (second (second unValue)))) <$>) <$> runDB ( select $ do
         x :& s :& w :& b :& e :& f <- from $ table @Assignment
             `innerJoin` table @Service `on` (\(x :& s) -> x ^. AssignmentService ==. s ^. ServiceId)
             `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)

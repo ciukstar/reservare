@@ -32,7 +32,7 @@ module Handler.Data.Staff
   , postStaffScheduleFillFromPreviousMonthR
   ) where
 
-import Control.Monad (void, forM_, join)
+import Control.Monad (void, forM_)
 
 import Data.Bifunctor (Bifunctor(second, bimap))
 import qualified Data.Map as M (Map, fromListWith, member, notMember, lookup)
@@ -882,7 +882,7 @@ formEmployeeDelete extra = return (pure (), [whamlet|#{extra}|])
 getStaffR :: Handler Html
 getStaffR = do
 
-    staff <- (bimap (second (join . unValue)) unValue <$>) <$> runDB ( select $ do
+    staff <- (bimap (second unValue) unValue <$>) <$> runDB ( select $ do
         x :& f <- from $ table @Staff
             `leftJoin` table @StaffPhoto `on` (\(x :& f) -> just (x ^. StaffId) ==. f ?. StaffPhotoStaff)
 

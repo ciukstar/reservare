@@ -8,7 +8,7 @@
 {-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes  #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Foundation where
@@ -28,6 +28,7 @@ import Data.Kind (Type)
 import qualified Data.Text as T (intercalate)
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy.Encoding as TLE (encodeUtf8)
+import Data.Type.Equality (type (~))
 
 import Database.Esqueleto.Experimental
     ( selectOne, from, table, where_, val

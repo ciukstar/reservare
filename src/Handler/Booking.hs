@@ -20,7 +20,7 @@ module Handler.Booking
 
 import qualified AtVenue.Data as V (Route(CheckoutR))
 
-import Control.Monad (unless, forM_, when, join)
+import Control.Monad (unless, forM_, when)
 
 import Data.Bifunctor (Bifunctor(first,bimap, second))
 import Data.Foldable (find)
@@ -887,7 +887,7 @@ getBookStaffR = do
 formStaff :: Maybe ServiceId -> Maybe StaffId -> Form (ServiceId,StaffId)
 formStaff sid eid extra = do
 
-    staff <- (second (join . unValue) <$>) <$> liftHandler ( runDB ( select $ do
+    staff <- (second unValue <$>) <$> liftHandler ( runDB ( select $ do
         x :& e :& f <- from $ table @Assignment
             `innerJoin` table @Staff `on` (\(x :& e) -> x ^. AssignmentStaff ==. e ^. StaffId)
             `leftJoin` table @StaffPhoto `on` (\(_ :& e :& f) -> just (e ^. StaffId) ==. f ?. StaffPhotoStaff)

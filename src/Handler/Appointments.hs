@@ -16,7 +16,7 @@ module Handler.Appointments
 
 import qualified AtVenue.Data as V (Route(CheckoutR))
 
-import Control.Monad (when, unless, forM_, join)
+import Control.Monad (when, unless, forM_)
 
 import Data.Bifunctor (Bifunctor(first,bimap, second))
 import Data.Foldable (find)
@@ -914,7 +914,7 @@ formAssignments :: [SectorId] -> [BusinessId] -> [WorkspaceId] -> [ServiceId] ->
                 -> Maybe AssignmentId -> Form (AssignmentId,(StaffId,ServiceId))
 formAssignments tids bids wids sids roles aid extra = do
 
-    assignments <- (second (join . unValue) <$>) <$> liftHandler ( runDB ( select $ do
+    assignments <- (second unValue <$>) <$> liftHandler ( runDB ( select $ do
         x :& e :& s :& w :& b :& f <- from $ table @Assignment
             `innerJoin` table @Staff `on` (\(x :& e) -> x ^. AssignmentStaff ==. e ^. StaffId)
             `innerJoin` table @Service `on` (\(x :& _ :& s) -> x ^. AssignmentService ==. s ^. ServiceId)

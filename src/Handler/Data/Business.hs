@@ -59,7 +59,7 @@ module Handler.Data.Business
   , postWorkspaceServiceAssignmentDeleR
   ) where
 
-import Control.Monad (join, void)
+import Control.Monad (void)
 
 import Data.Bifunctor (first, second)
 
@@ -353,7 +353,7 @@ getBusinessServiceAssignmentsR :: BusinessId -> ServiceId -> Handler Html
 getBusinessServiceAssignmentsR bid sid = do
     stati <- reqGetParams <$> getRequest
 
-    assignments <- (second (second (second (second(second (join . unValue))))) <$>) <$> runDB ( select $ do
+    assignments <- (second (second (second (second (second unValue)))) <$>) <$> runDB ( select $ do
         x :& s :& w :& b :& e :& f <- from $ table @Assignment
             `innerJoin` table @Service `on` (\(x :& s) -> x ^. AssignmentService ==. s ^. ServiceId)
             `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
@@ -1047,7 +1047,7 @@ getWorkspaceServiceAssignmentsR :: BusinessId -> WorkspaceId -> ServiceId -> Han
 getWorkspaceServiceAssignmentsR bid wid sid = do
     stati <- reqGetParams <$> getRequest
 
-    assignments <- (second (second (second (second(second (join . unValue))))) <$>) <$> runDB ( select $ do
+    assignments <- (second (second (second (second (second unValue)))) <$>) <$> runDB ( select $ do
         x :& s :& w :& b :& e :& f <- from $ table @Assignment
             `innerJoin` table @Service `on` (\(x :& s) -> x ^. AssignmentService ==. s ^. ServiceId)
             `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)
@@ -2414,7 +2414,7 @@ formBusiness business extra = do
 getDataBusinessesR :: Handler Html
 getDataBusinessesR = do
 
-    businesses <- ((second (join . unValue) <$>) <$>) $ runDB $ select $ do
+    businesses <- ((second unValue <$>) <$>) $ runDB $ select $ do
         x :& l <- from $ table @Business
             `leftJoin` table @BusinessLogo `on` (\(x :& l) -> just (x ^. BusinessId) ==. l ?. BusinessLogoBusiness)
         orderBy [desc (x ^. BusinessId)]

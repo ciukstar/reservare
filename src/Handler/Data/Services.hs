@@ -27,7 +27,7 @@ module Handler.Data.Services
   ) where
 
 
-import Control.Monad (void, unless, when, join)
+import Control.Monad (void, unless, when)
 
 import Data.Bifunctor (Bifunctor(bimap, second))
 import qualified Data.Map as M (fromListWith, findWithDefault)
@@ -363,7 +363,7 @@ getServiceAssignmentsR :: ServiceId -> Handler Html
 getServiceAssignmentsR sid = do
     stati <- reqGetParams <$> getRequest
 
-    assignments <- (second (second (second (second(second (join . unValue))))) <$>) <$> runDB ( select $ do
+    assignments <- (second (second (second (second (second unValue)))) <$>) <$> runDB ( select $ do
         x :& s :& w :& b :& e :& f <- from $ table @Assignment
             `innerJoin` table @Service `on` (\(x :& s) -> x ^. AssignmentService ==. s ^. ServiceId)
             `innerJoin` table @Workspace `on` (\(_ :& s :& w) -> s ^. ServiceWorkspace ==. w ^. WorkspaceId)

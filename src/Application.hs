@@ -26,7 +26,8 @@ import AtVenue.Data (AtVenue(AtVenue))
 
 import Control.Monad.Logger (liftLoc, runLoggingT)
 import Database.Persist.Sqlite
-    ( runSqlPool, sqlDatabase, createSqlitePoolWithConfig )
+    ( runSqlPool, sqlDatabase, createSqlitePoolWithConfig
+    )
 
 import Demo.DemoEn (fillDemoEn)
 import Demo.DemoFr (fillDemoFr)

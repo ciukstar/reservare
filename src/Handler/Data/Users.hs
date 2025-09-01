@@ -11,7 +11,7 @@ module Handler.Data.Users
   , postUserR
   ) where
 
-import Control.Monad (void, join)
+import Control.Monad (void)
 
 import Data.Bifunctor (Bifunctor(second))
 import Data.Text (Text)
@@ -98,7 +98,7 @@ postUserDeleR uid = do
           redirect $ DataR $ UserR uid
       _otherwise -> do
 
-          user <- (second (join . unValue) <$>) <$> runDB ( selectOne $ do
+          user <- (second unValue <$>) <$> runDB ( selectOne $ do
               x :& h <- from $ table @User
                   `leftJoin` table @UserPhoto `on` (\(x :& h) -> just (x ^. UserId) ==. h ?. UserPhotoUser)
               where_ $ x ^. UserId ==. val uid
@@ -174,7 +174,7 @@ postUserR uid = do
 getUserR :: UserId -> Handler Html
 getUserR uid = do
 
-    user <- ((second (join . unValue) <$>) <$>) $ runDB $ selectOne $ do
+    user <- ((second unValue <$>) <$>) $ runDB $ selectOne $ do
         x :& h <- from $ table @User
             `leftJoin` table @UserPhoto `on` (\(x :& h) -> just (x ^. UserId) ==. h ?. UserPhotoUser)
         where_ $ x ^. UserId ==. val uid
@@ -250,7 +250,7 @@ formUser user extra = do
 getUsersR :: Handler Html
 getUsersR = do
 
-    users <- (second (join . unValue) <$>) <$> runDB ( select $ do
+    users <- (second unValue <$>) <$> runDB ( select $ do
         x :& h <- from $ table @User
             `leftJoin` table @UserPhoto `on` (\(x :& h) -> just (x ^. UserId) ==. h ?. UserPhotoUser)
         orderBy [desc (x ^. UserId)]

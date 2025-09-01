@@ -1,1 +1,3 @@
-User-agent: *
+User-agent: GPTBot
+Disallow: /
+Allow: /resources/docs
