@@ -1,7 +1,7 @@
 
 <div.overlay ##{idOverlay}>
 
-<dialog.left.primary ##{idDialogMainMenu}>
+<dialog.left.horizontal-padding.primary ##{idDialogMainMenu}>
 
   <header.fixed.max>
     <nav.margin.small-margin>
@@ -31,6 +31,7 @@
 
 
   <ol.list>
+      
     <li.wave.round :curr == Just (DataR ServicesR):.active>
       <a href=@{DataR ServicesR}>
         <i>room_service

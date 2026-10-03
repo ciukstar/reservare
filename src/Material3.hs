@@ -46,7 +46,7 @@ md3widgetSelect v = [whamlet|
         <sup>*
     <i>arrow_drop_down
     $maybe err <- fvErrors v
-      <span.error>#{err}
+      <output.invalid>#{err}
 |]
 
     
@@ -60,7 +60,7 @@ md3widgetSwitch v = [whamlet|
           #{fvLabel v}
 
       $maybe err <- fvErrors v
-        <span.error>#{err}
+        <output.invalid>#{err}
 |]
 
 
@@ -85,7 +85,7 @@ md3widgetFile v = do
           ^{fvInput v}
 
         $maybe err <- fvErrors v
-          <span.error-text>#{err}
+          <output.invalid>#{err}
     |]
 
     
@@ -98,7 +98,7 @@ md3widgetTextarea v = [whamlet|
       $if fvRequired v
         <sup>*
     $maybe err <- fvErrors v
-      <span.error>#{err}
+      <output.invalid>#{err}
 |]
 
 
@@ -113,7 +113,7 @@ md3widget v = [whamlet|
         <sup>*
 
     $maybe err <- fvErrors v
-      <span.error>#{err}
+      <output.invalid>#{err}
 |]
 
 

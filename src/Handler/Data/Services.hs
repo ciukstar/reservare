@@ -561,9 +561,9 @@ formService service extra = do
                           $if fvRequired durationV
                             <sup>*
                       $maybe err <- fvErrors durationV
-                        <span.error>#{err}
+                        <output.invalid>#{err}
                       $nothing
-                        <span.helper>_{MsgUnitMinutes}
+                        <output>_{MsgUnitMinutes}
                     
                     ^{md3widgetSelect typeV}
                     |]
